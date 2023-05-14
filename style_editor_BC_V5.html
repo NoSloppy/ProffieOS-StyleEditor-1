@@ -9483,18 +9483,6 @@ function ClickMelt() {
   UpdateLockupButtons();
 }
 
-function ClickInhilt() {
-  STATE_NUM_LEDS = 145 - STATE_NUM_LEDS;
-  var inhiltButton = FIND("INHILT_BUTTON");
-  inhiltButton.style.backgroundColor = STATE_NUM_LEDS == 1 ? "lightblue" : "";
-}
-
-function ClickSlow() {
-  framesPerUpdate = 60 - framesPerUpdate;
-  var slowButton = FIND("SLOW_BUTTON");
-  slowButton.style.backgroundColor = framesPerUpdate == 60 ? "lightblue" : "";
-}
-
 /* Settings buttons saved as local cookies */
 function getSettingFromLocalStorage(settingType) {
   var value = localStorage.getItem(settingType);
@@ -9546,9 +9534,10 @@ function onPageLoad() {
 
   // DARK_BUTTON
   var structuredView = document.getElementById("structured-view");
-  document.getElementById("DARK_BUTTON").checked = darkmodeOn;
+  var darkButton = document.getElementById("DARK_BUTTON");
+  darkButton.checked = darkmodeOn;
   toggleDarkMode(darkmodeOn);
-  document.getElementById("DARK_BUTTON").addEventListener("click", function() {
+  darkButton.addEventListener("click", function() {
     toggleDarkMode(this.checked);
     saveSettingToLocalStorage("darkmodeState", this.checked);
   });
@@ -9572,15 +9561,31 @@ function onPageLoad() {
   }
 
   // GRAFLEX_BUTTON
-    document.getElementById("GRAFLEX_BUTTON").checked = use_graflex;
-    var graflexButton = document.getElementById("GRAFLEX_BUTTON");
-    graflexButton.addEventListener("click", function() {
+  var graflexButton = document.getElementById("GRAFLEX_BUTTON");
+  graflexButton.checked = use_graflex;
+  graflexButton.addEventListener("click", function() {
     use_graflex = graflexButton.checked;
     saveSettingToLocalStorage("graflexState", use_graflex);
     compile();
   });
 
-// WAVLEN_VALUE
+  //INHILT_BUTTON
+  var inhiltButton = document.getElementById("INHILT_BUTTON");
+  inhiltButton.checked = use_inhilt;
+  inhiltButton.addEventListener("click", function() {
+    use_inhilt = inhiltButton.checked;
+    saveSettingToLocalStorage("inhiltState", use_inhilt);
+  });
+  
+  // SLOW_BUTTON
+  var slowButton = document.getElementById("SLOW_BUTTON");
+  slowButton.checked = use_slow;
+  slowButton.addEventListener("click", function() {
+    use_slow = slowButton.checked;
+    saveSettingToLocalStorage("slowState", use_slow);
+  });
+
+  // WAVLEN_VALUE
   const wavlenInput = document.getElementById("WAVLEN_VALUE");
     wavlenInput.value = wavlenValue;
     myWavLen.setLength(wavlenValue);
@@ -9693,6 +9698,14 @@ function toggleSettingState(elementId, settingType) {
       use_graflex = settingValue;
       compile();
       break;
+    case "INHILT_BUTTON":
+      use_inhilt = settingValue;
+      STATE_NUM_LEDS = 145 - STATE_NUM_LEDS;
+      break;
+    case "SLOW_BUTTON":
+      use_slow = settingValue;
+      framesPerUpdate = 60 - framesPerUpdate;
+      break;
   }
 }
 
@@ -9709,7 +9722,12 @@ function ClickTips() {
 function ClickGraflex() {
   toggleSettingState("GRAFLEX_BUTTON", "graflexState");
 }
-
+function ClickInhilt() {
+  toggleSettingState("INHILT_BUTTON", "inhiltState");
+}
+function ClickSlow() {
+  toggleSettingState("SLOW_BUTTON", "slowState");
+}
   var num_alternatives = 1000;
 
   function Alt() {
@@ -10140,14 +10158,6 @@ function ClickGraflex() {
             type=button id="ROTATE_BUTTON" name=rotate value="Rotate"
             title="Toggles animation of the preview blade above."
             onclick="ClickRotate()" >
-          <input
-            type=button id="INHILT_BUTTON" name=inhilt value="Inhilt" 
-            title="Simulates In-Hilt LED blades, (no addressable pixel effects)."
-            onclick="ClickInhilt()" >
-          <input
-            type=button id="SLOW_BUTTON" name=inhilt value="Slow"
-            title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement."
-            onclick="ClickSlow()" >
         </span>
 
       <br>
@@ -10187,6 +10197,20 @@ function ClickGraflex() {
               type="checkbox" id="GRAFLEX_BUTTON" name=graflex
               onclick="ClickGraflex()" checked>
             <span class="graflex-button-label">Graflex Hilt</span>
+          </label>
+
+          <label title="Simulates In-Hilt LED blades, (no addressable pixel effects)." >
+            <input
+              type="checkbox" id="INHILT_BUTTON" name=inhilt
+              onclick="ClickInhilt()" >
+            <span class="inhilt-button-label">Inhilt LED</span>
+          </label>
+
+          <label title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement." >
+            <input
+              type="checkbox" id="SLOW_BUTTON" name=slow
+              onclick="ClickSlow()" >
+            <span class="slow-button-label">Slow</span>
           </label>
 
           <label title="Enter a custom WavLen value in milliseconds." class="wavlen-label">
