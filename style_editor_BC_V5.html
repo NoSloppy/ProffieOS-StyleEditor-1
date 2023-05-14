@@ -9025,8 +9025,8 @@ function drawScene() {
   if (bad_fps > 10 && use_graflex) {
     FIND("error_message").innerHTML = "Struggling to render hilt model. Switching to simpler design. To re-enable Graflex model, goto Settings.";
     use_graflex = false;
-    saveSettingToLocalStorage("graflexState", false);
-    document.getElementById("GRAFLEX_BUTTON").checked = false;
+    saveCookie("graflexState", false);
+    FIND("GRAFLEX_BUTTON").checked = false;
     compile();
   }
   num_leds = blade.num_leds()
@@ -9484,7 +9484,7 @@ function ClickMelt() {
 }
 
 /* Settings buttons saved as local cookies */
-function getSettingFromLocalStorage(settingType) {
+function getSavedCookie(settingType) {
   var value = localStorage.getItem(settingType);
   if (value === null) {
     if (settingType === "graflexState") {
@@ -9499,7 +9499,7 @@ function getSettingFromLocalStorage(settingType) {
 }
 
 
-function saveSettingToLocalStorage(settingType, settingValue) {
+function saveCookie(settingType, settingValue) {
   localStorage.setItem(settingType, settingValue);
 }
 
@@ -9511,16 +9511,16 @@ var wavlenValue;
 
 function onPageLoad() {
   // Retrieve the values of the settings from local storage
-  var stillOn = getSettingFromLocalStorage("stillState");
-  var darkmodeOn = getSettingFromLocalStorage("darkmodeState");
+  var stillOn = getSavedCookie("stillState");
+  var darkmodeOn = getSavedCookie("darkmodeState");
   // Tool Tips should default to On
-  var tipsOn = getSettingFromLocalStorage("tooltipsState") === null ? true : getSettingFromLocalStorage("tooltipsState");
-  wavlenValue = parseInt(getSettingFromLocalStorage("wavlenValue"));
+  var tipsOn = getSavedCookie("tooltipsState") === null ? true : getSavedCookie("tooltipsState");
+  wavlenValue = parseInt(getSavedCookie("wavlenValue"));
   // Handle if Wavlen checkbox turned on but value not changed
   if (!wavlenValue) {
     wavlenValue = 500;
   }
-  var graflexOn = getSettingFromLocalStorage("graflexState") === true;
+  var graflexOn = getSavedCookie("graflexState") === true;
   if (graflexOn !== undefined) {
     use_graflex = graflexOn;
   }
@@ -9529,21 +9529,21 @@ function onPageLoad() {
   var body = document.querySelector("body");
 
   // STILL_BUTTON
-  document.getElementById("STILL_BUTTON").checked = stillOn;
+  FIND("STILL_BUTTON").checked = stillOn;
   STATE_STILL = stillOn;
 
   // DARK_BUTTON
-  var structuredView = document.getElementById("structured-view");
-  var darkButton = document.getElementById("DARK_BUTTON");
+  var structuredView = FIND("structured-view");
+  var darkButton = FIND("DARK_BUTTON");
   darkButton.checked = darkmodeOn;
   toggleDarkMode(darkmodeOn);
   darkButton.addEventListener("click", function() {
     toggleDarkMode(this.checked);
-    saveSettingToLocalStorage("darkmodeState", this.checked);
+    saveCookie("darkmodeState", this.checked);
   });
 
   // TIPS_BUTTON
-  document.getElementById("TIPS_BUTTON").checked = tipsOn;
+  FIND("TIPS_BUTTON").checked = tipsOn;
   if (tipsOn) {
     body.classList.remove("tooltips-disabled");
     const elementsWithDataTitles = document.querySelectorAll("[data-title]");
@@ -9561,38 +9561,38 @@ function onPageLoad() {
   }
 
   // GRAFLEX_BUTTON
-  var graflexButton = document.getElementById("GRAFLEX_BUTTON");
+  var graflexButton = FIND("GRAFLEX_BUTTON");
   graflexButton.checked = use_graflex;
   graflexButton.addEventListener("click", function() {
     use_graflex = graflexButton.checked;
-    saveSettingToLocalStorage("graflexState", use_graflex);
+    saveCookie("graflexState", use_graflex);
     compile();
   });
 
   //INHILT_BUTTON
-  var inhiltButton = document.getElementById("INHILT_BUTTON");
+  var inhiltButton = FIND("INHILT_BUTTON");
   inhiltButton.checked = use_inhilt;
   inhiltButton.addEventListener("click", function() {
     use_inhilt = inhiltButton.checked;
-    saveSettingToLocalStorage("inhiltState", use_inhilt);
+    saveCookie("inhiltState", use_inhilt);
   });
-  
+
   // SLOW_BUTTON
-  var slowButton = document.getElementById("SLOW_BUTTON");
+  var slowButton = FIND("SLOW_BUTTON");
   slowButton.checked = use_slow;
   slowButton.addEventListener("click", function() {
     use_slow = slowButton.checked;
-    saveSettingToLocalStorage("slowState", use_slow);
+    saveCookie("slowState", use_slow);
   });
 
   // WAVLEN_VALUE
-  const wavlenInput = document.getElementById("WAVLEN_VALUE");
+  const wavlenInput = FIND("WAVLEN_VALUE");
     wavlenInput.value = wavlenValue;
     myWavLen.setLength(wavlenValue);
   // Listen for changes to the WAVLEN_VALUE element
   wavlenInput.addEventListener("input", function() {
     var value = parseInt(this.value);
-    saveSettingToLocalStorage("wavlenValue", parseInt(value));
+    saveCookie("wavlenValue", parseInt(value));
     myWavLen.setLength(value);
   });
 
@@ -9600,7 +9600,7 @@ function onPageLoad() {
 
 function toggleDarkMode(darkmodeOn) {
   var body = document.querySelector("body");
-  var structuredView = document.getElementById("structured-view");
+  var structuredView = FIND("structured-view");
   if (darkmodeOn) {
     body.classList.add("dark-mode");
     structuredView.classList.add("dark-mode");
@@ -9611,9 +9611,9 @@ function toggleDarkMode(darkmodeOn) {
 }
 
 function toggleSettingsPanel() {
-  var settingsButtonContainer = document.getElementById("settings-button-container");
-  var settingsButton = document.getElementById("SETTINGS_BUTTON");
-  var settingsPanel = document.getElementById("settings-panel");
+  var settingsButtonContainer = FIND("settings-button-container");
+  var settingsButton = FIND("SETTINGS_BUTTON");
+  var settingsPanel = FIND("settings-panel");
   // Totally not needed, but nice when it tracks with the button
   function updatePanelPosition() {
     // Get button position
@@ -9665,8 +9665,8 @@ function toggleSettingsPanel() {
 
 
 function toggleSettingState(elementId, settingType) {
-  var settingValue = document.getElementById(elementId).checked;
-  saveSettingToLocalStorage(settingType, settingValue);
+  var settingValue = FIND(elementId).checked;
+  saveCookie(settingType, settingValue);
   var body = document.querySelector("body");
 
   switch (elementId) {
@@ -9753,8 +9753,8 @@ function ClickSlow() {
     } else if (newValue > 32768) {
       newValue = 32768;
     }
-    document.getElementById("VARIANT_VALUE").value = newValue;
-    document.getElementById("VARIANT_SLIDER").value = newValue;
+    FIND("VARIANT_VALUE").value = newValue;
+    FIND("VARIANT_SLIDER").value = newValue;
     console.log("Updated Variant: " + newValue);
   }
 
@@ -9778,7 +9778,7 @@ function ClickSlow() {
   }
 
   function adjustmentValue(adjustment, inputId) {
-    var variantInput = document.getElementById(inputId);
+    var variantInput = FIND(inputId);
     var newValue = parseInt(variantInput.value) + adjustment;
     variantInput.value = newValue;
     updateVariantValue(newValue);
@@ -9983,8 +9983,8 @@ function ClickSlow() {
       
       <script>
          // Get the menu and button elements
-        const menu = document.getElementById('more_effects_menu');
-        const button = document.getElementById('do-selected');
+        const menu = FIND('more_effects_menu');
+        const button = FIND('do-selected');
 
         // Create a dictionary to store actions for each item
         const actions = {};
