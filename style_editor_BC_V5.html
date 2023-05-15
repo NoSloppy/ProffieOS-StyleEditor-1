@@ -374,7 +374,6 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
 #settings-panel label input[type="checkbox"] {
   margin-right: 8px;
 }
-/* Align Wavlen Settings label */
 .wavlen-label {
   display: block;
   margin-top: 5px;
@@ -7286,11 +7285,11 @@ class WavLenClass extends FUNCTION {
 
   setLength(value) {
     this.wavlenValue = value;
-     // console.log("BC-setLength-this.wavlenValue;:", this.wavlenValue);
+    // console.log("BC-setLength-this.wavlenValue;:", this.wavlenValue);
   }
 
   getInteger(led) {
-     // console.log("BC-myWavLen.wavlenValue: ", myWavLen.wavlenValue);
+    // console.log("BC-myWavLen.wavlenValue: ", myWavLen.wavlenValue);
     return myWavLen.wavlenValue;
   }
 };
@@ -9509,13 +9508,12 @@ var wavlenValue;
 
 function onPageLoad() {
   // Retrieve saved cookies and set buttons and settings accordingly
-var body = document.querySelector("body");
+  var body = document.querySelector("body");
 
   // STILL_BUTTON
   var stillButton = FIND("STILL_BUTTON");
   var stillState = getSavedCookie("stillState");
-      // console.log("BC-getSavedCookie called, stillState = " + stillState);
-
+  // console.log("BC-getSavedCookie called, stillState = " + stillState);
   if (stillState === "true") {
     stillButton.checked = true;
     stillOn = true;
@@ -9526,8 +9524,7 @@ var body = document.querySelector("body");
   var darkButton = FIND("DARK_BUTTON");
   var darkState = getSavedCookie("darkState");
   var structuredView = FIND("structured-view")
-      // console.log("BC-getSavedCookie called, darkState = " + darkState);
-
+  // console.log("BC-getSavedCookie called, darkState = " + darkState);
   if (darkState !== "false") {
     darkButton.checked = true;
     darkOn = true;
@@ -9538,14 +9535,13 @@ var body = document.querySelector("body");
     darkOn = false;
     body.classList.remove("dark-mode");
     structuredView.classList.remove("dark-mode");
-
   }
   // console.log("BC-darkOn = " + darkOn);
+
   // TIPS_BUTTON
   var tipsButton = FIND("TIPS_BUTTON");
   var tipsState = getSavedCookie("tipsState");
-      // console.log("BC-getSavedCookie called, tipsState = " + tipsState);
-
+  // console.log("BC-getSavedCookie called, tipsState = " + tipsState);
   if (tipsState !== "false") {
     tipsButton.checked = true;
     tipsOn = true;
@@ -9570,8 +9566,7 @@ var body = document.querySelector("body");
   // INHILT_BUTTON
   var inhiltButton = FIND("INHILT_BUTTON");
   var inhiltState = getSavedCookie("inhiltState");
-      // console.log("BC-getSavedCookie called, inhiltState = " + inhiltState);
-
+  // console.log("BC-getSavedCookie called, inhiltState = " + inhiltState);
   if (inhiltState === "true") {
     inhiltButton.checked = true;
     inhiltOn = true;
@@ -9582,8 +9577,7 @@ var body = document.querySelector("body");
   // SLOW_BUTTON
   var slowButton = FIND("SLOW_BUTTON");
   var slowState = getSavedCookie("slowState");
-      // console.log("BC-getSavedCookie called, slowState = " + slowState);
-
+  // console.log("BC-getSavedCookie called, slowState = " + slowState);
   if (slowState === "true") {
     slowButton.checked = true;
     slowOn = true;
@@ -9591,16 +9585,15 @@ var body = document.querySelector("body");
   }
   // console.log("BC-slowOn = " + slowOn);
 
-
   // WAVLEN_VALUE
   var wavlenInput = FIND("WAVLEN_VALUE");
   wavlenValue = parseInt(getSavedCookie("wavlenValue"));
-    if (!wavlenValue) {
+  if (!wavlenValue) {
     wavlenValue = 500;
   }
-      // console.log("BC-getSavedCookie called, wavlenValue = " + wavlenValue);
-    wavlenInput.value = wavlenValue;
-    myWavLen.setLength(wavlenValue);
+  // console.log("BC-getSavedCookie called, wavlenValue = " + wavlenValue);
+  wavlenInput.value = wavlenValue;
+  myWavLen.setLength(wavlenValue);
   // Listen for changes to the WAVLEN_VALUE element
   wavlenInput.addEventListener("input", function() {
     var value = parseInt(this.value);
@@ -9612,8 +9605,7 @@ var body = document.querySelector("body");
   // GRAFLEX_BUTTON - must be last here because calling compile() means no coming back.
   var graflexButton = FIND("GRAFLEX_BUTTON");
   var graflexState = getSavedCookie("graflexState");
-      // console.log("BC-getSavedCookie called, graflexState = " + graflexState);
-
+  // console.log("BC-getSavedCookie called, graflexState = " + graflexState);
   if (graflexState !== "false") {
     use_graflex = true;
     graflexButton.checked = true;
@@ -9648,7 +9640,7 @@ function toggleSettingsPanel() {
   // Show/hide panel
   settingsPanel.classList.toggle("show");
 
-  // Add mouseleave event listener
+  // Mouseleave event listener
   if (settingsPanel.classList.contains("show")) {
     var timeoutId = null;
     settingsPanel.addEventListener("mouseleave", function(e) {
@@ -9685,6 +9677,7 @@ function toggleSettingsPanel() {
     saveCookie("stillState", stillOn);
     // console.log("BC-Clickstill called, stillOn = " + stillOn);
   }
+ 
   function ClickDark() {
     var body = document.querySelector("body");
     var structuredView = FIND("structured-view");
