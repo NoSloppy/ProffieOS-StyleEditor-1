@@ -7286,11 +7286,11 @@ class WavLenClass extends FUNCTION {
 
   setLength(value) {
     this.wavlenValue = value;
-     console.log("BC-setLength-this.wavlenValue;:", this.wavlenValue);
+     // console.log("BC-setLength-this.wavlenValue;:", this.wavlenValue);
   }
 
   getInteger(led) {
-     console.log("BC-myWavLen.wavlenValue: ", myWavLen.wavlenValue);
+     // console.log("BC-myWavLen.wavlenValue: ", myWavLen.wavlenValue);
     return myWavLen.wavlenValue;
   }
 };
@@ -9514,19 +9514,19 @@ var body = document.querySelector("body");
   // STILL_BUTTON
   var stillButton = FIND("STILL_BUTTON");
   var stillState = getSavedCookie("stillState");
-      console.log("BC-getSavedCookie called, stillState = " + stillState);
+      // console.log("BC-getSavedCookie called, stillState = " + stillState);
 
   if (stillState === "true") {
     stillButton.checked = true;
     stillOn = true;
   }
-  console.log("BC-stillOn = " + stillOn);
+  // console.log("BC-stillOn = " + stillOn);
 
   // DARK_BUTTON
   var darkButton = FIND("DARK_BUTTON");
   var darkState = getSavedCookie("darkState");
   var structuredView = FIND("structured-view")
-      console.log("BC-getSavedCookie called, darkState = " + darkState);
+      // console.log("BC-getSavedCookie called, darkState = " + darkState);
 
   if (darkState !== "false") {
     darkButton.checked = true;
@@ -9540,11 +9540,11 @@ var body = document.querySelector("body");
     structuredView.classList.remove("dark-mode");
 
   }
-  console.log("BC-darkOn = " + darkOn);
+  // console.log("BC-darkOn = " + darkOn);
   // TIPS_BUTTON
   var tipsButton = FIND("TIPS_BUTTON");
   var tipsState = getSavedCookie("tipsState");
-      console.log("BC-getSavedCookie called, tipsState = " + tipsState);
+      // console.log("BC-getSavedCookie called, tipsState = " + tipsState);
 
   if (tipsState !== "false") {
     tipsButton.checked = true;
@@ -9565,31 +9565,31 @@ var body = document.querySelector("body");
       element.removeAttribute("title");
     });
   }
-  console.log("BC-tipsOn = " + tipsOn);
+  // console.log("BC-tipsOn = " + tipsOn);
 
   // INHILT_BUTTON
   var inhiltButton = FIND("INHILT_BUTTON");
   var inhiltState = getSavedCookie("inhiltState");
-      console.log("BC-getSavedCookie called, inhiltState = " + inhiltState);
+      // console.log("BC-getSavedCookie called, inhiltState = " + inhiltState);
 
   if (inhiltState === "true") {
     inhiltButton.checked = true;
     inhiltOn = true;
     STATE_NUM_LEDS = 145 - STATE_NUM_LEDS;
   }
-  console.log("BC-inhiltOn = " + inhiltOn);
+  // console.log("BC-inhiltOn = " + inhiltOn);
 
   // SLOW_BUTTON
   var slowButton = FIND("SLOW_BUTTON");
   var slowState = getSavedCookie("slowState");
-      console.log("BC-getSavedCookie called, slowState = " + slowState);
+      // console.log("BC-getSavedCookie called, slowState = " + slowState);
 
   if (slowState === "true") {
     slowButton.checked = true;
     slowOn = true;
     framesPerUpdate = 60 - framesPerUpdate;
   }
-  console.log("BC-slowOn = " + slowOn);
+  // console.log("BC-slowOn = " + slowOn);
 
 
   // WAVLEN_VALUE
@@ -9598,7 +9598,7 @@ var body = document.querySelector("body");
     if (!wavlenValue) {
     wavlenValue = 500;
   }
-      console.log("BC-getSavedCookie called, wavlenValue = " + wavlenValue);
+      // console.log("BC-getSavedCookie called, wavlenValue = " + wavlenValue);
     wavlenInput.value = wavlenValue;
     myWavLen.setLength(wavlenValue);
   // Listen for changes to the WAVLEN_VALUE element
@@ -9612,17 +9612,17 @@ var body = document.querySelector("body");
   // GRAFLEX_BUTTON - must be last here because calling compile() means no coming back.
   var graflexButton = FIND("GRAFLEX_BUTTON");
   var graflexState = getSavedCookie("graflexState");
-      console.log("BC-getSavedCookie called, graflexState = " + graflexState);
+      // console.log("BC-getSavedCookie called, graflexState = " + graflexState);
 
   if (graflexState !== "false") {
     use_graflex = true;
     graflexButton.checked = true;
-    console.log("BC-use_graflex = " + use_graflex);
+    // console.log("BC-use_graflex = " + use_graflex);
     compile();
   } else {
     use_graflex = false;
     graflexButton.checked = false;
-    console.log("BC-use_graflex = " + use_graflex);
+    // console.log("BC-use_graflex = " + use_graflex);
     compile();
   }
 } // onPageLoad()
@@ -9683,7 +9683,7 @@ function toggleSettingsPanel() {
   function ClickStill() {
     stillOn = !stillOn;
     saveCookie("stillState", stillOn);
-    console.log("BC-Clickstill called, stillOn = " + stillOn);
+    // console.log("BC-Clickstill called, stillOn = " + stillOn);
   }
   function ClickDark() {
     var body = document.querySelector("body");
@@ -9697,7 +9697,7 @@ function toggleSettingsPanel() {
       structuredView.classList.remove("dark-mode");
     }
     saveCookie("darkState", darkOn);
-    console.log("BC-ClickTips called, darkOn = " + darkOn);
+    // console.log("BC-ClickTips called, darkOn = " + darkOn);
   }
 
   function ClickTips() {
@@ -9719,7 +9719,7 @@ function toggleSettingsPanel() {
       });
     }
     saveCookie("tipsState", tipsOn);
-    console.log("BC-ClickTips called, tipsOn = " + tipsOn);
+    // console.log("BC-ClickTips called, tipsOn = " + tipsOn);
   }
 
   function ClickGraflex() {
@@ -9730,21 +9730,21 @@ function toggleSettingsPanel() {
     }
     compile();
     saveCookie("graflexState", use_graflex);
-    console.log("BC-ClickGraflex called, use_graflex = " + use_graflex);
+    // console.log("BC-ClickGraflex called, use_graflex = " + use_graflex);
   }
 
   function ClickInhilt() {
     inhiltOn = !inhiltOn;
     STATE_NUM_LEDS = 145 - STATE_NUM_LEDS;
     saveCookie("inhiltState", inhiltOn);
-    console.log("BC-ClickInhilt called, inhiltOn = " + inhiltOn);
+    // console.log("BC-ClickInhilt called, inhiltOn = " + inhiltOn);
   }
 
   function ClickSlow() {
     slowOn = !slowOn;
     framesPerUpdate = 60 - framesPerUpdate;
     saveCookie("slowState", slowOn);
-    console.log("BC-ClickSlow called, slowOn = " + slowOn);
+    // console.log("BC-ClickSlow called, slowOn = " + slowOn);
   }
 
   var num_alternatives = 1000;
