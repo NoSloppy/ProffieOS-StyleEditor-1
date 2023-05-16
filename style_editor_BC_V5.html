@@ -30,12 +30,12 @@
   color-scheme: dark !important;
 }
 /* Expand and Layerize buttons */
-.dark-mode .middle-btn-container .button_off,
-.dark-mode .middle-btn-container .button_off:hover {
+.dark-mode .middle-btn-container .button-off,
+.dark-mode .middle-btn-container .button-off:hover {
   background-color: #777;
   color: #bbb;
 }
-.dark-mode .middle-btn-container .button_on {
+.dark-mode .middle-btn-container .button-on {
   border: 2px solid dodgerblue;
 }
 /* Other buttons */
@@ -50,8 +50,8 @@
   background-color: steelblue;
 }
 /* Power and Rotate latching buttons */
-.dark-mode .page-left .button_latched,
-.dark-mode .page-left .button_latched:hover {
+.dark-mode .page-left .button-latched,
+.dark-mode .page-left .button-latched:hover {
   background-color: steelblue;
 }
 /* Lockup and More Effects dropdown menus */
@@ -61,12 +61,12 @@
   border: 1px solid #ccc;
 }
 /* Do Selected Effect button */
-.dark-mode .more-menu-container .do_selected:disabled {
+.dark-mode .more-menu-container .do-selected:disabled {
   background-color: #777;
   color: #bbb;
   border: 2px solid transparent;
 }
-.dark-mode .more-menu-container .do_selected {
+.dark-mode .more-menu-container .do-selected {
   border: 2px solid dodgerblue;
 }
 /* Variant and Alt adjusters */
@@ -77,11 +77,11 @@
   background-color: #333;
   color: white;
 }
-.dark-mode .settings_panel {
+.dark-mode .settings-panel {
   border: 3px solid #ccc;
   background: #777;
 }
-.dark-mode .settings_panel::after {
+.dark-mode .settings-panel::after {
   border-color: transparent #777 transparent transparent;
 }
 .dark-mode .tab {
@@ -93,25 +93,25 @@
 .dark-mode .tab button.active {
   background-color: steelblue;
 }
-.dark-mode .structured_view .selected-area-container {
+.dark-mode .structured-view .selected-area-container {
   background-color: steelblue;
 }
-.dark-mode .structured_view .selected-area-container.selected {
+.dark-mode .structured-view .selected-area-container.selected {
   border-color: white;
 }
-.dark-mode .rgb_tabcontent {
+.dark-mode .rgb-tabcontent {
 background-color: white;
 }
 
 /* Non-dark mode styles */
 
 /* Expand and Layerize buttons */
-.middle-btn-container .button_off,
-.middle-btn-container .button_off:hover {
+.middle-btn-container .button-off,
+.middle-btn-container .button-off:hover {
   background-color: lightgray;
   color: darkgray;
 }
-.middle-btn-container .button_on {
+.middle-btn-container .button-on {
   padding: 2px;
   border: 2px solid dodgerblue;
 }
@@ -137,8 +137,8 @@ input[type="button"]:active {
   background-color: dodgerblue;
 }
 /* Power and Rotate latching buttons */
-.page-left .button_latched,
-.page-left .button_latched:hover {
+.page-left .button-latched,
+.page-left .button-latched:hover {
   background-color: dodgerblue;
 }
 /* Lockup and More Effects Drop Downs */
@@ -150,12 +150,12 @@ select {
   font-size: 14px;
 }
 /* Do Selected Effect button */
-.more-menu-container .do_selected:disabled {
+.more-menu-container .do-selected:disabled {
   background-color: lightgray;
   color: darkgray;
   border: 2px solid transparent;
 }
-.more-menu-container .do_selected {
+.more-menu-container .do-selected {
   border: 2px solid dodgerblue;
 }
 /* Prevent Safari default style takeover at default zoom level */
@@ -172,6 +172,7 @@ select {
 .page-right {
   vertical-align: top;
  }
+ /* Blade Preview area */
 .canvas-style {
   width: 256px;
   height: 256px;
@@ -240,11 +241,11 @@ select {
   margin-right: 3px;
 }
 
-.error_message {
+.error-message {
   color: red; 
   font-weight: bold;
 }
-/* Blade Style text box background */
+/* Blade Style text box */
 .textbox {
   background-color: #ccc;
   font-size: 14px;
@@ -318,7 +319,7 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   position: relative;
 }
 
-.settings_button_container {
+.settings-button-container {
   display: inline-block;
   position: absolute;
   right: 0;
@@ -328,7 +329,7 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   overflow: hidden;
 }
 
-.settings_button {
+.settings-button {
   display: block;
   color: darkgray;
   font-size: 54px;
@@ -342,18 +343,18 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   text-decoration: none;
 }
 
-.settings_button:hover::before {
+.settings-button:hover::before {
   color: #ccc;
 }
 
-.settings_button::before {
+.settings-button::before {
   content: "\2699";
 }
-.settings_panel.show {
+.settings-panel.show {
   opacity: 1;
   pointer-events: auto;
 }
-.settings_panel {
+.settings-panel {
   font-family: sans-serif;
   position: absolute;
   left: auto;
@@ -371,7 +372,7 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   left: 50%;
   transform: translateX(-50%);
 }
-.settings_panel::after {
+.settings-panel::after {
   content: " ";
   position: absolute;
   top: 50%;
@@ -382,11 +383,11 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   border-style: solid;
   border-color: transparent #aaa transparent transparent;
 }
-.settings_panel label {
+.settings-panel label {
   display: flex;
   align-items: center;
 }
-.settings_panel label input[type="checkbox"] {
+.settings-panel label input[type="checkbox"] {
   margin-right: 8px;
 }
 
@@ -430,13 +431,13 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   border: 1px solid #ccc;
   border-top: none;
 }
-.structured_view {
+.structured-view {
   vertical-align: top;
   width: 100%;
   height: 99vh;
   overflow-y: scroll;
 }
-.structured_view .selected-area-container {
+.structured-view .selected-area-container {
   background-color: lightblue;
 }
 /* Fat font in Structured View */
@@ -452,7 +453,9 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   display: none !important;
   content: none !important;
 }
-.extra_buttons {
+/* Structured View Layer buttons
+Add, Delete, Move Up, Move Down */
+.extra-buttons {
   margin: 3px;
   line-height: 1.0em;
   font-size: 16px;
@@ -460,7 +463,7 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
 
 </style>
 
-<script id="vertex-shader" type="x-shader/x-vertex">
+<script id="vertex_shader" type="x-shader/x-vertex">
 precision highp float;
 attribute vec2 a_position;
 varying vec2 v_position;
@@ -711,7 +714,7 @@ Material getHiltMaterial(vec3 hp, vec3 ray_dir) {
 
 </script>
 
-<script id="fragment-shader" type="x-shader/x-fragment">
+<script id="fragment_shader" type="x-shader/x-fragment">
 precision highp float;
 uniform float u_time;
 varying vec2 v_position;
@@ -1497,11 +1500,11 @@ function compile() {
   // Create a shader that samples a 2D image.
   var vertexShader = gl.createShader(gl.VERTEX_SHADER);
   gl.shaderSource(vertexShader,
-                  FIND("vertex-shader").textContent);
+                  FIND("vertex_shader").textContent);
   gl.compileShader(vertexShader);
 
   var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-  var shader_code = FIND("fragment-shader").textContent;
+  var shader_code = FIND("fragment_shader").textContent;
 
   variables = [];
 //  shader_code = shader_code.replace("$FUNCTION$", current_style.gencode());
@@ -2581,10 +2584,10 @@ class LayersClass extends STYLE {
   extraButtons(arg) {
     if (arg == 1) return "";
     var id = this.get_id();
-    var ret = "<button id='extra-buttons' class='extra_buttons' title='Duplicate Layer' onclick='DuplicateLayer("+id+","+arg+",event)'>+</button>";
-    ret += "<button id='extra-buttons' class='extra_buttons' title='Remove Layer' onclick='RemoveLayer("+id+","+arg+",event)'>&#88;</button>";
-    if (arg > 2) ret += "<button id='extra-buttons' class='extra_buttons' title='Move Layer Up' onclick='UpLayer("+id+","+arg+",event)'>&#5169;</button>";
-    if (arg <= this.LAYERS.length) ret += "<button id='extra-buttons' class='extra_buttons' title='Move Layer Down'onclick='DownLayer("+id+","+arg+",event)'>&#5167;</button>";
+    var ret = "<button id='extra_buttons' class='extra-buttons' title='Duplicate Layer' onclick='DuplicateLayer("+id+","+arg+",event)'>+</button>";
+    ret += "<button id='extra_buttons' class='extra-buttons' title='Remove Layer' onclick='RemoveLayer("+id+","+arg+",event)'>&#88;</button>";
+    if (arg > 2) ret += "<button id='extra_buttons' class='extra-buttons' title='Move Layer Up' onclick='UpLayer("+id+","+arg+",event)'>&#5169;</button>";
+    if (arg <= this.LAYERS.length) ret += "<button id='extra_buttons' class='extra-buttons' title='Move Layer Down'onclick='DownLayer("+id+","+arg+",event)'>&#5167;</button>";
     return ret;
   }
   constructor(ARGS) {
@@ -9222,8 +9225,8 @@ function ReplaceCurrentFocus(str) {
   // FIND("template_links").className = type == "COLOR" ? "normal" : "grayout";
   // FIND("function_links").className = type == "FUNCTION" ? "normal" : "grayout";
   // FIND("transition_links").className = type == "TRANSITION" ? "normal" : "grayout";
-  FIND("expand_button").className = current_style && current_style.isMacro ? "button_on" : "button_off";
-  FIND("layerize_button").className = CanLayerize(current_style) ? "button_on" : "button_off";
+  FIND("expand_button").className = current_style && current_style.isMacro ? "button-on" : "button-off";
+  FIND("layerize_button").className = CanLayerize(current_style) ? "button-on" : "button-off";
 
   if (type == "COLOR" && classname.endsWith("LClass")) {
     ActivateTab("layer");
@@ -9419,6 +9422,7 @@ function FocusOnLow(id) {
   current_focus = style;
   var container = FIND("X"+id);
   console.log(container);
+  console.log("THIS IS TURNING LIGHT BLUE NOW>>>>>>>");
   pp_is_url++;
   var url = style.pp();
   pp_is_url--;
@@ -9436,14 +9440,14 @@ function FocusOn(id, event) {
 function ClickRotate() {
   STATE_ROTATE = !STATE_ROTATE;
   var rotate_button = FIND("ROTATE_BUTTON");
-  rotate_button.classList.toggle("button_latched", STATE_ROTATE ? true : false);
+  rotate_button.classList.toggle("button-latched", STATE_ROTATE ? true : false);
   console.log("ROTATE");
 }
 
 function ClickPower() {
   STATE_ON = !STATE_ON; STATE_LOCKUP=0;
   var power_button = FIND("POWER_BUTTON");
-  power_button.classList.toggle("button_latched", STATE_ON ? true : false);
+  power_button.classList.toggle("button-latched", STATE_ON ? true : false);
   console.log("POWER");
   blade.addEffect(STATE_ON ? EFFECT_IGNITION : EFFECT_RETRACTION, Math.random() * 0.7 + 0.2);
 }
@@ -9524,7 +9528,7 @@ function onPageLoad() {
   // DARK_BUTTON
   var darkButton = FIND("DARK_BUTTON");
   var darkState = getSavedCookie("darkState");
-  var structuredView = FIND("structured-view")
+  var structuredView = FIND("structured_view")
   // console.log("BC-getSavedCookie called, darkState = " + darkState);
   if (darkState !== "false") {
     darkButton.checked = true;
@@ -9621,9 +9625,9 @@ function onPageLoad() {
 } // onPageLoad()
 
 function toggleSettingsPanel() {
-  var settingsButtonContainer = FIND("settings-button-container");
+  var settingsButtonContainer = FIND("settings_button_container");
   var settingsButton = FIND("SETTINGS_BUTTON");
-  var settingsPanel = FIND("settings-panel");
+  var settingsPanel = FIND("settings_panel");
   // Totally not needed, but nice when it tracks with the button
   function updatePanelPosition() {
     // Get button position
@@ -9681,7 +9685,7 @@ function toggleSettingsPanel() {
 
   function ClickDark() {
     var body = document.querySelector("body");
-    var structuredView = FIND("structured-view");
+    var structuredView = FIND("structured_view");
     darkOn = !darkOn;
     if (darkOn) {
       body.classList.add("dark-mode");
@@ -9901,7 +9905,7 @@ function toggleSettingsPanel() {
     var tabContentElement = FIND(tab + "_tabcontent");
     tabContentElement.innerHTML += data;
     if (tab === 'rgb') {
-      tabContentElement.classList.add('rgb_tabcontent');
+      tabContentElement.classList.add('rgb-tabcontent');
     }
   }
 
@@ -9994,14 +9998,14 @@ function toggleSettingsPanel() {
         <option value="">Select More Effects</option>
         </select>
         <input
-          type=button id="do-selected" value="Do Selected Effect" class="do_selected"
+          type=button id="do_selected" value="Do Selected Effect" class="do-selected"
           title="Press this to trigger the EFFECT selected in the More Effects menu.">
       </span>
       
       <script>
          // Get the menu and button elements
         const menu = FIND('more_effects_menu');
-        const button = FIND('do-selected');
+        const button = FIND('do_selected');
 
         // Create a dictionary to store actions for each item
         const actions = {};
@@ -10146,7 +10150,7 @@ function toggleSettingsPanel() {
       </span>
       <br>
 
-      <span id="error_message" class="error_message"></span>
+      <span id="error_message" class="error-message"></span>
 
       <br>
         <pre><textarea rows=10 cols=80 id=style wrap="off" class="textbox"
@@ -10180,14 +10184,14 @@ function toggleSettingsPanel() {
 
       <br>
       <div id=TABS class="tabs">
-        <div id="settings-button-container" class="settings_button_container">
+        <div id="settings_button_container" class="settings-button-container">
           <a
-            href="#" id="SETTINGS_BUTTON" class="settings_button"
+            href="#" id="SETTINGS_BUTTON" class="settings-button"
             title="Settings"
             onclick="toggleSettingsPanel()" >
           </a>
         </div>
-        <div id="settings-panel" class="settings_panel"
+        <div id="settings_panel" class="settings-panel"
           title="Turning on checkboxes saves your settings for future visits to the Style Editor page." >
 
           <label title="Toggles the option for swinging around the preview blade above using mouse control." >
@@ -10245,7 +10249,7 @@ function toggleSettingsPanel() {
 
     </td>
     <td class="page-right">
-      <div id="structured-view" class="structured_view">
+      <div id="structured_view" class="structured-view">
         <b>Structured view, click to edit</b>
         <div id=pp class="pp"></div>
       </div>
