@@ -374,6 +374,7 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
 #settings-panel label input[type="checkbox"] {
   margin-right: 8px;
 }
+/* Align Wavlen Settings label */
 .wavlen-label {
   display: block;
   margin-top: 5px;
@@ -9677,7 +9678,7 @@ function toggleSettingsPanel() {
     saveCookie("stillState", stillOn);
     // console.log("BC-Clickstill called, stillOn = " + stillOn);
   }
- 
+
   function ClickDark() {
     var body = document.querySelector("body");
     var structuredView = FIND("structured-view");
@@ -9933,7 +9934,7 @@ function toggleSettingsPanel() {
     <td class="page-left">
       <canvas 
         id="canvas_id" width="256" height="256" class="canvas-style"
-        title="Blade Preview. Click to Clash or Do Selected Effect. Move mouse to swing. Goto settings to change hilt model or toggle Still mode (no swing on mouse move.)"
+        title="Blade Preview.  Move mouse to swing.        Click to Clash or Do Selected Effect (and to dismiss this Tooltip.)  Goto settings to change hilt model or toggle Still mode (no swing on mouse move.)"
         onmousemove='mouse_move(event)' onmouseleave='mouse_leave(event)'
         onclick='AddClickedEffect()'>
       </canvas>
@@ -10219,7 +10220,7 @@ function toggleSettingsPanel() {
             <span class="inhilt-button-label">Inhilt LED</span>
           </label>
 
-          <label title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement." >
+          <label title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement. *Note* Graflex hilt model probably won't be able to render with this on." >
             <input
               type="checkbox" id="SLOW_BUTTON" name=slow
               onclick="ClickSlow()" >
