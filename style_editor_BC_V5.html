@@ -10,61 +10,78 @@
 
 <style>
 
+/* Make elements non-selectable with drag box*/
+/** {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}*/
+* {
+  box-sizing: border-box;
+}
+
 /* Dark mode styles */
+
+/* Whole page */ 
 .dark-mode {
   background-color: #202020;
   color: white !important;
   color-scheme: dark !important;
 }
+/* Expand and Layerize buttons */
+.dark-mode .middle-btn-container .button_off,
+.dark-mode .middle-btn-container .button_off:hover {
+  background-color: #777;
+  color: #bbb;
+}
+.dark-mode .middle-btn-container .button_on {
+  border: 2px solid dodgerblue;
+}
+/* Other buttons */
 .dark-mode button,
-.dark-mode input[type="button"],
-.dark-mode #expand_button,
-.dark-mode #layerize_button {
+.dark-mode input[type="button"] {
   background-color: #6C6C6C;
   color: #fff;
   border: 1px solid transparent;
 }
+.dark-mode button:active,
+.dark-mode input[type="button"]:active {
+  background-color: steelblue;
+}
+/* Power and Rotate latching buttons */
+.dark-mode .page-left .button_latched,
+.dark-mode .page-left .button_latched:hover {
+  background-color: steelblue;
+}
+/* Lockup and More Effects dropdown menus */
 .dark-mode select {
   background-color: #6C6C6C;
   color: #fff;
   border: 1px solid #ccc;
 }
-.dark-mode button:hover,
-.dark-mode select:hover,
-.dark-mode input[type="button"]:hover,
-.dark-mode #expand_button:hover,
-.dark-mode #layerize_button:hover {
-  background-color: #999;
-}
-.dark-mode button:active,
-.dark-mode input[type="button"]:active,
-.dark-mode #expand_button:active,
-.dark-mode #layerize_button:active {
-  background-color: steelblue;
-}
-.dark-mode #expand_button.button_on,
-.dark-mode #layerize_button.button_on {
-  padding: 2px 3px;
-  border: 1px solid #ccc;
-}
-.dark-mode #expand_button.button_off,
-.dark-mode #layerize_button.button_off {
-  background: #777;
+/* Do Selected Effect button */
+.dark-mode .more-menu-container .do_selected:disabled {
+  background-color: #777;
   color: #bbb;
+  border: 2px solid transparent;
 }
-.dark-mode #do-selected:disabled {
-  background: #777;
-  color: #bbb;
+.dark-mode .more-menu-container .do_selected {
+  border: 2px solid dodgerblue;
 }
-.dark-mode #style {
+/* Variant and Alt adjusters */
+.dark-mode .variant-alt-container {
+  color: white;
+}
+.dark-mode .textbox {
   background-color: #333;
   color: white;
 }
-.dark-mode #settings-panel {
+.dark-mode .settings_panel {
   border: 3px solid #ccc;
   background: #777;
 }
-.dark-mode #settings-panel::after {
+.dark-mode .settings_panel::after {
   border-color: transparent #777 transparent transparent;
 }
 .dark-mode .tab {
@@ -76,31 +93,31 @@
 .dark-mode .tab button.active {
   background-color: steelblue;
 }
-.dark-mode #structured-view .selected-area-container {
+.dark-mode .structured_view .selected-area-container {
   background-color: steelblue;
 }
-.dark-mode #structured-view .selected-area-container.selected {
+.dark-mode .structured_view .selected-area-container.selected {
   border-color: white;
 }
-.dark-mode #rgb_tabcontent {
+.dark-mode .rgb_tabcontent {
 background-color: white;
 }
-/* Make elements non-selectable with drag box*/
-/** {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}*/
 
-* {
-  box-sizing: border-box;
+/* Non-dark mode styles */
+
+/* Expand and Layerize buttons */
+.middle-btn-container .button_off,
+.middle-btn-container .button_off:hover {
+  background-color: lightgray;
+  color: darkgray;
 }
-/* Non-dark mode */
+.middle-btn-container .button_on {
+  padding: 2px;
+  border: 2px solid dodgerblue;
+}
+/* Other buttons */
 button,
-input[type="button"],
-#expand_button,
-#layerize_button {
+input[type="button"] {
   background-color: #ccc;
   color: black;
   border-radius: 2px;
@@ -110,38 +127,36 @@ input[type="button"],
   font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
   font-weight: normal;
 }
-
 button:hover,
 select:hover,
-input[type="button"]:hover,
-#expand_button:hover,
-#layerize_button:hover {
-  background-color: #bbb;
+input[type="button"]:hover {
+  background-color: #999;
 }
 button:active,
 input[type="button"]:active {
   background-color: dodgerblue;
 }
-#expand_button.button_on,
-#layerize_button.button_on {
-  padding: 2px;
-  border: 2px solid dodgerblue;
+/* Power and Rotate latching buttons */
+.page-left .button_latched,
+.page-left .button_latched:hover {
+  background-color: dodgerblue;
 }
-#expand_button.button_off,
-#layerize_button.button_off {
-  background-color: lightgray;
-  color: darkgray;
-}
-#do-selected:disabled {
-  background-color: lightgray;
-  color: darkgray;
-}
-
 /* Lockup and More Effects Drop Downs */
 select {
-  font-size: 14px;
+  background-color: #ccc;
+  color: black;
   border-radius: 5px;
   padding: 2px 0px;
+  font-size: 14px;
+}
+/* Do Selected Effect button */
+.more-menu-container .do_selected:disabled {
+  background-color: lightgray;
+  color: darkgray;
+  border: 2px solid transparent;
+}
+.more-menu-container .do_selected {
+  border: 2px solid dodgerblue;
 }
 /* Prevent Safari default style takeover at default zoom level */
 @media not all and (min-resolution:.001dpcm) { @media {
@@ -164,8 +179,9 @@ select {
 .more-menu-container {
   white-space: nowrap;
 }
+/* Variant and Alt adjusters */
 .variant-alt-container {
-  background: LightCyan;
+  background: #6ADA;
   border: 1px solid black;
   font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
   font-size: 15px;
@@ -181,7 +197,6 @@ select {
   display: inline-flex;
   align-items: center;
 }
-/* Base styling for the input slider */
 .variant-slider {
   -webkit-appearance: none;
   width: 65px;
@@ -225,12 +240,12 @@ select {
   margin-right: 3px;
 }
 
-#error_message {
+.error_message {
   color: red; 
   font-weight: bold;
 }
 /* Blade Style text box background */
-#style {
+.textbox {
   background-color: #ccc;
   font-size: 14px;
   font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
@@ -299,11 +314,11 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   color: black;
   padding: 2px 3px;
 }
-#TABS {
+.tabs {
   position: relative;
 }
 
-#settings-button-container {
+.settings_button_container {
   display: inline-block;
   position: absolute;
   right: 0;
@@ -313,7 +328,7 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   overflow: hidden;
 }
 
-#SETTINGS_BUTTON {
+.settings_button {
   display: block;
   color: darkgray;
   font-size: 54px;
@@ -327,18 +342,18 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   text-decoration: none;
 }
 
-#SETTINGS_BUTTON:hover::before {
+.settings_button:hover::before {
   color: #ccc;
 }
 
-#SETTINGS_BUTTON::before {
+.settings_button::before {
   content: "\2699";
 }
-#settings-panel.show {
+.settings_panel.show {
   opacity: 1;
   pointer-events: auto;
 }
-#settings-panel {
+.settings_panel {
   font-family: sans-serif;
   position: absolute;
   left: auto;
@@ -356,7 +371,7 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   left: 50%;
   transform: translateX(-50%);
 }
-#settings-panel::after {
+.settings_panel::after {
   content: " ";
   position: absolute;
   top: 50%;
@@ -367,13 +382,14 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   border-style: solid;
   border-color: transparent #aaa transparent transparent;
 }
-#settings-panel label {
+.settings_panel label {
   display: flex;
   align-items: center;
 }
-#settings-panel label input[type="checkbox"] {
+.settings_panel label input[type="checkbox"] {
   margin-right: 8px;
 }
+
 /* Align Wavlen Settings label */
 .wavlen-label {
   display: block;
@@ -414,17 +430,17 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   border: 1px solid #ccc;
   border-top: none;
 }
-#structured-view {
+.structured_view {
   vertical-align: top;
   width: 100%;
   height: 99vh;
   overflow-y: scroll;
 }
-#structured-view .selected-area-container {
+.structured_view .selected-area-container {
   background-color: lightblue;
 }
 /* Fat font in Structured View */
-#pp span {
+.pp span {
   padding-left: 6px;
   font-weight: 600;
   font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
@@ -436,7 +452,7 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   display: none !important;
   content: none !important;
 }
-#extra-buttons {
+.extra_buttons {
   margin: 3px;
   line-height: 1.0em;
   font-size: 16px;
@@ -2565,10 +2581,10 @@ class LayersClass extends STYLE {
   extraButtons(arg) {
     if (arg == 1) return "";
     var id = this.get_id();
-    var ret = "<button id='extra-buttons' title='Duplicate Layer' onclick='DuplicateLayer("+id+","+arg+",event)'>+</button>";
-    ret += "<button id='extra-buttons' title='Remove Layer' onclick='RemoveLayer("+id+","+arg+",event)'>&#88;</button>";
-    if (arg > 2) ret += "<button id='extra-buttons' title='Move Layer Up' onclick='UpLayer("+id+","+arg+",event)'>&#5169;</button>";
-    if (arg <= this.LAYERS.length) ret += "<button id='extra-buttons' title='Move Layer Down'onclick='DownLayer("+id+","+arg+",event)'>&#5167;</button>";
+    var ret = "<button id='extra-buttons' class='extra_buttons' title='Duplicate Layer' onclick='DuplicateLayer("+id+","+arg+",event)'>+</button>";
+    ret += "<button id='extra-buttons' class='extra_buttons' title='Remove Layer' onclick='RemoveLayer("+id+","+arg+",event)'>&#88;</button>";
+    if (arg > 2) ret += "<button id='extra-buttons' class='extra_buttons' title='Move Layer Up' onclick='UpLayer("+id+","+arg+",event)'>&#5169;</button>";
+    if (arg <= this.LAYERS.length) ret += "<button id='extra-buttons' class='extra_buttons' title='Move Layer Down'onclick='DownLayer("+id+","+arg+",event)'>&#5167;</button>";
     return ret;
   }
   constructor(ARGS) {
@@ -9421,14 +9437,14 @@ function FocusOn(id, event) {
 function ClickRotate() {
   STATE_ROTATE = !STATE_ROTATE;
   var rotate_button = FIND("ROTATE_BUTTON");
-  rotate_button.style.backgroundColor = STATE_ROTATE ? "lightblue" : "";
+  rotate_button.classList.toggle("button_latched", STATE_ROTATE ? true : false);
   console.log("ROTATE");
 }
 
 function ClickPower() {
   STATE_ON = !STATE_ON; STATE_LOCKUP=0;
   var power_button = FIND("POWER_BUTTON");
-  power_button.style.backgroundColor = STATE_ON ? "lightblue" : "";
+  power_button.classList.toggle("button_latched", STATE_ON ? true : false);
   console.log("POWER");
   blade.addEffect(STATE_ON ? EFFECT_IGNITION : EFFECT_RETRACTION, Math.random() * 0.7 + 0.2);
 }
@@ -9898,7 +9914,11 @@ function toggleSettingsPanel() {
   }
 
   function AddTabContent(tab, data) {
-    FIND(tab + "_tabcontent").innerHTML += data;
+    var tabContentElement = FIND(tab + "_tabcontent");
+    tabContentElement.innerHTML += data;
+    if (tab === 'rgb') {
+      tabContentElement.classList.add('rgb_tabcontent');
+    }
   }
 
   function ActivateTab(tab) {
@@ -9990,7 +10010,7 @@ function toggleSettingsPanel() {
         <option value="">Select More Effects</option>
         </select>
         <input
-          type=button id="do-selected" value="Do Selected Effect"
+          type=button id="do-selected" value="Do Selected Effect" class="do_selected"
           title="Press this to trigger the EFFECT selected in the More Effects menu.">
       </span>
       
@@ -10142,10 +10162,10 @@ function toggleSettingsPanel() {
       </span>
       <br>
 
-      <span id="error_message" ></span>
+      <span id="error_message" class="error_message"></span>
 
       <br>
-        <pre><textarea rows=10 cols=80 id=style wrap="off"
+        <pre><textarea rows=10 cols=80 id=style wrap="off" class="textbox"
         title="Style and value editing area. Edits in here are committed by clicking the Submit button below." ></textarea></pre>
         <span class="middle-btn-container">
           <input
@@ -10175,15 +10195,16 @@ function toggleSettingsPanel() {
         </span>
 
       <br>
-      <div id=TABS>
-        <div id="settings-button-container">
+      <div id=TABS class="tabs">
+        <div id="settings-button-container" class="settings_button_container">
           <a
-            href="#" id="SETTINGS_BUTTON"
+            href="#" id="SETTINGS_BUTTON" class="settings_button"
             title="Settings"
             onclick="toggleSettingsPanel()" >
           </a>
         </div>
-        <div id="settings-panel" title="Turning on checkboxes saves your settings for future visits to the Style Editor page." >
+        <div id="settings-panel" class="settings_panel"
+          title="Turning on checkboxes saves your settings for future visits to the Style Editor page." >
 
           <label title="Toggles the option for swinging around the preview blade above using mouse control." >
             <input
@@ -10240,9 +10261,9 @@ function toggleSettingsPanel() {
 
     </td>
     <td class="page-right">
-      <div id="structured-view">
+      <div id="structured-view" class="structured_view">
         <b>Structured view, click to edit</b>
-        <div id=pp></div>
+        <div id=pp class="pp"></div>
       </div>
     </td>
     </tr>
