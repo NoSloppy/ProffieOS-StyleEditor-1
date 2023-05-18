@@ -93,11 +93,15 @@
 .dark-mode .tab button.active {
   background-color: steelblue;
 }
-.dark-mode .structured-view .selected-area-container {
+/* Structured View style arguments borders */
+.dark-mode .structured-view .selected-area-container,
+.dark-mode .structured-view .selected-area-container .pp-container {
   background-color: steelblue;
-}
-.dark-mode .structured-view .selected-area-container.selected {
   border-color: white;
+}
+/* Chartreuse highlighted borders */
+.dark-mode .structured-view .selected-area-container .running {
+  border-color: chartreuse;
 }
 .dark-mode .rgb-tabcontent {
 background-color: white;
@@ -164,7 +168,6 @@ select {
   border: 1px solid #ccc;
   }
 }}
-
 .page-left {
   vertical-align: top;
   width: 50%;
@@ -206,7 +209,6 @@ select {
   margin-top: 5px;
   cursor: pointer;
 }
-
 /* Thumb handle styling for Chrome, Safari, and other WebKit-based browsers */
 .variant-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -217,7 +219,6 @@ select {
   border: 1px solid #333;
   margin-top: -2px;
 }
-
 /* Thumb handle styling for Firefox */
 .variant-slider::-moz-range-thumb {
   background: DodgerBlue;
@@ -226,7 +227,6 @@ select {
   border-radius: 20%;
   border: 1px solid #333;
 }
-
 /* Thumb handle styling for Internet Explorer and Edge */
 .variant-slider::-ms-thumb {
   background: DodgerBlue;
@@ -240,7 +240,6 @@ select {
   margin-left: 8px;
   margin-right: 3px;
 }
-
 .error-message {
   color: red; 
   font-weight: bold;
@@ -318,7 +317,6 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
 .tabs {
   position: relative;
 }
-
 .settings-button-container {
   display: inline-block;
   position: absolute;
@@ -328,7 +326,6 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   height: 35px;
   overflow: hidden;
 }
-
 .settings-button {
   display: block;
   color: darkgray;
@@ -342,11 +339,9 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   text-align: center;
   text-decoration: none;
 }
-
 .settings-button:hover::before {
   color: #ccc;
 }
-
 .settings-button::before {
   content: "\2699";
 }
@@ -390,7 +385,6 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
 .settings-panel label input[type="checkbox"] {
   margin-right: 8px;
 }
-
 /* Align Wavlen Settings label */
 .wavlen-label {
   display: block;
@@ -399,7 +393,6 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
 .wavlen-value {
   width: 80px;
 }
-
 /* Style the tab */
 .tab {
   overflow: hidden;
@@ -445,6 +438,22 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   padding-left: 6px;
   font-weight: 600;
   font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+/* Structured View style arguments borders */
+.pp-container {
+  border-color: gray;
+  border-style: solid;
+  border-width: 1px;
+  padding: 2px;
+}
+.pp-content {
+  margin-left: 1em;
+}
+/* Chartreuse highlighted borders */
+.running {
+  border-color: chartreuse;
+  border-width: 3px;
+  padding: 0px;
 }
 
 .tooltips-disabled [title]:before,
@@ -1790,77 +1799,79 @@ class STYLE {
     return "";
   }
 
-  PP(name, note) {
-    if (pp_is_url) {
-      return this.PPURL.apply(this, arguments);
+PP(name, note) {
+  if (pp_is_url) {
+    return this.PPURL.apply(this, arguments);
+  }
+  var id = this.get_id();
+  var ret = "";
+  if (this.COMMENT) {
+    ret += "/* " + this.COMMENT.split("\n").join("<br>") + " */<br>";
+    console.log("RET = " + ret);
+  }
+  ret += "<div id=X" + id + " class='pp-container' onclick='FocusOn(" + id + ",event)'>\n";
+  ret += "<span title='" + note + "'>" + name + "</span>&lt;\n";
+  ret += "<div class='pp-content' style='margin-left:1em'>\n";
+  var comma = false;
+  for (var i = 2; i < arguments.length; i += 2) {
+    if (comma) ret += ",<br>";
+    comma = true;
+    var arg = arguments[i];
+    var note = arguments[i + 1];
+    var comment = null;
+    if (typeof (arg) == "number") {
+      arg = "" + arg;
+    } else {
+      comment = arg.COMMENT;
+      arg = this.call_pp_no_comment(arg);
     }
-    var id = this.get_id();
-    var ret = "";
-    if (this.COMMENT) {
-      ret += "/* "+this.COMMENT.split("\n").join("<br>")+" */<br>";
-      console.log("RET = " + ret);
+    if (arg.indexOf("<br>") == -1 && arg.indexOf("<div") == -1 && !comment) {
+      ret += arg + " /* " + note + " */\n";
+    } else {
+      ret += "/* " + note + " */" + this.extraButtons(i / 2) + "<br>\n";
+      if (comment) {
+        ret += "/* " + comment + " */<br>\n";
+      }
+      ret += arg;
     }
-    ret += "<div id=X"+id+" style='border-style:solid;border-width:1px;' onclick='FocusOn("+id+",event)'>\n";
-    ret += "<span title='"+ note +"'>" + name + "</span>&lt;\n";
-    ret += "<div style='margin-left:1em'>\n";
+  }
+  ret += "</div>&gt;</div>\n";
+
+  return ret;
+}
+
+
+PPshort(name, note) {
+  if (pp_is_url) {
+    return this.PPURL.apply(this, arguments);
+  }
+  var id = this.get_id();
+  var ret = this.gencomment();
+  ret += "<div id=X" + id + " class='pp-container' onclick='FocusOn(" + id + ",event)'>\n";
+  ret += "<span title='" + note + "'>" + name + "</span>\n";
+
+  if (arguments.length > 2) {
+    ret += "&lt;";
     var comma = false;
     for (var i = 2; i < arguments.length; i += 2) {
-      if (comma) ret += ",<br>";
+      if (comma) ret += ",";
       comma = true;
       var arg = arguments[i];
-      var note = arguments[i+1];
-      var comment = null;
-      if (typeof(arg) == "number") {
-        arg = "" + arg;
+      var note = arguments[i + 1];
+      if (typeof (arg) == "number") {
+        ret += "<span title='" + note + "'>" + arg + "</span>";
       } else {
-        comment = arg.COMMENT;
-        arg = this.call_pp_no_comment(arg);
-      }
-      if (arg.indexOf("<br>") == -1 && arg.indexOf("<div") == -1 && !comment) {
-        ret += arg+" /* "+note+" */\n";
-      } else {
-        ret += "/* "+note+" */"+ this.extraButtons(i/2) +"<br>\n";
-        if (comment) {
-          ret += "/* "+comment+" */<br>\n";
-        }
-        ret += arg;
+        ret += "<span>/* " + note + " */</span><br>\n";
+        ret += arg.pp();
       }
     }
-    ret += "</div>&gt;</div>\n";
-
-    return ret;
+    ret += "&gt;";
   }
+  ret += "</div>\n";
 
-  PPshort(name, note) {
-    if (pp_is_url) {
-      return this.PPURL.apply(this, arguments);
-    }
-    var id = this.get_id();
-    var ret = this.gencomment();
-    ret += "<div id=X"+id+" style='border-style:solid;border-width:1px;' onclick='FocusOn("+id+",event)'>\n";
-    ret += "<span title='"+ note +"'>" + name + "</span>\n";
+  return ret;
+}
 
-    if (arguments.length > 2) {
-      ret += "&lt;";
-      var comma = false;
-      for (var i = 2; i < arguments.length; i += 2) {
-        if (comma) ret += ",";
-        comma = true;
-        var arg = arguments[i];
-        var note = arguments[i+1];
-        if (typeof(arg) == "number") {
-          ret += "<span title='"+note+"'>"+arg+"</span>";
-        } else {
-          ret += "<span>/* "+note+" */</span><br>\n";
-          ret += arg.pp();
-        }
-      }
-      ret += "&gt;";
-    }
-    ret += "</div>\n";
-
-    return ret;
-  }
 
   SameValue(a, b) {
     // console.log("SAMEVALUE");
@@ -1942,14 +1953,8 @@ class STYLE {
       if (container) {
         if (this.IS_RUNNING()) {
           container.classList.add('running');
-          container.style["border-color"] = 'yellow';
-          container.style["border-width"] = '3px';
-          container.style["padding"] = '0px';
         } else {
           container.classList.remove('running');
-          container.style["border-color"] = document.body.classList.contains('dark-mode') ? 'white' : 'gray';
-          container.style["border-width"] = '1px';
-          container.style["padding"] = '2px';
         }
       }
     }
