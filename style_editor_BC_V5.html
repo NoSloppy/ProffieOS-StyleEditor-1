@@ -1942,23 +1942,23 @@ PPshort(name, note) {
     return FIND("X" + id);
   }
 
-update_displays() {
-  for (var i = 0; i < this.argdefs.length; i++) {
-    var arg = this[this.argdefs[i].name];
-    if (typeof(arg) == "object") arg.update_displays();
-  }
+  update_displays() {
+    for (var i = 0; i < this.argdefs.length; i++) {
+      var arg = this[this.argdefs[i].name];
+      if (typeof(arg) == "object") arg.update_displays();
+    }
 
-  if (this.IS_RUNNING) {
-    var container = this.get_container();
-    if (container) {
-      if (this.IS_RUNNING()) {
-        container.classList.add('running');
-      } else {
-        container.classList.remove('running');
+    if (this.IS_RUNNING) {
+      var container = this.get_container();
+      if (container) {
+        if (this.IS_RUNNING()) {
+          container.classList.add('running');
+        } else {
+          container.classList.remove('running');
+        }
       }
     }
   }
-}
 
   argify(state) {
     for (var i = 0; i < this.argdefs.length; i++) {
