@@ -9986,9 +9986,6 @@ function toggleSettingsPanel() {
         const menu = FIND('more_effects_menu');
         const button = FIND('do_selected');
 
-        // Create an object to store actions for each item
-        const actions = {};
-
         /* Add values from the enum builder to an array and sort alphabetically,
         excluding effects with dedicated buttons.*/
         const values = Object.entries(EFFECT_ENUM_BUILDER.value_to_name)
@@ -10062,7 +10059,7 @@ function toggleSettingsPanel() {
           if (menu.value !== '') {
             button.disabled = false;
             button.onclick = function() {
-              AddClickedEffect(menu.value);
+              AddClickedEffect();
             };
           } else {
             // If the selected value is the default, disable the button
