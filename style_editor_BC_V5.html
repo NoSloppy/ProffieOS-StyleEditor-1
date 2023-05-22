@@ -9,13 +9,17 @@
   <title>ProffieOS Style Editor</title>
 <style>
 
-/* Make elements non-selectable with drag box*/
+/* Make elements non-selectable with drag box */
+/* Took a vote, enabled won, but disabled for now. */
 /** {
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
 }*/
+
+/* Box sizing helps keep buttons uniform in
+size when padding and margins may change */
 * {
   box-sizing: border-box;
 }
@@ -109,6 +113,10 @@ background-color: white;
 
 /* Non-dark mode styles */
 
+/* Submit, copy, etc... */
+.middle-btn-container {
+  white-space: nowrap;
+}
 /* Expand and Layerize buttons */
 .middle-btn-container .button-off,
 .middle-btn-container .button-off:hover {
@@ -247,15 +255,12 @@ select {
 }
 /* Blade Style text box */
 .textbox {
-  background-color: #ccc;
+  background-color: #eee;
   font-size: 14px;
   font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
   width: 100%;
 }
-/* Submit, copy, etc... */
-.middle-btn-container {
-  white-space: nowrap;
-}
+
 div.MAGIC_CLASS_FUNCTION input[type=button].btn {
   background: green;
   color: black;
@@ -315,7 +320,7 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   color: black;
   padding: 2px 3px;
 }
-.tabs {
+.tabs-container {
   position: relative;
 }
 /* Settings button as inline base64 icon
@@ -374,6 +379,7 @@ keeps uniformity across bowsers and devices */
 .wavlen-value {
   width: 80px;
 }
+
 /* Style the tab */
 .tab {
   overflow: hidden;
@@ -10165,7 +10171,7 @@ function stopAdjustingValue() {
         </span>
 
       <br>
-      <div id=TABS class="tabs">
+      <div id=TABS class="tabs-container">
         <a
           href="#" id="SETTINGS_BUTTON" class="settings-button"
           title="Settings"
