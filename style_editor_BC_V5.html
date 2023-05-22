@@ -122,10 +122,6 @@ background-color: white;
 
 /* Non-dark mode styles */
 
-/* Submit, copy, etc... */
-.middle-btn-container {
-  white-space: nowrap;
-}
 /* Expand and Layerize buttons */
 .middle-btn-container .button-off,
 .middle-btn-container .button-off:hover {
@@ -141,6 +137,7 @@ background-color: white;
 /* Other buttons */
 button,
 input[type="button"] {
+  display: inline-block;
   background-color: #eee;
   color: black;
   border-radius: 2px;
@@ -176,12 +173,6 @@ select {
   font-size: 14px;
 }
 
-/* Prevent Safari default style takeover at default zoom level */
-/*@media not all and (min-resolution:.001dpcm) { @media {
-  select {
-  border: 1px solid #ccc;
-  }
-}}*/
 .page-left {
   vertical-align: top;
   width: 50%;
