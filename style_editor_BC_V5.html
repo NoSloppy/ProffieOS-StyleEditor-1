@@ -37,6 +37,8 @@ size when padding and margins may change */
 .dark-mode .middle-btn-container .button-off:hover {
   background-color: #777;
   color: #bbb;
+  border: 2px solid #777;
+  padding: 2px;
 }
 .dark-mode .middle-btn-container .button-on {
   border: 2px solid dodgerblue;
@@ -63,14 +65,21 @@ size when padding and margins may change */
   color: #fff;
   border: 1px solid #ccc;
 }
+.dark-mode select:hover {
+  background-color: #9F9F9F;
+}
 /* Do Selected Effect button */
-.dark-mode .more-menu-container .do-selected:disabled {
+.dark-mode .more-menu-container .do-selected:disabled,
+.dark-mode .more-menu-container .do-selected:disabled:hover {
   background-color: #777;
   color: #bbb;
   border: 2px solid transparent;
 }
 .dark-mode .more-menu-container .do-selected {
   border: 2px solid dodgerblue;
+}
+.dark-mode .more-menu-container .do-selected:hover {
+  background-color: #777;
 }
 /* Variant and Alt adjusters */
 .dark-mode .variant-alt-container {
@@ -122,6 +131,8 @@ background-color: white;
 .middle-btn-container .button-off:hover {
   background-color: lightgray;
   color: darkgray;
+  border: 2px solid lightgray;
+  padding: 2px;
 }
 .middle-btn-container .button-on {
   padding: 2px;
@@ -140,9 +151,12 @@ input[type="button"] {
   font-weight: normal;
 }
 button:hover,
-select:hover,
 input[type="button"]:hover {
-  background-color: #ccc;
+  border: 2px solid #aaa;
+  padding: 2px;
+}
+select:hover {
+  background-color: #ddd;
 }
 button:active,
 input[type="button"]:active {
@@ -163,11 +177,11 @@ select {
 }
 
 /* Prevent Safari default style takeover at default zoom level */
-@media not all and (min-resolution:.001dpcm) { @media {
+/*@media not all and (min-resolution:.001dpcm) { @media {
   select {
   border: 1px solid #ccc;
   }
-}}
+}}*/
 .page-left {
   vertical-align: top;
   width: 50%;
@@ -177,13 +191,20 @@ select {
  }
 
 /* Do Selected Effect button */
-.more-menu-container .do-selected:disabled {
+.more-menu-container .do-selected:disabled,
+.more-menu-container .do-selected:disabled:hover {
   background-color: lightgray;
   color: darkgray;
-  border: 2px solid transparent;
+  border: 2px solid lightgray;
+  padding: 2px;
 }
 .more-menu-container .do-selected {
   border: 2px solid dodgerblue;
+}
+.more-menu-container .do-selected:hover {
+  background-color: #ddd;
+  border: 2px solid dodgerblue;
+  padding: 3px;
 }
 .more-menu-container {
   white-space: nowrap;
