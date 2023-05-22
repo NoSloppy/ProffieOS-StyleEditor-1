@@ -153,15 +153,7 @@ select {
   padding: 2px 0px;
   font-size: 14px;
 }
-/* Do Selected Effect button */
-.more-menu-container .do-selected:disabled {
-  background-color: lightgray;
-  color: darkgray;
-  border: 2px solid transparent;
-}
-.more-menu-container .do-selected {
-  border: 2px solid dodgerblue;
-}
+
 /* Prevent Safari default style takeover at default zoom level */
 @media not all and (min-resolution:.001dpcm) { @media {
   select {
@@ -179,6 +171,15 @@ select {
 .canvas-style {
   width: 256px;
   height: 256px;
+}
+/* Do Selected Effect button */
+.more-menu-container .do-selected:disabled {
+  background-color: lightgray;
+  color: darkgray;
+  border: 2px solid transparent;
+}
+.more-menu-container .do-selected {
+  border: 2px solid dodgerblue;
 }
 .more-menu-container {
   white-space: nowrap;
@@ -1225,7 +1226,7 @@ var width;
 var height;
 
 // Create n textures of about 1MB each.
-function initGL() { 
+function initGL() {
   AddTab("color", "Styles",effect_links.sort().join(""))
   AddTab("rgb", "Colors",
     "<input type=color id=COLOR value='#ff0000' onclick='ClickColor()' />" +
@@ -1293,6 +1294,7 @@ function initGL() {
     str = "Layers<Red,ResponsiveLockupL<White,TrInstant,TrInstant,Int<26000>>,ResponsiveLightningBlockL<White>,ResponsiveMeltL<Mix<TwistAngle<>,Red,Yellow>>,ResponsiveDragL<White>,ResponsiveClashL<White,TrInstant,TrFade<200>,Int<26000>>,ResponsiveBlastL<White>,ResponsiveBlastWaveL<White>,ResponsiveBlastFadeL<White>,ResponsiveStabL<White>,InOutTrL<TrWipe<300>,TrWipeIn<500>>>";
   }
   FIND("style").value = str;
+  
 
   Run();
   DoLayerize();
@@ -1315,7 +1317,8 @@ function initGL() {
 
   var texture = gl.createTexture();  
   gl.bindTexture(gl.TEXTURE_2D, texture);
-    
+  
+
   // Start the event loop.
   tick();
 }
@@ -9741,50 +9744,49 @@ function toggleSettingsPanel() {
     return parseInt(FIND("VARIANT_VALUE").value);
   }
 
-  /* Variant Slider functions */
-  function updateVariantValue(newValue) {
-      if (newValue < 0) {
-      newValue = 0;
-    } else if (newValue > 32768) {
-      newValue = 32768;
-    }
-    FIND("VARIANT_VALUE").value = newValue;
-    FIND("VARIANT_SLIDER").value = newValue;
-    console.log("Updated Variant: " + newValue);
+/* Variant Slider functions */
+function updateVariantValue(newValue) {
+  if (newValue < 0) {
+    newValue = 0;
+  } else if (newValue > 32768) {
+    newValue = 32768;
   }
+  FIND("VARIANT_VALUE").value = newValue;
+  FIND("VARIANT_SLIDER").value = newValue;
+  console.log("Updated Variant: " + newValue);
+}
 
-  var timeoutId, intervalId;
+var timeoutId, intervalId;
 
-  // Single click arrow to adjust by 1, hold to accelerate.
-  function startAdjustingValue(adjustment, inputId) {
-    adjustmentValue(adjustment, inputId);
-    var speed = 100;
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(function() {
-      var startTime = new Date().getTime();
-      intervalId = setInterval(function() {
-        var elapsedTime = new Date().getTime() - startTime;
-        var progress = elapsedTime / speed;
-        var ease = Math.pow(progress, 2);
-        var value = Math.round(adjustment * ease);
-        adjustmentValue(value, inputId);
-      }, 1000 / 60); // 60 FPS for more responsive input
-    }, 500); // delay until hold down button acceleration starts
-  }
+// Single click arrow to adjust by 1, hold to accelerate.
+function startAdjustingValue(adjustment, inputId) {
+  adjustmentValue(adjustment, inputId);
+  var speed = 100;
+  clearTimeout(timeoutId);
+  timeoutId = setTimeout(function() {
+    var startTime = new Date().getTime();
+    intervalId = setInterval(function() {
+      var elapsedTime = new Date().getTime() - startTime;
+      var progress = elapsedTime / speed;
+      var ease = Math.pow(progress, 2);
+      var value = Math.round(adjustment * ease);
+      adjustmentValue(value, inputId);
+    }, 1000 / 60); // 60 FPS for more responsive input
+  }, 500); // delay until hold down button acceleration starts
+}
 
-  function adjustmentValue(adjustment, inputId) {
-    var variantInput = FIND(inputId);
-    var newValue = parseInt(variantInput.value) + adjustment;
-    variantInput.value = newValue;
-    updateVariantValue(newValue);
-  }
-
-  // Stop on release or mouse leave arrow button
-  function stopAdjustingValue() {
-    clearInterval(intervalId);
-    clearTimeout(timeoutId);
-  }
-  /* End Variant Slider functions */
+function adjustmentValue(adjustment, inputId) {
+  var variantInput = FIND(inputId);
+  var newValue = parseInt(variantInput.value) + adjustment;
+  variantInput.value = newValue;
+  updateVariantValue(newValue);
+}
+// Release or mouse leave arrow button
+function stopAdjustingValue() {
+  clearInterval(intervalId);
+  clearTimeout(timeoutId);
+}
+/* End Variant Slider functions */
 
   function Copy() {
   if (current_style.getType() != "COLOR") {
@@ -9919,7 +9921,7 @@ function toggleSettingsPanel() {
   <tr>
     <td class="page-left">
       <canvas 
-        id="canvas_id" width="256" height="256" class="canvas-style"
+        id="canvas_id"  class="canvas-style"
         title="Blade Preview. Move mouse to swing. Click to Clash or Do Selected Effect (and to dismiss this Tooltip.)  Goto settings to change hilt model or toggle Still mode (no swing on mouse move.)"
         onmousemove='mouse_move(event)' onmouseleave='mouse_leave(event)'
         onclick='AddClickedEffect()'>
@@ -9980,7 +9982,7 @@ function toggleSettingsPanel() {
           title="Press this to trigger the EFFECT selected in the More Effects menu.">
       </span>
       
-      <script>
+  <script>
          // Get the menu and button elements
         const menu = FIND('more_effects_menu');
         const button = FIND('do_selected');
@@ -10131,8 +10133,10 @@ function toggleSettingsPanel() {
       <span id="error_message" class="error-message"></span>
 
       <br>
-        <pre><textarea rows=10 cols=80 id=style wrap="off" class="textbox"
-        title="Style and value editing area. Edits in here are committed by clicking the Submit button below." ></textarea></pre>
+        <pre><textarea 
+          rows=10 cols=80 id=style wrap="off" class="textbox"
+          title="Style and value editing area. Edits in here are committed by clicking the Submit button below." >
+        </textarea></pre>
         <span class="middle-btn-container">
           <input
             type=button name=run value="Submit"
