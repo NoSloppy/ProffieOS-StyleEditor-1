@@ -11,12 +11,12 @@
 
 /* Make page elements like buttons and whitespace non-selectable with drag box */
 /* Took a vote, enabled won, but disabled for now. */
-/** {
+* {
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-}*/
+}
 
 /* Box sizing helps keep buttons uniform in
 size when padding and margins may change */
@@ -358,7 +358,7 @@ keeps uniformity across bowsers and devices */
   color: black;
   width: 287px;
   border: 3px solid #888;
-  background: #aaa;
+  background: #ddd;
   padding: 36px;
   padding-left: 30px;
   border-radius: 9px;
@@ -382,6 +382,17 @@ keeps uniformity across bowsers and devices */
 .settings-panel label input[type="checkbox"] {
   margin-right: 8px;
 }
+.settings-section {
+  margin-bottom: 10px;
+}
+.settings-section-label {
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+  border-bottom: 2px solid #888;
+  padding-bottom: 5px;
+}
 .tooltips-disabled [title]:before,
 .tooltips-disabled [title]:after,
 .tooltips-disabled [data-original-title] {
@@ -395,6 +406,7 @@ keeps uniformity across bowsers and devices */
 }
 .wavlen-value {
   width: 80px;
+  margin-left: 5px;
 }
 
 /* Style the tab */
@@ -1477,7 +1489,7 @@ function get_swing_speed() {
   if (len >= 6) {
     return mouse_speed(0, len - 6);
   }
-  if (IN_FRAME) return 0.0;
+  if (IN_FRAME || FIND("SWING_EMULATION_BUTTON").checked) return 0.0;
   return Math.sin(millis() * Math.PI / 1000.0) * 250 + 250
 }
 
@@ -9496,9 +9508,10 @@ function ClickMelt() {
 }
 
 /* Settings buttons saved as local cookies */
-var stillOn = false;
 var darkOn = true;
 var tipsOn = true;
+var stillOn = false;
+var swingEmOn = true;
 var inhiltOn = false;
 var slowOn = false;
 /* var use_graflex = true; is already initialized above */
@@ -9524,16 +9537,6 @@ var variantTimeoutId;
 function onPageLoad() {
   // Retrieve saved cookies and set buttons and settings accordingly
   var body = document.querySelector("body");
-
-  // STILL_BUTTON
-  var stillButton = FIND("STILL_BUTTON");
-  var stillState = getSavedCookie("stillState");
-  console.log("BC-getSavedCookie called, stillState = " + stillState);
-  if (stillState === "true") {
-    stillButton.checked = true;
-    stillOn = true;
-  }
-  console.log("BC-stillOn = " + stillOn);
 
   // DARK_BUTTON
   var darkButton = FIND("DARK_BUTTON");
@@ -9578,6 +9581,27 @@ function onPageLoad() {
   }
   console.log("BC-tipsOn = " + tipsOn);
 
+  // STILL_BUTTON
+  var stillButton = FIND("STILL_BUTTON");
+  var stillState = getSavedCookie("stillState");
+  console.log("BC-getSavedCookie called, stillState = " + stillState);
+  if (stillState === "true") {
+    stillButton.checked = true;
+    stillOn = true;
+  }
+  console.log("BC-stillOn = " + stillOn);
+
+
+  // SWING_EMULATION_BUTTON
+  var swingEmButton = FIND("SWING_EMULATION_BUTTON");
+  var swingEmState = getSavedCookie("swingEmState");
+  console.log("BC-getSavedCookie called, swingEmState = " + swingEmState);
+  if (swingEmState === "true") {
+    swingEmButton.checked = true;
+    swingEmOn = true;
+  }
+  console.log("BC-swingEmOn = " + swingEmOn);
+
   // INHILT_BUTTON
   var inhiltButton = FIND("INHILT_BUTTON");
   var inhiltState = getSavedCookie("inhiltState");
@@ -9616,33 +9640,33 @@ function onPageLoad() {
     myWavLen.setLength(value);
   });
 
-// VARIANT_VALUE
-var variantInput = FIND("VARIANT_VALUE");
-var variantValue = parseInt(getSavedCookie("variantValue"));
-console.log("BC-getSavedCookie called, variantValue = " + variantValue);
-if (!isNaN(variantValue)) {
-  variantInput.value = variantValue;
-  updateVariantValue(variantValue);
-}
-
-// ALT
-var altInput = FIND("ALT");
-var altValue = parseInt(getSavedCookie("altValue"));
-console.log("BC-getSavedCookie called, altValue = " + altValue);
-if (!isNaN(altValue)) {
-  altInput.value = altValue;
-}
-
-// Add event listener for direct ALT input.
-altInput.addEventListener("input", function() {
-  console.log("BC-Alt value changed");
-  var value = parseInt(altInput.value);
-  console.log("BC-Alt value: " + value);
-  if (!isNaN(value)) {
-    console.log("BC-Saving cookie altValue: " + value);
-    saveCookie("altValue", value);
+  // VARIANT_VALUE
+  var variantInput = FIND("VARIANT_VALUE");
+  var variantValue = parseInt(getSavedCookie("variantValue"));
+  console.log("BC-getSavedCookie called, variantValue = " + variantValue);
+  if (!isNaN(variantValue)) {
+    variantInput.value = variantValue;
+    updateVariantValue(variantValue);
   }
-});
+
+  // ALT
+  var altInput = FIND("ALT");
+  var altValue = parseInt(getSavedCookie("altValue"));
+  console.log("BC-getSavedCookie called, altValue = " + altValue);
+  if (!isNaN(altValue)) {
+    altInput.value = altValue;
+  }
+
+  // Add event listener for direct ALT input.
+  altInput.addEventListener("input", function() {
+    console.log("BC-Alt value changed");
+    var value = parseInt(altInput.value);
+    console.log("BC-Alt value: " + value);
+    if (!isNaN(value)) {
+      console.log("BC-Saving cookie altValue: " + value);
+      saveCookie("altValue", value);
+    }
+  });
 
   // GRAFLEX_BUTTON - must be last here because calling compile() means no coming back.
   var graflexButton = FIND("GRAFLEX_BUTTON");
@@ -9784,12 +9808,6 @@ function toggleSettingsPanel() {
   window.addEventListener("resize", updatePanelPosition);
 }
 
-  function ClickStill() {
-    stillOn = !stillOn;
-    saveCookie("stillState", stillOn);
-    console.log("BC-Clickstill called, stillOn = " + stillOn);
-  }
-
   function ClickDark() {
     var body = document.querySelector("body");
     var structuredView = FIND("structured_view");
@@ -9825,6 +9843,18 @@ function toggleSettingsPanel() {
     }
     saveCookie("tipsState", tipsOn);
     console.log("BC-ClickTips called, tipsOn = " + tipsOn);
+  }
+
+  function ClickStill() {
+    stillOn = !stillOn;
+    saveCookie("stillState", stillOn);
+    console.log("BC-Clickstill called, stillOn = " + stillOn);
+  }
+
+  function ClickSwingEmulation() {
+    swingEmOn = !swingEmOn;
+    saveCookie("swingEmState", swingEmOn);
+    console.log("BC-ClickswingEm called, swingEmOn = " + swingEmOn);
   }
 
   function ClickGraflex() {
@@ -10240,52 +10270,55 @@ function ActivateTab(tab) {
       <div id="settings_panel" class="settings-panel"
         title="Turning on checkboxes saves your settings for future visits to the Style Editor page." >
 
-        <label title="Toggles the option for swinging around the preview blade above using mouse control." >
-          <input
-            type=checkbox id="STILL_BUTTON" name=still
-            onclick="ClickStill()" >
-          <span class="still-button-label">Still</span>
-        </label>
+        <div class="settings-section">
+          <label class="settings-section-label" title="These settings apply to the whole page.">General:</label>
 
-        <label title="Toggles a Dark Mode look to this page." >
-          <input
-            type="checkbox" id="DARK_BUTTON" name=dark-mode
-            onclick="ClickDark()" >
-          <span class="darkmode-button-label">Dark Mode</span>
-        </label>
+          <label title="Toggles a Dark Mode look to this page.">
+            <input type="checkbox" id="DARK_BUTTON" name="darkmode" onclick="ClickDark()">
+            <span class="darkmode-button-label">Dark Mode</span>
+          </label>
 
-        <label title="Toggles these pop-up tooltips On or Off." >
-          <input
-            type="checkbox" id="TIPS_BUTTON" name=tooltips
-            onclick="ClickTips()" >
-          <span class="tooltips-button-label">Tool Tips</span>
-        </label>
+          <label title="Toggles these pop-up tooltips On or Off.">
+            <input type="checkbox" id="TIPS_BUTTON" name="tooltips" onclick="ClickTips()">
+            <span class="tooltips-button-label">Tool Tips</span>
+          </label>
+        </div>
 
-        <label title="Toggles the Graflex Hilt model in the preview." >
-          <input
-            type="checkbox" id="GRAFLEX_BUTTON" name=graflex
-            onclick="ClickGraflex()" >
-          <span class="graflex-button-label">Graflex Hilt</span>
-        </label>
+        <div class="settings-section">
+          <label class="settings-section-label" title="These settings apply to the blade preview above.">Blade Preview:</label>
 
-        <label title="Simulates In-Hilt LED blades, (no addressable pixel effects)." >
-          <input
-            type="checkbox" id="INHILT_BUTTON" name=inhilt
-            onclick="ClickInhilt()" >
-          <span class="inhilt-button-label">Inhilt LED</span>
-        </label>
+          <label title="Toggles the Graflex Hilt model in the preview.">
+            <input type="checkbox" id="GRAFLEX_BUTTON" name="graflex" onclick="ClickGraflex()">
+            <span class="graflex-button-label">Graflex Hilt</span>
+          </label>
 
-        <label title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement. *Note* Graflex hilt model probably won't be able to render with this on." >
-          <input
-            type="checkbox" id="SLOW_BUTTON" name=slow
-            onclick="ClickSlow()" >
-          <span class="slow-button-label">Slow</span>
-        </label>
+          <label title="Toggles the option for swinging around the preview blade above using mouse control.">
+            <input type="checkbox" id="STILL_BUTTON" name="still" onclick="ClickStill()">
+            <span class="still-button-label">Still</span>
+          </label>
 
-        <label title="Enter a custom WavLen value in milliseconds." class="wavlen-label">
-          WavLen time:
-        </label>
-        <input type="number" id="WAVLEN_VALUE" class="wavlen-value" value="500">
+          <label title="Toggles displaying swing emulation on preview blade (ie: shown when using SwingSpeed<>).">
+            <input type="checkbox" id="SWING_EMULATION_BUTTON" name="swingemulation" onclick="ClickSwingEmulation()">
+            <span class="swingemulation-button-label">Swing Emulation</span>
+          </label>
+
+          <label title="Simulates In-Hilt LED blades, (no addressable pixel effects).">
+            <input type="checkbox" id="INHILT_BUTTON" name="inhilt" onclick="ClickInhilt()">
+            <span class="inhilt-button-label">Inhilt LED</span>
+          </label>
+
+          <label title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement. *Note* Graflex hilt model probably won't be able to render with this on.">
+            <input type="checkbox" id="SLOW_BUTTON" name="slow" onclick="ClickSlow()">
+            <span class="slow-button-label">Slow</span>
+          </label>
+        </div>
+
+        <div class="settings-section">
+          <label title="Enter a custom WavLen value in milliseconds." class="wavlen-label">
+            WavLen time:
+            <input type="number" id="WAVLEN_VALUE" class="wavlen-value" value="500">
+          </label>
+        </div>
         <div class="settings-panel-arrow"></div>
       </div>
       <div id=TABLINKS class=tab></div>
