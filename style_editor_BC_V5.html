@@ -12,7 +12,6 @@
 <style>
 
 /* Make page elements like buttons and whitespace non-selectable with drag box */
-/* Took a vote, enabled won */
 * {
   -webkit-user-select: none;
   -moz-user-select: none;
@@ -1300,11 +1299,14 @@ var width;
 var height;
 
 // Create n textures of about 1MB each.
-function initGL() { 
+function initGL() {
   AddTab("color", "Styles",effect_links.sort().join(""))
-  AddTab("rgb", "Colors",
+  // Sort sortedRgbLinks based on the name:
+  sortedRgbLinks.sort((a, b) => a.name.localeCompare(b.name));
+  qlinks = sortedRgbLinks.map(color => mkcolorbutton(color.name, color.r, color.g, color.b));
+   AddTab("rgb", "Colors",
     "<input type=color id=COLOR value='#ff0000' onclick='ClickColor()' />" +
-    qlinks.sort().join(""));
+    qlinks.join(""));
   AddTab("layer", "Layers", layer_links.sort().join(""));
   AddTab("function", "Functions", function_links.sort().join(""));
   AddTab("transition", "Transitions", transition_links.sort().join(""));
@@ -2416,6 +2418,7 @@ var transition_links = [];
 
 var all_colors = {};
 var colorNames = {};
+var sortedRgbLinks = [];
 
 class RgbClass extends STYLE {
   constructor(r,g,b,a) {
@@ -2751,17 +2754,32 @@ function mapcolor(x) {
   x = Math.pow(x, 1.0/2.2);
   return Math.round(x * 255);
 }
+// function mkcolorbutton(name, r, g, b) {
+//   r = mapcolor(r);
+//   g = mapcolor(g);
+//   b = mapcolor(b);
+//   var color = "rgb("+r+","+g+","+b+")";
+//   var text;
+//   if (r == 0 && g == 0 && b == 0) {
+//   	color = "black";
+//   	text = "white";
+//   } else {
+//   	text = "black";
+//   }
+//   return "<input type=button style='border: 1px solid black;padding:8px;color:"+text+";background:"+color+"' class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
+// }
 function mkcolorbutton(name, r, g, b) {
   r = mapcolor(r);
   g = mapcolor(g);
   b = mapcolor(b);
-  var color = "rgb("+r+","+g+","+b+")";
-  if (r == 0 && g == 0 && b == 0) color = "white";
-  return "<input type=button style='border: 1px solid black;padding:8px;color:black;background:"+color+"' class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
+  var text = (name === "Black" || name === "Blue") ? "white" : "black";
+	var color = (name === "Black") ? "black" : "rgb("+r+","+g+","+b+")";
+  return "<input type=button style='border: 1px solid black;padding:8px;color:"+text+";background:"+color+"' class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
 }
+
 function AddColor(name, r, g, b) {
   colorNames[r+","+g+","+b] = name;
-  qlinks.push(mkcolorbutton(name, r, g, b));
+  sortedRgbLinks.push({name, r, g, b});
   all_colors[name] = new RgbClass(r, g, b);
 }
 
@@ -9592,7 +9610,6 @@ window.addEventListener('load', onPageLoad);
 
 var myWavLen = new WavLenClass();
 var wavlenValue;
-var variantTimeoutId;
 
 function onPageLoad() {
   // Retrieve saved cookies and set buttons and settings accordingly
@@ -9721,33 +9738,6 @@ wavlenInput.addEventListener("keyup", function(e) {
   }
 });
 
-  // VARIANT_VALUE
-  var variantInput = FIND("VARIANT_VALUE");
-  var variantValue = parseInt(getSavedCookie("variantValue"));
-  // console.log("BC-getSavedCookie called, variantValue = " + variantValue);
-  if (!isNaN(variantValue)) {
-    variantInput.value = variantValue;
-    updateVariantValue(variantValue);
-  }
-
-  // ALT
-  var altInput = FIND("ALT");
-  var altValue = parseInt(getSavedCookie("altValue"));
-  // console.log("BC-getSavedCookie called, altValue = " + altValue);
-  if (!isNaN(altValue)) {
-    altInput.value = altValue;
-  }
-
-  // Add event listener for direct ALT input.
-  altInput.addEventListener("input", function() {
-    // console.log("BC-Alt value changed");
-    var value = parseInt(altInput.value);
-    // console.log("BC-Alt value: " + value);
-    if (!isNaN(value)) {
-      // console.log("BC-Saving cookie altValue: " + value);
-      saveCookie("altValue", value);
-    }
-  });
 
   // GRAFLEX_BUTTON - must be last here because calling compile() means no coming back.
   var graflexButton = FIND("GRAFLEX_BUTTON");
