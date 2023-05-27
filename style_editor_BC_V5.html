@@ -10050,7 +10050,7 @@ function ActivateTab(tab) {
     console.log("No such tab");
     return;
   }
-  // If the clicked tab is already active, clicking it again
+  // If the tab is already active, clicking it again
   // allows "unlocking" of the other tabs. 
   // This is useful when you want to change the top level
   // of the Structured View to something completely different.
@@ -10099,16 +10099,6 @@ function ActivateTab(tab) {
         currentTab.disabled = true;
         allTabsEnabled = false;
       }
-    }
-  }
-
-  // Enable all other tabs
-  var compatibleTabs = allTabs.filter(t => !incompatibleTabs.includes(t));
-  for (var i = 0; i < compatibleTabs.length; i++) {
-    var currentTab = FIND(compatibleTabs[i] + "_tab");
-    if (currentTab) {
-      currentTab.classList.remove("disabled");
-      currentTab.disabled = false;
     }
   }
   // Reset the flag
