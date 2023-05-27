@@ -6,6 +6,8 @@
   <meta charset="UTF-8">
   <!-- This should show up in search engine results. -->
   <meta name="description" content="ProffieOS Style Editor: Customize your Proffieboard saber blade animations with this browser based tool.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" crossorigin="anonymous"/>
+<!-- Font Awesome by Dave Gandy - http://fontawesome.io. License: SIL OFL 1.1 http://scripts.sil.org/OFL -->
   <title>ProffieOS Style Editor</title>
 <style>
 
@@ -32,24 +34,20 @@ size when padding and margins may change */
   color: white !important;
   color-scheme: dark !important;
 }
+.dark-mode .page-title {
+  background-color: #333;
+}
 
 /* Do Selected Effect, Expand, and Layerize */
 .dark-mode .page-left .button-off,
 .dark-mode .page-left .button-off:hover {
   background-color: #777;
-  color: #bbb;
-  border: 2px solid #777;
-  cursor: not-allowed;
+  color: darkgray;
+   box-shadow: 0 0 0 1px transparent;
+
 }
 .dark-mode .page-left .button-on:hover {
   background-color: #9F9F9F;
-}
-.dark-mode .page-left .button-on {
-  padding: 2px;
-  border: 2px solid steelblue;
-}
-.dark-mode .page-left .button-on:active {
-  background-color: steelblue;
 }
 
 /* Other buttons */
@@ -61,8 +59,7 @@ size when padding and margins may change */
 }
 .dark-mode button:hover,
 .dark-mode input[type="button"]:hover {
-  border: 2px solid steelblue;
-  padding: 2px;
+  background-color: #9F9F9F;
 }
 .dark-mode button:active,
 .dark-mode input[type="button"]:active {
@@ -74,11 +71,13 @@ size when padding and margins may change */
 .dark-mode .page-left .button-latched:hover {
   background-color: steelblue;
 }
+
 /* Lockup and More Effects dropdown menus */
 .dark-mode select {
   background-color: #777;
   color: #fff;
-  border: 1px solid #ccc;
+  border: 1px solid transparent;
+  padding: 1px;
 }
 .dark-mode select:hover {
   background-color: #9F9F9F;
@@ -86,8 +85,10 @@ size when padding and margins may change */
 
 /* Variant and Alt adjusters */
 .dark-mode .variant-alt-container {
+  background-color: steelblue;
   color: white;
 }
+
 .dark-mode .textbox {
   background-color: #333;
   color: white;
@@ -95,18 +96,19 @@ size when padding and margins may change */
 .dark-mode .settings-panel {
   border: 3px solid #ccc;
   background: #777;
+  color: lightgray;
 }
 .dark-mode .settings-panel .settings-panel-arrow {
   border-color: transparent #777 transparent transparent;
 }
 
+/* Tabs */
 .dark-mode .tab {
   background-color: #333;
 }
 .dark-mode .tab button:hover {
   background-color: #9F9F9F;
-  border: none;
-  padding: 7px 8px;
+  box-shadow: 0 0 3px 1px transparent;
 }
 .dark-mode .tab button.active {
   background-color: steelblue;
@@ -116,16 +118,14 @@ size when padding and margins may change */
   color: #bbb;
   cursor: not-allowed;
 }
+
 /* Structured View style arguments borders */
 .dark-mode .structured-view .selected-area-container,
 .dark-mode .structured-view .selected-area-container .pp-container {
   background-color: steelblue;
   border-color: white;
 }
-/* Chartreuse highlighted borders */
-.dark-mode .structured-view .selected-area-container .running {
-  border-color: chartreuse;
-}
+
 /* Keep color palette background white for reference. */
 .dark-mode .rgb-tabcontent {
 background-color: white;
@@ -133,9 +133,22 @@ background-color: white;
 
 /* Non-dark mode styles */
 
+body {
+  margin-top: -3px;
+  margin-bottom: 0;
+}
 .page-left {
   vertical-align: top;
   width: 50%;
+}
+/* ProffieOS Style Editor */
+.page-title {
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size: 24px;
+  text-align: center;
+  background-color: #eee;
+  padding: 10px;
+  margin: 0;
 }
 .page-right {
   vertical-align: top;
@@ -152,34 +165,39 @@ the Do Selected Effect button together */
 .page-left .button-off:hover {
   background-color: lightgray;
   color: darkgray;
-  border: 2px solid lightgray;
-  padding: 2px;
+/*  border: 2px solid lightgray;
+  padding: 2px;*/
+  box-shadow: 0 0 2px 1px transparent;
+  cursor: not-allowed;
 }
-.page-left .button-on {
+
+/*.page-left .button-on {
   padding: 2px;
   border: 2px solid dodgerblue;
-}
+}*/
 .page-left .button-on:hover {
-  background-color: #ddd;
+/*  background-color: #ddd;
   padding: 2px;
-  border: 2px solid dodgerblue;
+  border: 2px solid dodgerblue;*/
+  box-shadow: 0 0 0 1px dodgerblue;
 }
-.page-left .button-on:active {
+/*.page-left .button-on:active {
   background-color: dodgerblue;
-}
+}*/
 
 /* Lockup and More Effects Drop Downs */
 select {
   background-color: #eee;
   color: black;
   border-radius: 5px;
-  padding: 2px 0px;
-  font-size: 14px;
+  padding: .2%;
+  font-size: .8em;
+  cursor: pointer;
 }
 select:hover {
-  background-color: #ddd;
+/*  background-color: #ddd;*/
+  box-shadow: 0 0 2px 1px dodgerblue;
 }
-
 /* Other buttons */
 button,
 input[type="button"] {
@@ -188,36 +206,48 @@ input[type="button"] {
   color: black;
   border-radius: 2px;
   padding: 3px;
-  margin-bottom: 3px;
+  margin-block: 5px;
   font-size: 14px;
   border: 1px solid #bbb;
   font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
   font-weight: normal;
+  transition: box-shadow 0.1s ease;
 }
 button:hover,
 input[type="button"]:hover {
-  border: 2px solid dodgerblue;
-  padding: 2px;
+  box-shadow: 0 0 2px 1px dodgerblue;
 }
 button:active,
 input[type="button"]:active {
   background-color: dodgerblue;
 }
+button.submit-button,
+input[type="button"].submit-button {
+  background-color: forestgreen;
+  border: 1px solid green;
+
+}
+button.submit-button,
+input[type="button"].submit-button:hover {
+  background-color: limegreen;
+}
+button.submit-button,
+input[type="button"].submit-button:active {
+  background-color: dodgerblue;
+}
 /* Power and Rotate latching buttons */
 .page-left .button-latched,
 .page-left .button-latched:hover {
-  background-color: dodgerblue;
+  background-color: #6ADA;
 }
-
 /* Variant and Alt adjusters */
-
 .variant-alt-container {
   background: #6ADA;
   border: 1px solid black;
   font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-  font-size: 15px;
-  padding: 5px;
-/*  display: inline-block;*/
+  font-size: .9em;
+  padding-inline: 5px;
+  display: inline-block;
   color: black;
   white-space: nowrap;
 }
@@ -239,7 +269,7 @@ input[type="button"]:active {
 /* Thumb handle styling for Chrome, Safari, and other WebKit-based browsers */
 .variant-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  background: DodgerBlue;
+  background: dodgerblue;
   width: 14px;
   height: 14px;
   border-radius: 20%;
@@ -248,7 +278,7 @@ input[type="button"]:active {
 }
 /* Thumb handle styling for Firefox */
 .variant-slider::-moz-range-thumb {
-  background: DodgerBlue;
+  background: dodgerblue;
   width: 14px;
   height: 14px;
   border-radius: 20%;
@@ -256,17 +286,17 @@ input[type="button"]:active {
 }
 /* Thumb handle styling for Internet Explorer and Edge */
 .variant-slider::-ms-thumb {
-  background: DodgerBlue;
+  background: dodgerblue;
   width: 14px;
   height: 14px;
   border-radius: 20%;
   border: 1px solid #333;
 }
-
 .alt-label {
   margin-left: 8px;
   margin-right: 3px;
 }
+
 .error-message {
   color: red; 
   font-weight: bold;
@@ -279,7 +309,7 @@ input[type="button"]:active {
   width: 100%;
 }
 
-div.MAGIC_CLASS_FUNCTION input[type=button].btn {
+/*div.MAGIC_CLASS_FUNCTION input[type=button].btn {
   background: green;
   color: black;
   padding: 2px 3px;
@@ -337,31 +367,21 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   background: green;
   color: black;
   padding: 2px 3px;
-}
+}*/
 .tabs-container {
   position: relative;
 }
-/* Settings button as inline base64 icon
-keeps uniformity across bowsers and devices */
-.settings-button {
-  display: inline-block;
-  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACMAAAAjCAYAAAAe2bNZAAAACXBIWXMAAAsTAAALEwEAmpwYAAAGxGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDUgNzkuMTYzNDk5LCAyMDE4LzA4LzEzLTE2OjQwOjIyICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoTWFjaW50b3NoKSIgeG1wOkNyZWF0ZURhdGU9IjIwMjMtMDUtMjBUMTQ6MzE6NTEtMDQ6MDAiIHhtcDpNb2RpZnlEYXRlPSIyMDIzLTA1LTIwVDE0OjM3OjI0LTA0OjAwIiB4bXA6TWV0YWRhdGFEYXRlPSIyMDIzLTA1LTIwVDE0OjM3OjI0LTA0OjAwIiBkYzpmb3JtYXQ9ImltYWdlL3BuZyIgcGhvdG9zaG9wOkNvbG9yTW9kZT0iMyIgcGhvdG9zaG9wOklDQ1Byb2ZpbGU9InNSR0IgSUVDNjE5NjYtMi4xIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjZhZTE3NTM4LTI5MzYtNGIzOC04MGZlLWQ2NjU3ZDZlZTQ4NCIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDpmNTE2MzU3YS02NzYyLTRiNGItYTdkNC1mN2Y2MGNmMTM1NmUiIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDpmNTE2MzU3YS02NzYyLTRiNGItYTdkNC1mN2Y2MGNmMTM1NmUiPiA8eG1wTU06SGlzdG9yeT4gPHJkZjpTZXE+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjcmVhdGVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOmY1MTYzNTdhLTY3NjItNGI0Yi1hN2Q0LWY3ZjYwY2YxMzU2ZSIgc3RFdnQ6d2hlbj0iMjAyMy0wNS0yMFQxNDozMTo1MS0wNDowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTkgKE1hY2ludG9zaCkiLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249InNhdmVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOjQ3NzNhM2Q5LWYxNTMtNGU3YS05ZTA5LWEyNmJmZjcyOTUzYSIgc3RFdnQ6d2hlbj0iMjAyMy0wNS0yMFQxNDozNjo0Ny0wNDowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTkgKE1hY2ludG9zaCkiIHN0RXZ0OmNoYW5nZWQ9Ii8iLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249InNhdmVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOjZhZTE3NTM4LTI5MzYtNGIzOC04MGZlLWQ2NjU3ZDZlZTQ4NCIgc3RFdnQ6d2hlbj0iMjAyMy0wNS0yMFQxNDozNzoyNC0wNDowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTkgKE1hY2ludG9zaCkiIHN0RXZ0OmNoYW5nZWQ9Ii8iLz4gPC9yZGY6U2VxPiA8L3htcE1NOkhpc3Rvcnk+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+InjT6gAA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);
-  width: 35px;
-  height: 35px;
-  border: none;
-  position: absolute;
-  right: 0;
-  top: -38px;
-}
+
 .settings-panel.show {
   opacity: 1;
   pointer-events: auto;
 }
 .settings-panel {
-  font-family: sans-serif;
-  position: absolute;
-  left: -170px;
-  top: -10px;
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   color: black;
   width: 287px;
   border: 3px solid #888;
@@ -373,14 +393,7 @@ keeps uniformity across bowsers and devices */
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.25s ease-in-out;
-}
-.settings-panel .settings-panel-arrow {
-  position: absolute;
-  left: 100%;
-  transform: rotate(180deg);
-  border-width: 18px;
-  border-style: solid;
-  border-color: transparent #aaa transparent transparent;
+  z-index: 1000;
 }
 .settings-panel label {
   display: flex;
@@ -392,8 +405,14 @@ keeps uniformity across bowsers and devices */
 .settings-section {
   margin-bottom: 10px;
 }
+.settings-panel .settings-header-label {
+  font-weight: bold;
+  color: #333;
+  font-size: 22px;
+  margin-bottom: 10px;
+  justify-content: center;
+}
 .settings-section-label {
-  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
   font-weight: bold;
   color: #333;
   margin-bottom: 5px;
@@ -425,24 +444,29 @@ keeps uniformity across bowsers and devices */
 /* Style the buttons that are used to open the tab content */
 .tab button {
   background-color: inherit;
+  font-weight: 500;
+  font-size: 16px;
   float: left;
   border: none;
+  margin: unset;
   outline: none;
   cursor: pointer;
-  padding: 7px 8px;
-  transition: 0.3s;
+  padding: 8px;
+  transition: 0.1s ease;
 }
 /* Change background color of buttons on hover */
 .tab button:hover {
   background-color: #ddd;
+  box-shadow: 0 0 3px 1px transparent;
 }
 /* Create an active/current tablink class */
 .tab button.active {
-  background-color: dodgerblue;
+  background-color: #6ADA;
 }
 .tab button.disabled {
   background-color: lightgray;
   color: darkgray;
+  box-shadow: 0 0 0 1px transparent;
   cursor: not-allowed;
 }
 /* Style the tab content */
@@ -458,6 +482,14 @@ keeps uniformity across bowsers and devices */
   width: 100%;
   height: 99vh;
   overflow-y: scroll;
+}
+.structured-view-label {
+  display: flex;
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-weight: bold;
+  font-size: 1.2em;
+  margin: 2%;
+  justify-content: center;
 }
 .structured-view .selected-area-container {
   background-color: lightblue;
@@ -492,6 +524,7 @@ Add, Delete, Move Up, Move Down */
   line-height: 1.0em;
   font-size: 16px;
 }
+
 </style>
 
 
@@ -7444,7 +7477,7 @@ class LayerFunctionsClass extends FUNCTION {
     super("Mix functions", ARGS);
     this.LAYERS = Array.from(ARGS);
     for (var i = 1; i < this.LAYERS.length + 1; i++)
-      this.add_arg("FUNCTION" + i, "FUNCTION", "COLOR " + i);
+      this.add_arg("FUNCTION" + i, "FUNCTION", "FUNCTION " + i);
   }
   getInteger(led) {
     var ret = 0;
@@ -9517,6 +9550,22 @@ function ClickLB() {
 function ClickMelt() {
   STATE_LOCKUP = STATE_LOCKUP == LOCKUP_MELT ? 0 : LOCKUP_MELT;
 }
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.2/FileSaver.min.js"></script>
+<!-- 
+MIT license available here: https://spdx.org/licenses/MIT.html?utm_source=cdnjs&utm_medium=cdnjs_link&utm_campaign=cdnjs_library
+https://github.com/eligrey/FileSaver.js/ -->
+<script>
+
+/* Save blade style to local storage via user OS dialog */
+function ClickSave() {
+  Copy();
+  let textArea = FIND("style");
+  let content = "Saved from ProffieOS Style Editor:\nhttps://fredrik.hubbe.net/lightsaber/style_editor.html" + "\n\n" + textArea.value;
+  let blob = new Blob([content], {type: "text/plain;charset=utf-8"});
+  saveAs(blob, "style.txt");
+}
 
 /* Settings buttons saved as local cookies */
 var darkOn = true;
@@ -9797,15 +9846,6 @@ function stopAdjustingValue() {
 function toggleSettingsPanel() {
   var settingsButton = FIND("SETTINGS_BUTTON");
   var settingsPanel = FIND("settings_panel");
-  // Totally not needed, but nice when it tracks with the button
-  updatePanelPosition();
-  function updatePanelPosition() {
-    settingsPanel.style.left = settingsButton.offsetLeft - settingsPanel.offsetWidth - 20 + "px";
-    settingsPanel.style.top = settingsButton.offsetTop - 55 + "px";
-
-    var arrow = settingsPanel.querySelector(".settings-panel-arrow");
-    arrow.style.top = settingsButton.offsetTop + 90 + "px";
-  }
 
   // Show/hide panel
   settingsPanel.classList.toggle("show");
@@ -9825,20 +9865,7 @@ function toggleSettingsPanel() {
         timeoutId = null;
       }
     });
-
-    // Update panel position on every animation frame
-    var requestId;
-    function animatePanelPosition() {
-      updatePanelPosition();
-      requestId = requestAnimationFrame(animatePanelPosition);
-    }
-    animatePanelPosition();
-  } else {
-    cancelAnimationFrame(requestId);
   }
-
-  // Update panel position on resize event
-  window.addEventListener("resize", updatePanelPosition);
 }
 
   function ClickDark() {
@@ -10136,6 +10163,9 @@ function getIncompatibleTabs(tab) {
   <table>
   <tr>
     <td class="page-left">
+      <header>
+        <h2 class="page-title">ProffieOS Style Editor</h2>
+      </header>
       <canvas 
         id="canvas_id"  class="canvas-style"
         title="Blade Preview. Move mouse to swing. Click to Clash or Do Selected Effect (and to dismiss this Tooltip.)  Goto settings to change hilt model or toggle Still mode (no swing on mouse move.)"
@@ -10355,15 +10385,16 @@ function getIncompatibleTabs(tab) {
           rows=10 cols=80 id=style wrap="off" class="textbox"
           title="Style and value editing area. Edits in here are committed by clicking the Submit button below." >
         </textarea></pre>
+
         <span class="middle-btn-container">
           <input
-            type=button name=run value="Submit"
+            type=button name=run value="Submit" class="submit-button"
             title="Submit what is currently in the text box above."
-            onclick='Run()'>
-          <input
-            type=button name=copy value="Copy"
+            onclick="Run()">
+          <button 
             title="Adds StylePtr&lt;&gt;() wrapper and copies the style to the clipboard."
-            onclick='Copy()'>
+            onclick="Copy()">
+            <i class="fas fa-copy"></i> Copy</button>
           <input
             type=button id="expand_button" name=expand value="Expand"
             title="Reveals the &quot;under the hood&quot; code that the shorthand macro uses. This allows access to otherwise omitted arguments, and is only an active button when applicable."
@@ -10371,78 +10402,83 @@ function getIncompatibleTabs(tab) {
           <input
             type=button id="layerize_button" name=layerize value="Layerize"
             title="Transforms nested version style code and breaks it out into more contemporary Layers format."
-            onclick="DoLayerize()" >
+            onclick="DoLayerize()">
           <input
-            type=button id="argify_button" name=argify value="Argify"
+            type=button name=argify value="Argify"
             title="Converts arguments to their ARG version counterparts for use with ProffieOS Workbench or Edit Mode. See the &quot;ArgString&quot; tab below."
-            onclick="DoArgify()" >
+            onclick="DoArgify()">
           <input
             type=button id="ROTATE_BUTTON" name=rotate value="Rotate"
             title="Toggles animation of the preview blade above."
-            onclick="ClickRotate()" >
+            onclick="ClickRotate()">
+          <button 
+            title="Save the blade style to your computer."
+            onclick="ClickSave()">
+            <i class="fas fa-save"></i> Save</button>
+          <button 
+            id="SETTINGS_BUTTON"
+            title="Settings"
+            onclick="toggleSettingsPanel()">
+            <i class="fas fa-cog"></i> Settings</button>
+
+          <div id="settings_panel" class="settings-panel"
+            title="Turning on checkboxes saves your settings for future visits to the Style Editor page.">
+              <label class="settings-header-label">Settings</label>
+
+            <div class="settings-section">
+              <label class="settings-section-label" title="These settings apply to the whole page.">General:</label>
+
+              <label title="Toggles a Dark Mode look to this page.">
+                <input type="checkbox" id="DARK_BUTTON" name="darkmode" onclick="ClickDark()">
+                <span class="darkmode-button-label">Dark Mode</span>
+              </label>
+
+              <label title="Toggles these pop-up tooltips On or Off.">
+                <input type="checkbox" id="TIPS_BUTTON" name="tooltips" onclick="ClickTips()">
+                <span class="tooltips-button-label">Tool Tips</span>
+              </label>
+            </div>
+
+            <div class="settings-section">
+              <label class="settings-section-label" title="These settings apply to the blade preview above.">Blade Preview:</label>
+
+              <label title="Toggles the Graflex Hilt model in the preview.">
+                <input type="checkbox" id="GRAFLEX_BUTTON" name="graflex" onclick="ClickGraflex()">
+                <span class="graflex-button-label">Graflex Hilt</span>
+              </label>
+
+              <label title="Toggles the option for swinging around the preview blade above using mouse control.">
+                <input type="checkbox" id="STILL_BUTTON" name="still" onclick="ClickStill()">
+                <span class="still-button-label">Still</span>
+              </label>
+
+              <label title="Toggles displaying swing emulation on preview blade (ie: shown when using SwingSpeed<>).">
+                <input type="checkbox" id="SWING_EMULATION_BUTTON" name="swingemulation" onclick="ClickSwingEmulation()">
+                <span class="swingemulation-button-label">Swing Emulation</span>
+              </label>
+
+              <label title="Simulates In-Hilt LED blades, (no addressable pixel effects).">
+                <input type="checkbox" id="INHILT_BUTTON" name="inhilt" onclick="ClickInhilt()">
+                <span class="inhilt-button-label">Inhilt LED</span>
+              </label>
+
+              <label title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement. *Note* Graflex hilt model probably won't be able to render with this on.">
+                <input type="checkbox" id="SLOW_BUTTON" name="slow" onclick="ClickSlow()">
+                <span class="slow-button-label">Slow</span>
+              </label>
+            </div>
+
+            <div class="settings-section">
+              <label title="Enter a custom WavLen value in milliseconds." class="wavlen-label">
+                WavLen time:
+                <input type="number" id="WAVLEN_VALUE" class="wavlen-value" value="500">
+              </label>
+            </div>
+          </div>
         </span>
 
     <br>
     <div id=TABS class="tabs-container">
-      <a
-        href="#" id="SETTINGS_BUTTON" class="settings-button"
-        title="Settings"
-        onclick="toggleSettingsPanel()" >
-      </a>
-      <div id="settings_panel" class="settings-panel"
-        title="Turning on checkboxes saves your settings for future visits to the Style Editor page." >
-
-        <div class="settings-section">
-          <label class="settings-section-label" title="These settings apply to the whole page.">General:</label>
-
-          <label title="Toggles a Dark Mode look to this page.">
-            <input type="checkbox" id="DARK_BUTTON" name="darkmode" onclick="ClickDark()">
-            <span class="darkmode-button-label">Dark Mode</span>
-          </label>
-
-          <label title="Toggles these pop-up tooltips On or Off.">
-            <input type="checkbox" id="TIPS_BUTTON" name="tooltips" onclick="ClickTips()">
-            <span class="tooltips-button-label">Tool Tips</span>
-          </label>
-        </div>
-
-        <div class="settings-section">
-          <label class="settings-section-label" title="These settings apply to the blade preview above.">Blade Preview:</label>
-
-          <label title="Toggles the Graflex Hilt model in the preview.">
-            <input type="checkbox" id="GRAFLEX_BUTTON" name="graflex" onclick="ClickGraflex()">
-            <span class="graflex-button-label">Graflex Hilt</span>
-          </label>
-
-          <label title="Toggles the option for swinging around the preview blade above using mouse control.">
-            <input type="checkbox" id="STILL_BUTTON" name="still" onclick="ClickStill()">
-            <span class="still-button-label">Still</span>
-          </label>
-
-          <label title="Toggles displaying swing emulation on preview blade (ie: shown when using SwingSpeed<>).">
-            <input type="checkbox" id="SWING_EMULATION_BUTTON" name="swingemulation" onclick="ClickSwingEmulation()">
-            <span class="swingemulation-button-label">Swing Emulation</span>
-          </label>
-
-          <label title="Simulates In-Hilt LED blades, (no addressable pixel effects).">
-            <input type="checkbox" id="INHILT_BUTTON" name="inhilt" onclick="ClickInhilt()">
-            <span class="inhilt-button-label">Inhilt LED</span>
-          </label>
-
-          <label title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement. *Note* Graflex hilt model probably won't be able to render with this on.">
-            <input type="checkbox" id="SLOW_BUTTON" name="slow" onclick="ClickSlow()">
-            <span class="slow-button-label">Slow</span>
-          </label>
-        </div>
-
-        <div class="settings-section">
-          <label title="Enter a custom WavLen value in milliseconds." class="wavlen-label">
-            WavLen time:
-            <input type="number" id="WAVLEN_VALUE" class="wavlen-value" value="500">
-          </label>
-        </div>
-        <div class="settings-panel-arrow"></div>
-      </div>
       <div id=TABLINKS class=tab></div>
       <div id=TABBODIES class=tabcontainer></div>
     </div>
@@ -10451,7 +10487,7 @@ function getIncompatibleTabs(tab) {
     </td>
     <td class="page-right">
       <div id="structured_view" class="structured-view">
-        <b>Structured view, click to edit</b>
+        <span class="structured-view-label">Structured view, click to edit.</span>
         <div id="pp" class="pp"></div>
       </div>
     </td>
