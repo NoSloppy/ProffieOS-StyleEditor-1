@@ -10,7 +10,7 @@
 <style>
 
 /* Make page elements like buttons and whitespace non-selectable with drag box */
-/* Took a vote, enabled won, but disabled for now. */
+/* Took a vote, enabled won */
 * {
   -webkit-user-select: none;
   -moz-user-select: none;
@@ -39,6 +39,7 @@ size when padding and margins may change */
   background-color: #777;
   color: #bbb;
   border: 2px solid #777;
+  cursor: not-allowed;
 }
 .dark-mode .page-left .button-on:hover {
   background-color: #9F9F9F;
@@ -110,6 +111,11 @@ size when padding and margins may change */
 .dark-mode .tab button.active {
   background-color: steelblue;
 }
+.dark-mode .tab button.disabled {
+  background-color: #777;
+  color: #bbb;
+  cursor: not-allowed;
+}
 /* Structured View style arguments borders */
 .dark-mode .structured-view .selected-area-container,
 .dark-mode .structured-view .selected-area-container .pp-container {
@@ -120,6 +126,7 @@ size when padding and margins may change */
 .dark-mode .structured-view .selected-area-container .running {
   border-color: chartreuse;
 }
+/* Keep color palette background white for reference. */
 .dark-mode .rgb-tabcontent {
 background-color: white;
 }
@@ -427,11 +434,16 @@ keeps uniformity across bowsers and devices */
 }
 /* Change background color of buttons on hover */
 .tab button:hover {
-  background-color: #ccc;
+  background-color: #ddd;
 }
 /* Create an active/current tablink class */
 .tab button.active {
   background-color: dodgerblue;
+}
+.tab button.disabled {
+  background-color: lightgray;
+  color: darkgray;
+  cursor: not-allowed;
 }
 /* Style the tab content */
 .tabcontent {
@@ -481,6 +493,7 @@ Add, Delete, Move Up, Move Down */
   font-size: 16px;
 }
 </style>
+
 
 <script id="vertex_shader" type="x-shader/x-vertex">
 precision highp float;
@@ -1140,7 +1153,7 @@ void main() {
 
     vec3 haze_color;
     float x = march(eye, dir, haze_color);
-        
+			  
     vec3 hp = eye + dir * x;
     vec3 color = vec3(0);
 
@@ -1322,7 +1335,6 @@ function initGL() {
     str = "Layers<Red,ResponsiveLockupL<White,TrInstant,TrInstant,Int<26000>>,ResponsiveLightningBlockL<White>,ResponsiveMeltL<Mix<TwistAngle<>,Red,Yellow>>,ResponsiveDragL<White>,ResponsiveClashL<White,TrInstant,TrFade<200>,Int<26000>>,ResponsiveBlastL<White>,ResponsiveBlastWaveL<White>,ResponsiveBlastFadeL<White>,ResponsiveStabL<White>,InOutTrL<TrWipe<300>,TrWipeIn<500>>>";
   }
   FIND("style").value = str;
-  
 
   Run();
   DoLayerize();
@@ -1345,8 +1357,7 @@ function initGL() {
 
   var texture = gl.createTexture();  
   gl.bindTexture(gl.TEXTURE_2D, texture);
-  
-
+    
   // Start the event loop.
   tick();
 }
@@ -1515,6 +1526,7 @@ function mouse_leave(e) {
   MOUSE_POSITIONS = [];
   IN_FRAME = false;
 }
+
 
 function compile() {
   // Create a shader that samples a 2D image.
@@ -1810,7 +1822,7 @@ class STYLE {
     return "";
   }
 
-PP(name, note) {
+  PP(name, note) {
     if (pp_is_url) {
       return this.PPURL.apply(this, arguments);
     }
@@ -1830,20 +1842,20 @@ PP(name, note) {
       var arg = arguments[i];
       var note = arguments[i + 1];
       var comment = null;
-      if (typeof (arg) == "number") {
-        arg = "" + arg;
+      if (typeof(arg) == "number") {
+	arg = "" + arg;
       } else {
         comment = arg.COMMENT;
-        arg = this.call_pp_no_comment(arg);
+	arg = this.call_pp_no_comment(arg);
       }
       if (arg.indexOf("<br>") == -1 && arg.indexOf("<div") == -1 && !comment) {
-        ret += arg + " /* " + note + " */\n";
+	ret += arg+" /* "+note+" */\n";
       } else {
-        ret += "/* " + note + " */" + this.extraButtons(i / 2) + "<br>\n";
-        if (comment) {
-          ret += "/* " + comment + " */<br>\n";
+	ret += "/* "+note+" */"+ this.extraButtons(i/2) +"<br>\n";
+	if (comment) {
+	  ret += "/* "+comment+" */<br>\n";
         }
-        ret += arg;
+	ret += arg;
       }
     }
     ret += "</div>&gt;</div>\n";
@@ -1865,16 +1877,16 @@ PP(name, note) {
       ret += "&lt;";
       var comma = false;
       for (var i = 2; i < arguments.length; i += 2) {
-        if (comma) ret += ",";
-        comma = true;
-        var arg = arguments[i];
-        var note = arguments[i + 1];
-        if (typeof (arg) == "number") {
-          ret += "<span title='" + note + "'>" + arg + "</span>";
-        } else {
-          ret += "<span>/* " + note + " */</span><br>\n";
-          ret += arg.pp();
-        }
+	if (comma) ret += ",";
+	comma = true;
+	var arg = arguments[i];
+	var note = arguments[i+1];
+	if (typeof(arg) == "number") {
+	  ret += "<span title='"+note+"'>"+arg+"</span>";
+	} else {
+	  ret += "<span>/* "+note+" */</span><br>\n";
+	  ret += arg.pp();
+	}
       }
       ret += "&gt;";
     }
@@ -1882,7 +1894,6 @@ PP(name, note) {
 
     return ret;
   }
-
 
   SameValue(a, b) {
     // console.log("SAMEVALUE");
@@ -7324,14 +7335,14 @@ class WavLenClass extends FUNCTION {
     super("Length of associated wav file in MS", arguments);
     this.add_arg("EFFECT", "EFFECT", "Which effect to get the length of.", EFFECT(EFFECT_NONE));
   }
-
+  // WavLen value can be set in settings panel
   setLength(value) {
     this.wavlenValue = value;
-    console.log("BC-setLength-this.wavlenValue:", this.wavlenValue);
+    // console.log("BC-setLength-this.wavlenValue;:", this.wavlenValue);
   }
 
   getInteger(led) {
-    console.log("BC-myWavLen.wavlenValue: ", myWavLen.wavlenValue);
+    // console.log("BC-myWavLen.wavlenValue: ", myWavLen.wavlenValue);
     return myWavLen.wavlenValue;
   }
 };
@@ -9542,7 +9553,7 @@ function onPageLoad() {
   var darkButton = FIND("DARK_BUTTON");
   var darkState = getSavedCookie("darkState");
   var structuredView = FIND("structured_view")
-  console.log("BC-getSavedCookie called, darkState = " + darkState);
+  // console.log("BC-getSavedCookie called, darkState = " + darkState);
   if (darkState !== "false") {
     darkButton.checked = true;
     darkOn = true;
@@ -9554,12 +9565,12 @@ function onPageLoad() {
     body.classList.remove("dark-mode");
     structuredView.classList.remove("dark-mode");
   }
-  console.log("BC-darkOn = " + darkOn);
+  // console.log("BC-darkOn = " + darkOn);
 
   // TIPS_BUTTON
   var tipsButton = FIND("TIPS_BUTTON");
   var tipsState = getSavedCookie("tipsState");
-  console.log("BC-getSavedCookie called, tipsState = " + tipsState);
+  // console.log("BC-getSavedCookie called, tipsState = " + tipsState);
   if (tipsState !== "false") {
     tipsButton.checked = true;
     tipsOn = true;
@@ -9579,50 +9590,50 @@ function onPageLoad() {
       element.removeAttribute("title");
     });
   }
-  console.log("BC-tipsOn = " + tipsOn);
+  // console.log("BC-tipsOn = " + tipsOn);
 
   // STILL_BUTTON
   var stillButton = FIND("STILL_BUTTON");
   var stillState = getSavedCookie("stillState");
-  console.log("BC-getSavedCookie called, stillState = " + stillState);
+  // console.log("BC-getSavedCookie called, stillState = " + stillState);
   if (stillState === "true") {
     stillButton.checked = true;
     stillOn = true;
   }
-  console.log("BC-stillOn = " + stillOn);
+  // console.log("BC-stillOn = " + stillOn);
 
 
   // SWING_EMULATION_BUTTON
   var swingEmButton = FIND("SWING_EMULATION_BUTTON");
   var swingEmState = getSavedCookie("swingEmState");
-  console.log("BC-getSavedCookie called, swingEmState = " + swingEmState);
+  // console.log("BC-getSavedCookie called, swingEmState = " + swingEmState);
   if (swingEmState === "true") {
     swingEmButton.checked = true;
     swingEmOn = true;
   }
-  console.log("BC-swingEmOn = " + swingEmOn);
+  // console.log("BC-swingEmOn = " + swingEmOn);
 
   // INHILT_BUTTON
   var inhiltButton = FIND("INHILT_BUTTON");
   var inhiltState = getSavedCookie("inhiltState");
-  console.log("BC-getSavedCookie called, inhiltState = " + inhiltState);
+  // console.log("BC-getSavedCookie called, inhiltState = " + inhiltState);
   if (inhiltState === "true") {
     inhiltButton.checked = true;
     inhiltOn = true;
     STATE_NUM_LEDS = 145 - STATE_NUM_LEDS;
   }
-  console.log("BC-inhiltOn = " + inhiltOn);
+  // console.log("BC-inhiltOn = " + inhiltOn);
 
   // SLOW_BUTTON
   var slowButton = FIND("SLOW_BUTTON");
   var slowState = getSavedCookie("slowState");
-  console.log("BC-getSavedCookie called, slowState = " + slowState);
+  // console.log("BC-getSavedCookie called, slowState = " + slowState);
   if (slowState === "true") {
     slowButton.checked = true;
     slowOn = true;
     framesPerUpdate = 60 - framesPerUpdate;
   }
-  console.log("BC-slowOn = " + slowOn);
+  // console.log("BC-slowOn = " + slowOn);
 
   // WAVLEN_VALUE
   var wavlenInput = FIND("WAVLEN_VALUE");
@@ -9630,20 +9641,41 @@ function onPageLoad() {
   if (!wavlenValue) {
     wavlenValue = 500;
   }
-  console.log("BC-getSavedCookie called, wavlenValue = " + wavlenValue);
+  // console.log("BC-getSavedCookie called, wavlenValue = " + wavlenValue);
   wavlenInput.value = wavlenValue;
   myWavLen.setLength(wavlenValue);
-  // Listen for changes to the WAVLEN_VALUE element
-  wavlenInput.addEventListener("input", function() {
-    var value = parseInt(this.value);
-    saveCookie("wavlenValue", parseInt(value));
-    myWavLen.setLength(value);
-  });
+wavlenInput.addEventListener("click", function(e) {
+  this.select(); // Select the entire contents of the input box
+});
+wavlenInput.addEventListener("input", function(e) {
+  var value = parseInt(this.value);
+  var newValue = value;
+  if (isNaN(value) || value < 1) {
+    newValue = Math.max(1, value); // Set the minimum value of 1
+  }
+  this.value = newValue;
+  saveCookie("wavlenValue", newValue);
+  myWavLen.setLength(newValue);
+});
+wavlenInput.addEventListener("keydown", function(e) {
+  if (e.key === "Enter") {
+    this.blur(); // Remove focus from the input box when Enter key is pressed
+  } else if ((e.key === "Backspace" || e.key === "Delete") && this.value.length === 1) {
+    this.value = "1"; // Autofill "1" if the only digit is deleted
+    e.preventDefault();
+  }
+});
+wavlenInput.addEventListener("keyup", function(e) {
+  if (this.value.length === 0) {
+    this.value = "1"; // Autofill "1" if the input box is empty after keyup
+    this.select(); // Select the entire contents of the input box
+  }
+});
 
   // VARIANT_VALUE
   var variantInput = FIND("VARIANT_VALUE");
   var variantValue = parseInt(getSavedCookie("variantValue"));
-  console.log("BC-getSavedCookie called, variantValue = " + variantValue);
+  // console.log("BC-getSavedCookie called, variantValue = " + variantValue);
   if (!isNaN(variantValue)) {
     variantInput.value = variantValue;
     updateVariantValue(variantValue);
@@ -9652,18 +9684,18 @@ function onPageLoad() {
   // ALT
   var altInput = FIND("ALT");
   var altValue = parseInt(getSavedCookie("altValue"));
-  console.log("BC-getSavedCookie called, altValue = " + altValue);
+  // console.log("BC-getSavedCookie called, altValue = " + altValue);
   if (!isNaN(altValue)) {
     altInput.value = altValue;
   }
 
   // Add event listener for direct ALT input.
   altInput.addEventListener("input", function() {
-    console.log("BC-Alt value changed");
+    // console.log("BC-Alt value changed");
     var value = parseInt(altInput.value);
-    console.log("BC-Alt value: " + value);
+    // console.log("BC-Alt value: " + value);
     if (!isNaN(value)) {
-      console.log("BC-Saving cookie altValue: " + value);
+      // console.log("BC-Saving cookie altValue: " + value);
       saveCookie("altValue", value);
     }
   });
@@ -9671,16 +9703,16 @@ function onPageLoad() {
   // GRAFLEX_BUTTON - must be last here because calling compile() means no coming back.
   var graflexButton = FIND("GRAFLEX_BUTTON");
   var graflexState = getSavedCookie("graflexState");
-  console.log("BC-getSavedCookie called, graflexState = " + graflexState);
+  // console.log("BC-getSavedCookie called, graflexState = " + graflexState);
   if (graflexState !== "false") {
     use_graflex = true;
     graflexButton.checked = true;
-    console.log("BC-use_graflex = " + use_graflex);
+    // console.log("BC-use_graflex = " + use_graflex);
     compile();
   } else {
     use_graflex = false;
     graflexButton.checked = false;
-    console.log("BC-use_graflex = " + use_graflex);
+    // console.log("BC-use_graflex = " + use_graflex);
     compile();
   }
 } // onPageLoad()
@@ -9696,9 +9728,9 @@ function IncreaseAlt(n) {
   if (v < 0) v += num_alternatives;
   if (v > num_alternatives) v -= num_alternatives;
   FIND("ALT").value = v;
-  console.log("BC-Alt value changed: " + v);
+  // console.log("BC-Alt value changed: " + v);
   if (!isNaN(v)) {
-    console.log("BC-Saving cookie altValue: " + v);
+    // console.log("BC-Saving cookie altValue: " + v);
     saveCookie("altValue", v);
   }
 }
@@ -9719,10 +9751,11 @@ function updateVariantValue(newValue) {
   FIND("VARIANT_SLIDER").value = newValue;
   console.log("Updated Variant: " + newValue);
   clearTimeout(variantTimeoutId);
-  console.log("BC-Variant value changed: " + newValue);
+  // console.log("BC-Variant value changed: " + newValue);
+  // Variant cookie save delayed so rapid change doesn't do a bunch of saves
   if (!isNaN(newValue)) {
     variantTimeoutId = setTimeout(function() {
-      console.log("BC-Saving cookie variantValue: " + newValue);
+      // console.log("BC-Saving cookie variantValue: " + newValue);
       saveCookie("variantValue", newValue);
     }, 2000);
   }
@@ -9820,7 +9853,7 @@ function toggleSettingsPanel() {
       structuredView.classList.remove("dark-mode");
     }
     saveCookie("darkState", darkOn);
-    console.log("BC-ClickTips called, darkOn = " + darkOn);
+    // console.log("BC-ClickTips called, darkOn = " + darkOn);
   }
 
   function ClickTips() {
@@ -9842,19 +9875,19 @@ function toggleSettingsPanel() {
       });
     }
     saveCookie("tipsState", tipsOn);
-    console.log("BC-ClickTips called, tipsOn = " + tipsOn);
+    // console.log("BC-ClickTips called, tipsOn = " + tipsOn);
   }
 
   function ClickStill() {
     stillOn = !stillOn;
     saveCookie("stillState", stillOn);
-    console.log("BC-Clickstill called, stillOn = " + stillOn);
+    // console.log("BC-Clickstill called, stillOn = " + stillOn);
   }
 
   function ClickSwingEmulation() {
     swingEmOn = !swingEmOn;
     saveCookie("swingEmState", swingEmOn);
-    console.log("BC-ClickswingEm called, swingEmOn = " + swingEmOn);
+    // console.log("BC-ClickswingEm called, swingEmOn = " + swingEmOn);
   }
 
   function ClickGraflex() {
@@ -9865,21 +9898,21 @@ function toggleSettingsPanel() {
     }
     compile();
     saveCookie("graflexState", use_graflex);
-    console.log("BC-ClickGraflex called, use_graflex = " + use_graflex);
+    // console.log("BC-ClickGraflex called, use_graflex = " + use_graflex);
   }
 
   function ClickInhilt() {
     inhiltOn = !inhiltOn;
     STATE_NUM_LEDS = 145 - STATE_NUM_LEDS;
     saveCookie("inhiltState", inhiltOn);
-    console.log("BC-ClickInhilt called, inhiltOn = " + inhiltOn);
+    // console.log("BC-ClickInhilt called, inhiltOn = " + inhiltOn);
   }
 
   function ClickSlow() {
     slowOn = !slowOn;
     framesPerUpdate = 60 - framesPerUpdate;
     saveCookie("slowState", slowOn);
-    console.log("BC-ClickSlow called, slowOn = " + slowOn);
+    // console.log("BC-ClickSlow called, slowOn = " + slowOn);
   }
 
 function Copy() {
@@ -9967,12 +10000,24 @@ function DoArgify() {
   SetTo(tmp);
 }
 
+
+// Tab mania.
+const allTabs = ["color", "rgb", "layer", "function", "transition", "effect", "lockup_type", "arguments", "example", "history", "arg_string"];
+const colorGroup = ["color", "rgb", "layer"];
+var wasTabClicked = false;
+var allTabsEnabled = true;
+var currentTab;
+
 function AddTab(tab, name, contents) {
-  FIND("TABLINKS").innerHTML += "<button id="+tab+"_tab class=tablinks onclick=\"ActivateTab('"+tab+"')\">" + name + "</button>";
-  FIND("TABBODIES").innerHTML += "<div id="+tab+"_tabcontent class=tabcontent></div>";
+  FIND("TABLINKS").innerHTML += "<button id=" + tab + "_tab class=tablinks onclick=\"TabClicked('"+tab+"');\">" + name + "</button>";
+  FIND("TABBODIES").innerHTML += "<div id=" + tab + "_tabcontent class=tabcontent></div>";
   if (contents) {
     AddTabContent(tab, contents);
   }
+}
+function TabClicked(tab) {
+  wasTabClicked = true;
+  ActivateTab(tab);
 }
 
 function AddTabContent(tab, data) {
@@ -9983,28 +10028,105 @@ function AddTabContent(tab, data) {
   }
 }
 
+var tablinks = document.getElementsByClassName("tablinks");
+
+function enableTabs() {
+  for (var i = 0; i < tablinks.length; i++) {
+    tablinks[i].classList.remove("disabled");
+    tablinks[i].disabled = false;
+  }
+  allTabsEnabled = true;
+}
+
+// Enable all tabs on page load
+window.addEventListener("load", function () {
+  setTimeout(function () {
+    enableTabs();
+  }, 0);
+});
+
 function ActivateTab(tab) {
-  if(!FIND(tab+"_tab")) {
+  if (!FIND(tab + "_tab")) {
     console.log("No such tab");
     return;
   }
+  // If the tab is already active, clicking it again
+  // allows "unlocking" of the other tabs. 
+  // This is useful when you want to change the top level
+  // of the Structured View to something completely different.
+  // However, it's most important to maintain the lock on non-applicable tabs
+  // if the tab is active from a clicked type Structured View selection.
+  var activeTab = FIND(tab + "_tab");
+  if (activeTab.classList.contains("active") && wasTabClicked) {
+    // If the clicked tab is already active, enable all tabs
+    enableTabs();
+    // Reset the wasTabClicked flag as all tabs are now enabled
+    wasTabClicked = false;
+    return;
+  }
+
   // Get all elements with class="tabcontent" and hide them
   var tabcontent = document.getElementsByClassName("tabcontent");
   for (var i = 0; i < tabcontent.length; i++) {
     tabcontent[i].style.display = "none";
   }
 
-  // Get all elements with class="tablinks" and remove the class "active"
-  var tablinks = document.getElementsByClassName("tablinks");
+  // First, remove the "active" and "disabled" class from all tabs
   for (var i = 0; i < tablinks.length; i++) {
-    tablinks[i].className = tablinks[i].className.replace(" active", "");
+    tablinks[i].classList.remove("active");
+    tablinks[i].classList.remove("disabled");
+    tablinks[i].disabled = false;
   }
 
   // Show the current tab, and add an "active" class to the button that opened the tab
-  FIND(tab+"_tabcontent").style.display = "block";
-  FIND(tab+"_tab").className += " active";
+  FIND(tab + "_tabcontent").style.display = "block";
+  FIND(tab + "_tab").classList.add("active");
+
+  // Find the outer-most bracket element using simplified XPath
+  var outerMostBracket = document.evaluate("/html/body/table/tbody/tr/td[2]/div/div/div", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+
+  outerMostBracket.addEventListener("click", function (event) {
+    enableTabs();
+  });
+
+  // Deactivate tabs that are not compatible with the current tab
+  var incompatibleTabs = getIncompatibleTabs(tab);
+  if (!wasTabClicked || (colorGroup.includes(tab) && !allTabsEnabled)) {
+    for (var i = 0; i < incompatibleTabs.length; i++) {
+      currentTab = FIND(incompatibleTabs[i] + "_tab");
+      if (currentTab) {
+        currentTab.classList.add("disabled");
+        currentTab.disabled = true;
+        allTabsEnabled = false;
+      }
+    }
+  }
+  // Reset the flag
+  wasTabClicked = false; 
 }
 
+// Return an array of tabs that are compatible with the given tab
+function getCompatibleTabs(tab) {
+  if (colorGroup.includes(tab)) {
+    return colorGroup;
+  } else {
+    return [tab];
+  }
+}
+// Return an array of tabs that are incompatible with the given tab
+function getIncompatibleTabs(tab) {
+  let incompatibleTabs;
+
+  if (colorGroup.includes(tab)) {
+    // If the current tab is in the color group, filter out all other tabs outside this group
+    incompatibleTabs = allTabs.filter(t => !colorGroup.includes(t));
+  } else {
+    // If the current tab is NOT in the color group, filter out all tabs including the color group
+    incompatibleTabs = allTabs.filter(t => t !== tab);
+  }
+
+  return incompatibleTabs;
+}
 
 </script>
 </head>
@@ -10330,7 +10452,7 @@ function ActivateTab(tab) {
     <td class="page-right">
       <div id="structured_view" class="structured-view">
         <b>Structured view, click to edit</b>
-        <div id=pp class="pp"></div>
+        <div id="pp" class="pp"></div>
       </div>
     </td>
     </tr>
