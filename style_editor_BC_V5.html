@@ -130,7 +130,18 @@ size when padding and margins may change */
 background-color: white;
 }
 
+/* Popup Window */
+.dark-mode .popup-window {
+  border: 3px solid #ccc;
+  background: #777;
+}
+.dark-mode .popup-window button {
+  background-color: steelblue;
+}
+
+
 /* Non-dark mode styles */
+
 
 body {
   margin-top: -3px;
@@ -307,8 +318,8 @@ input[type="button"].submit-button:active {
   font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
   width: 100%;
 }
-
-/*div.MAGIC_CLASS_FUNCTION input[type=button].btn {
+/* History Tab content */
+div.MAGIC_CLASS_FUNCTION input[type=button].btn {
   background: green;
   color: black;
   padding: 2px 3px;
@@ -366,7 +377,7 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   background: green;
   color: black;
   padding: 2px 3px;
-}*/
+}
 .tabs-container {
   position: relative;
 }
@@ -524,6 +535,55 @@ Add, Delete, Move Up, Move Down */
   font-size: 16px;
 }
 
+/* Popup Window */
+.popup-window.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.popup-window {
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-weight: 500;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 30%;
+  color: black;
+  border: 3px solid #888;
+  background: #ddd;
+  padding: 20px;
+  text-align: center;
+  border-radius: 9px;
+  box-shadow: 6px 10px 10px rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease-in-out;
+  z-index: 9999;
+}
+
+.popup-window button {
+  background-color: steelblue;
+  color: black;
+  border-radius: 5px;
+  padding: 3px 35px;
+  font-size: 20px;
+  font-weight: bold;
+  border: 1px solid black;
+  cursor: pointer;
+}
+.overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9998;
+}
+.overlay.show {
+	display: block;
+}
 </style>
 
 
@@ -9114,6 +9174,38 @@ var framesPerUpdate = 0;
 var use_graflex = true;
 var bad_fps = 0;
 
+</script>
+
+<div id="popup_window" class="popup-window">
+  <p id="popup_message"></p>
+  <button id="dismiss_button">OK</button>
+</div>
+<div id="overlay" class="overlay"></div>
+
+<script>
+
+  function showPopupMessage(message) {
+    var popupMessage = document.getElementById("popup_message");
+    var popupWindow = document.getElementById("popup_window");
+    var overlay = document.getElementById("overlay");
+    var dismissButton = document.getElementById("dismiss_button");
+
+    popupMessage.innerHTML = message;
+    popupWindow.classList.add("show");
+    overlay.classList.add("show");
+    dismissButton.addEventListener("click", dismissPopupMessage);
+  }
+
+  function dismissPopupMessage() {
+    var popupWindow = document.getElementById("popup_window");
+    var overlay = document.getElementById("overlay");
+    var dismissButton = document.getElementById("dismiss_button");
+
+    popupWindow.classList.remove("show");
+    overlay.classList.remove("show");
+    dismissButton.removeEventListener("click", dismissPopupMessage);
+  }
+
 function drawScene() {
   last_micros = current_micros;
   current_micros = actual_millis() * 1000;
@@ -9123,7 +9215,8 @@ function drawScene() {
      if (bad_fps) bad_fps --;
   }
   if (bad_fps > 10 && use_graflex) {
-    FIND("error_message").innerHTML = "Struggling to render hilt model. Switching to simpler design. To re-enable Graflex model, goto Settings.";
+    popupMessage = "Struggling to render hilt model.<br>Switching to simpler design.<br>To re-enable Graflex model, go to Settings.";
+    showPopupMessage(popupMessage);
     use_graflex = false;
     saveCookie("graflexState", false);
     FIND("GRAFLEX_BUTTON").checked = false;
@@ -9341,7 +9434,6 @@ function ReplaceCurrentFocus(str) {
     }
   }
 }
-
 
 function Run() {
   var sty = FIND("style");
@@ -9911,7 +10003,7 @@ function toggleSettingsPanel() {
     use_graflex = ! use_graflex;
     if (use_graflex) {
       // Clear Struggling message
-      FIND("error_message").innerHTML = "";
+      // FIND("error_message").innerHTML = "";
     }
     compile();
     saveCookie("graflexState", use_graflex);
@@ -10370,6 +10462,8 @@ function getIncompatibleTabs(tab) {
       <br>
 
       <span id="error_message" class="error-message"></span>
+
+
 
         <pre><textarea 
           rows=10 cols=80 id=style wrap="off" class="textbox"
