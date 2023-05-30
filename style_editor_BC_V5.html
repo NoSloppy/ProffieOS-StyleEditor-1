@@ -6,8 +6,9 @@
   <meta charset="UTF-8">
   <!-- This should show up in search engine results. -->
   <meta name="description" content="ProffieOS Style Editor: Customize your Proffieboard saber blade animations with this browser based tool.">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" crossorigin="anonymous"/>
-<!-- Font Awesome by Dave Gandy - http://fontawesome.io. License: SIL OFL 1.1 http://scripts.sil.org/OFL -->
+  <link rel="stylesheet" href="fontawesome-free-5.15.4-web/css/all.css" crossorigin="anonymous"/>
+  <!--   Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com
+  License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License -->
   <title>ProffieOS Style Editor</title>
 <style>
 
@@ -22,6 +23,7 @@
 /* Box sizing helps keep buttons uniform in
 size when padding and margins may change */
 * {
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
   box-sizing: border-box;
 }
 
@@ -33,9 +35,6 @@ size when padding and margins may change */
   color: white !important;
   color-scheme: dark !important;
 }
-.dark-mode .page-title {
-  background-color: #333;
-}
 
 /* Do Selected Effect, Expand, and Layerize */
 .dark-mode .page-left .button-off,
@@ -44,9 +43,6 @@ size when padding and margins may change */
   color: darkgray;
    box-shadow: 0 0 0 1px transparent;
 
-}
-.dark-mode .page-left .button-on:hover {
-  background-color: #9F9F9F;
 }
 
 /* Other buttons */
@@ -63,6 +59,15 @@ size when padding and margins may change */
 .dark-mode button:active,
 .dark-mode input[type="button"]:active {
   background-color: steelblue;
+}
+.dark-mode button.submit-button,
+.dark-mode input[type="button"].submit-button {
+  background-color: forestgreen;
+
+}
+.dark-mode button.submit-button,
+.dark-mode input[type="button"].submit-button:hover {
+  background-color: limegreen;
 }
 
 /* Power and Rotate latching buttons */
@@ -95,7 +100,10 @@ size when padding and margins may change */
 .dark-mode .settings-panel {
   border: 3px solid #ccc;
   background: #777;
-  color: lightgray;
+  color: black;
+}
+.dark-mode .settings-panel button{
+  background-color: steelblue;
 }
 .dark-mode .settings-panel .settings-panel-arrow {
   border-color: transparent #777 transparent transparent;
@@ -135,10 +143,10 @@ background-color: white;
   border: 3px solid #ccc;
   background: #777;
 }
-.dark-mode .popup-window button {
-  background-color: steelblue;
-}
 
+.dark-mode .footer-container {
+  background-color: #333;
+}
 
 /* Non-dark mode styles */
 
@@ -147,18 +155,12 @@ body {
   margin-top: -3px;
   margin-bottom: 0;
 }
+
 .page-left {
+  position: relative;
   vertical-align: top;
   width: 50%;
-}
-/* ProffieOS Style Editor */
-.page-title {
-  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-  font-size: 24px;
-  text-align: center;
-  background-color: #eee;
-  padding: 10px;
-  margin: 0;
+  padding-bottom: 30px;
 }
 .page-right {
   vertical-align: top;
@@ -175,25 +177,9 @@ the Do Selected Effect button together */
 .page-left .button-off:hover {
   background-color: lightgray;
   color: darkgray;
-/*  border: 2px solid lightgray;
-  padding: 2px;*/
   box-shadow: 0 0 2px 1px transparent;
   cursor: not-allowed;
 }
-
-/*.page-left .button-on {
-  padding: 2px;
-  border: 2px solid dodgerblue;
-}*/
-.page-left .button-on:hover {
-/*  background-color: #ddd;
-  padding: 2px;
-  border: 2px solid dodgerblue;*/
-  box-shadow: 0 0 0 1px dodgerblue;
-}
-/*.page-left .button-on:active {
-  background-color: dodgerblue;
-}*/
 
 /* Lockup and More Effects Drop Downs */
 select {
@@ -219,7 +205,6 @@ input[type="button"] {
   margin-block: 5px;
   font-size: 14px;
   border: 1px solid #bbb;
-  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
   font-weight: normal;
   transition: box-shadow 0.1s ease;
 }
@@ -233,13 +218,8 @@ input[type="button"]:active {
 }
 button.submit-button,
 input[type="button"].submit-button {
-  background-color: forestgreen;
-  border: 1px solid green;
-
-}
-button.submit-button,
-input[type="button"].submit-button:hover {
   background-color: limegreen;
+  border: 1px solid green;
 }
 button.submit-button,
 input[type="button"].submit-button:active {
@@ -250,16 +230,21 @@ input[type="button"].submit-button:active {
 .page-left .button-latched:hover {
   background-color: #6ADA;
 }
+
 /* Variant and Alt adjusters */
 .variant-alt-container {
   background: #6ADA;
   border: 1px solid black;
-  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-  font-size: .9em;
-  padding-inline: 5px;
+  border-radius: 4px;
+  font-size: 18px;
   display: inline-block;
   color: black;
   white-space: nowrap;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  transform: scale(.8);
+  margin-left: -35px;
+  padding-inline: 5px;
 }
 .variant-label {
   margin-left: 3px;
@@ -315,7 +300,6 @@ input[type="button"].submit-button:active {
 .textbox {
   background-color: #eee;
   font-size: 14px;
-  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
   width: 100%;
 }
 /* History Tab content */
@@ -387,7 +371,6 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   pointer-events: auto;
 }
 .settings-panel {
-  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
   position: fixed;
   left: 50%;
   top: 50%;
@@ -429,6 +412,21 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   border-bottom: 2px solid #888;
   padding-bottom: 5px;
 }
+.settings-panel button{
+  background-color: #6ADA;
+  color: black;
+  margin-left: 46px;
+  border: 1px solid black;
+}
+.settings-panel button.close-settings {
+  background-color: #f44336;
+  position: absolute;
+  top: 0px;
+  left: -40px;
+  padding: 0px 4px;
+  font-weight: bold;
+}
+
 .tooltips-disabled [title]:before,
 .tooltips-disabled [title]:after,
 .tooltips-disabled [data-original-title] {
@@ -454,8 +452,8 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
 /* Style the buttons that are used to open the tab content */
 .tab button {
   background-color: inherit;
-  font-weight: 500;
-  font-size: 16px;
+/*  font-weight: 500;
+  font-size: 16px;*/
   float: left;
   border: none;
   margin: unset;
@@ -488,18 +486,17 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
 }
 
 .structured-view {
-  vertical-align: top;
+  position: sticky;
+  top: 0;
   width: 100%;
-  height: 99vh;
+  height: 100vh;
   overflow-y: scroll;
 }
 .structured-view-label {
-  display: flex;
-  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-  font-weight: bold;
-  font-size: 1.2em;
-  margin: 2%;
-  justify-content: center;
+    display: block;
+    font-size: 110%;
+    padding-top: 9px;
+    padding-bottom: 5px;
 }
 .structured-view .selected-area-container {
   background-color: lightblue;
@@ -508,7 +505,6 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
 .pp span {
   padding-left: 6px;
   font-weight: 600;
-  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
 }
 /* Structured View style arguments borders */
 .pp-container {
@@ -541,7 +537,6 @@ Add, Delete, Move Up, Move Down */
   pointer-events: auto;
 }
 .popup-window {
-  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
   font-weight: 500;
   position: fixed;
   top: 50%;
@@ -582,7 +577,49 @@ Add, Delete, Move Up, Move Down */
   z-index: 9998;
 }
 .overlay.show {
-	display: block;
+  display: block;
+}
+
+/* Footer */
+.footer-title {
+  min-width: 180px;
+  font-size: 16px;
+}
+.footer-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #eee;
+  padding: 2px 15px;
+}
+.other-sites {
+  float: right;
+  padding-right: 10px;
+  margin-left: 35px;
+}
+.footer-links {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 100px;
+}
+.other-sites {
+  float: right;
+  padding-right: 10px;
+}
+.footer-links a img {
+  height: 16px;
+  width: 16px;
+  margin-right: 5px;
+}
+.footer-links a:hover {
+  color: #000;
 }
 </style>
 
@@ -7449,11 +7486,11 @@ class WavLenClass extends FUNCTION {
   // WavLen value can be set in settings panel
   setLength(value) {
     this.wavlenValue = value;
-    // console.log("BC-setLength-this.wavlenValue;:", this.wavlenValue);
+     console.log("BC-setLength-this.wavlenValue;:", this.wavlenValue);
   }
 
   getInteger(led) {
-    // console.log("BC-myWavLen.wavlenValue: ", myWavLen.wavlenValue);
+     console.log("BC-myWavLen.wavlenValue: ", myWavLen.wavlenValue);
     return myWavLen.wavlenValue;
   }
 };
@@ -9178,32 +9215,36 @@ var bad_fps = 0;
 
 <div id="popup_window" class="popup-window">
   <p id="popup_message"></p>
-  <button id="dismiss_button">OK</button>
+  <button title="OK" onclick="dismissPopupMessage()">OK</button>
+  <br>
+  <label title="Disable this popup again. Refresh page to show again.">
+    <input type="checkbox" id="dont_show_again" name="dontshow" onclick="DontShowAgain()">
+    <span class="dont-show-again-label">Don't show this again</span>
+  </label>
 </div>
 <div id="overlay" class="overlay"></div>
 
 <script>
 
+  var enablePopup = true;
+  var popupWindow = FIND("popup_window");
+  var overlay = FIND("overlay");
+
   function showPopupMessage(message) {
-    var popupMessage = document.getElementById("popup_message");
-    var popupWindow = document.getElementById("popup_window");
-    var overlay = document.getElementById("overlay");
-    var dismissButton = document.getElementById("dismiss_button");
-
-    popupMessage.innerHTML = message;
-    popupWindow.classList.add("show");
-    overlay.classList.add("show");
-    dismissButton.addEventListener("click", dismissPopupMessage);
+    console.log("Popup triggered. hidden?");
+    if (enablePopup) {
+      FIND("popup_message").innerHTML = message;
+      popupWindow.classList.add("show");
+      overlay.classList.add("show");
+    }
   }
-
   function dismissPopupMessage() {
-    var popupWindow = document.getElementById("popup_window");
-    var overlay = document.getElementById("overlay");
-    var dismissButton = document.getElementById("dismiss_button");
-
     popupWindow.classList.remove("show");
     overlay.classList.remove("show");
-    dismissButton.removeEventListener("click", dismissPopupMessage);
+  }
+  function DontShowAgain() {
+    enablePopup = false;
+    // saveCookie("allowPopup", enablePopup);
   }
 
 function drawScene() {
@@ -9662,6 +9703,7 @@ function ClickMelt() {
 }
 </script>
 
+<!-- Make saveAs() work -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.2/FileSaver.min.js"></script>
 <!-- 
 MIT license available here: https://spdx.org/licenses/MIT.html?utm_source=cdnjs&utm_medium=cdnjs_link&utm_campaign=cdnjs_library
@@ -9672,357 +9714,10 @@ https://github.com/eligrey/FileSaver.js/ -->
 function ClickSave() {
   Copy();
   let textArea = FIND("style");
-  let content = "Saved from ProffieOS Style Editor:\nhttps://fredrik.hubbe.net/lightsaber/style_editor.html" + "\n\n" + textArea.value;
+  let content = "/*\nSaved from ProffieOS Style Editor:\nhttps://fredrik.hubbe.net/lightsaber/style_editor.html\n*/" + "\n\n" + textArea.value;
   let blob = new Blob([content], {type: "text/plain;charset=utf-8"});
   saveAs(blob, "style.txt");
 }
-
-/* Settings buttons saved as local cookies */
-var darkOn = true;
-var tipsOn = true;
-var stillOn = false;
-var swingEmOn = true;
-var inhiltOn = false;
-var slowOn = false;
-/* var use_graflex = true; is already initialized above */
-
-function getSavedCookie(buttonState) {
-  var value = localStorage.getItem(buttonState);
-  if (buttonState === "wavlenValue") {
-    return parseInt(value);
-  }
-  return value;
-}
-function saveCookie(buttonState, settingIsOn) {
-  localStorage.setItem(buttonState, settingIsOn);
-}
-
-// Call the onPageLoad function when the page is loaded
-window.addEventListener('load', onPageLoad);
-
-var myWavLen = new WavLenClass();
-var wavlenValue;
-
-function onPageLoad() {
-  // Retrieve saved cookies and set buttons and settings accordingly
-  var body = document.querySelector("body");
-
-  // DARK_BUTTON
-  var darkButton = FIND("DARK_BUTTON");
-  var darkState = getSavedCookie("darkState");
-  var structuredView = FIND("structured_view")
-  // console.log("BC-getSavedCookie called, darkState = " + darkState);
-  if (darkState !== "false") {
-    darkButton.checked = true;
-    darkOn = true;
-    body.classList.add("dark-mode");
-    structuredView.classList.add("dark-mode");
-  } else {
-    darkButton.checked = false;
-    darkOn = false;
-    body.classList.remove("dark-mode");
-    structuredView.classList.remove("dark-mode");
-  }
-  // console.log("BC-darkOn = " + darkOn);
-
-  // TIPS_BUTTON
-  var tipsButton = FIND("TIPS_BUTTON");
-  var tipsState = getSavedCookie("tipsState");
-  // console.log("BC-getSavedCookie called, tipsState = " + tipsState);
-  if (tipsState !== "false") {
-    tipsButton.checked = true;
-    tipsOn = true;
-    body.classList.remove("tooltips-disabled");
-    const elementsWithDataTitles = document.querySelectorAll("[data-title]");
-    elementsWithDataTitles.forEach((element) => {
-      element.setAttribute("title", element.dataset.title);
-      element.removeAttribute("data-title");
-    });
-  } else {
-    tipsButton.checked = false;
-    tipsOn = false;
-    body.classList.add("tooltips-disabled");
-    const elementsWithTitles = document.querySelectorAll("[title]");
-    elementsWithTitles.forEach((element) => {
-      element.dataset.title = element.getAttribute("title");
-      element.removeAttribute("title");
-    });
-  }
-  // console.log("BC-tipsOn = " + tipsOn);
-
-  // STILL_BUTTON
-  var stillButton = FIND("STILL_BUTTON");
-  var stillState = getSavedCookie("stillState");
-  // console.log("BC-getSavedCookie called, stillState = " + stillState);
-  if (stillState === "true") {
-    stillButton.checked = true;
-    stillOn = true;
-  }
-  // console.log("BC-stillOn = " + stillOn);
-
-
-  // SWING_EMULATION_BUTTON
-  var swingEmButton = FIND("SWING_EMULATION_BUTTON");
-  var swingEmState = getSavedCookie("swingEmState");
-  // console.log("BC-getSavedCookie called, swingEmState = " + swingEmState);
-  if (swingEmState === "true") {
-    swingEmButton.checked = true;
-    swingEmOn = true;
-  }
-  // console.log("BC-swingEmOn = " + swingEmOn);
-
-  // INHILT_BUTTON
-  var inhiltButton = FIND("INHILT_BUTTON");
-  var inhiltState = getSavedCookie("inhiltState");
-  // console.log("BC-getSavedCookie called, inhiltState = " + inhiltState);
-  if (inhiltState === "true") {
-    inhiltButton.checked = true;
-    inhiltOn = true;
-    STATE_NUM_LEDS = 145 - STATE_NUM_LEDS;
-  }
-  // console.log("BC-inhiltOn = " + inhiltOn);
-
-  // SLOW_BUTTON
-  var slowButton = FIND("SLOW_BUTTON");
-  var slowState = getSavedCookie("slowState");
-  // console.log("BC-getSavedCookie called, slowState = " + slowState);
-  if (slowState === "true") {
-    slowButton.checked = true;
-    slowOn = true;
-    framesPerUpdate = 60 - framesPerUpdate;
-  }
-  // console.log("BC-slowOn = " + slowOn);
-
-  // WAVLEN_VALUE
-  var wavlenInput = FIND("WAVLEN_VALUE");
-  wavlenValue = parseInt(getSavedCookie("wavlenValue"));
-  if (!wavlenValue) {
-    wavlenValue = 500;
-  }
-  // console.log("BC-getSavedCookie called, wavlenValue = " + wavlenValue);
-  wavlenInput.value = wavlenValue;
-  myWavLen.setLength(wavlenValue);
-wavlenInput.addEventListener("click", function(e) {
-  this.select(); // Select the entire contents of the input box
-});
-wavlenInput.addEventListener("input", function(e) {
-  var value = parseInt(this.value);
-  var newValue = value;
-  if (isNaN(value) || value < 1) {
-    newValue = Math.max(1, value); // Set the minimum value of 1
-  }
-  this.value = newValue;
-  saveCookie("wavlenValue", newValue);
-  myWavLen.setLength(newValue);
-});
-wavlenInput.addEventListener("keydown", function(e) {
-  if (e.key === "Enter") {
-    this.blur(); // Remove focus from the input box when Enter key is pressed
-  } else if ((e.key === "Backspace" || e.key === "Delete") && this.value.length === 1) {
-    this.value = "1"; // Autofill "1" if the only digit is deleted
-    e.preventDefault();
-  }
-});
-wavlenInput.addEventListener("keyup", function(e) {
-  if (this.value.length === 0) {
-    this.value = "1"; // Autofill "1" if the input box is empty after keyup
-    this.select(); // Select the entire contents of the input box
-  }
-});
-
-
-  // GRAFLEX_BUTTON - must be last here because calling compile() means no coming back.
-  var graflexButton = FIND("GRAFLEX_BUTTON");
-  var graflexState = getSavedCookie("graflexState");
-  // console.log("BC-getSavedCookie called, graflexState = " + graflexState);
-  if (graflexState !== "false") {
-    use_graflex = true;
-    graflexButton.checked = true;
-    // console.log("BC-use_graflex = " + use_graflex);
-    compile();
-  } else {
-    use_graflex = false;
-    graflexButton.checked = false;
-    // console.log("BC-use_graflex = " + use_graflex);
-    compile();
-  }
-} // onPageLoad()
-
-var num_alternatives = 1000;
-
-function Alt() {
-  return parseInt(FIND("ALT").value);
-}
-
-function IncreaseAlt(n) {
-  var v = Alt() + n;
-  if (v < 0) v += num_alternatives;
-  if (v > num_alternatives) v -= num_alternatives;
-  FIND("ALT").value = v;
-  // console.log("BC-Alt value changed: " + v);
-  if (!isNaN(v)) {
-    // console.log("BC-Saving cookie altValue: " + v);
-    saveCookie("altValue", v);
-  }
-}
-
-function Variant() {
- return parseInt(FIND("VARIANT_VALUE").value);
-}
-
-/* Variant Slider functions */
-
-function updateVariantValue(newValue) {
-    if (newValue < 0) {
-    newValue = 0;
-  } else if (newValue > 32768) {
-    newValue = 32768;
-  }
-  FIND("VARIANT_VALUE").value = newValue;
-  FIND("VARIANT_SLIDER").value = newValue;
-  console.log("Updated Variant: " + newValue);
-  clearTimeout(variantTimeoutId);
-  // console.log("BC-Variant value changed: " + newValue);
-  // Variant cookie save delayed so rapid change doesn't do a bunch of saves
-  if (!isNaN(newValue)) {
-    variantTimeoutId = setTimeout(function() {
-      // console.log("BC-Saving cookie variantValue: " + newValue);
-      saveCookie("variantValue", newValue);
-    }, 2000);
-  }
-}
-
-var timeoutId, intervalId;
-
-// Single click arrow to adjust by 1, hold to accelerate.
-function startAdjustingValue(adjustment, inputId) {
-  adjustmentValue(adjustment, inputId);
-  var speed = 100;
-  clearTimeout(timeoutId);
-  timeoutId = setTimeout(function() {
-    var startTime = new Date().getTime();
-    intervalId = setInterval(function() {
-      var elapsedTime = new Date().getTime() - startTime;
-      var progress = elapsedTime / speed;
-      var ease = Math.pow(progress, 2);
-      var value = Math.round(adjustment * ease);
-      adjustmentValue(value, inputId);
-    }, 1000 / 60); // 60 FPS for more responsive input.
-  }, 500); // delay until hold down button acceleration starts.
-}
-
-function adjustmentValue(adjustment, inputId) {
-  var variantInput = FIND(inputId);
-  var newValue = parseInt(variantInput.value) + adjustment;
-  variantInput.value = newValue;
-  updateVariantValue(newValue);
-}
-
-// Release or mouse leave arrow button
-function stopAdjustingValue() {
-  clearInterval(intervalId);
-  clearTimeout(timeoutId);
-}
-/* End Variant Slider functions */
-
-function toggleSettingsPanel() {
-  var settingsButton = FIND("SETTINGS_BUTTON");
-  var settingsPanel = FIND("settings_panel");
-
-  // Show/hide panel
-  settingsPanel.classList.toggle("show");
-
-  // Mouseleave event listener
-  if (settingsPanel.classList.contains("show")) {
-    var timeoutId = null;
-    settingsPanel.addEventListener("mouseleave", function(e) {
-      timeoutId = setTimeout(function() {
-        settingsPanel.classList.remove("show");
-      }, 1000);
-    });
-
-    settingsPanel.addEventListener("mouseenter", function(e) {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-        timeoutId = null;
-      }
-    });
-  }
-}
-
-  function ClickDark() {
-    var body = document.querySelector("body");
-    var structuredView = FIND("structured_view");
-    darkOn = !darkOn;
-    if (darkOn) {
-      body.classList.add("dark-mode");
-      structuredView.classList.add("dark-mode");
-    } else {
-      body.classList.remove("dark-mode");
-      structuredView.classList.remove("dark-mode");
-    }
-    saveCookie("darkState", darkOn);
-    // console.log("BC-ClickTips called, darkOn = " + darkOn);
-  }
-
-  function ClickTips() {
-    var body = document.querySelector("body");
-    tipsOn = !tipsOn;
-    if (tipsOn) {
-      body.classList.remove("tooltips-disabled");
-      const elementsWithDataTitles = document.querySelectorAll("[data-title]");
-      elementsWithDataTitles.forEach((element) => {
-        element.setAttribute("title", element.dataset.title);
-        element.removeAttribute("data-title");
-      });
-    } else {
-      body.classList.add("tooltips-disabled");
-      const elementsWithTitles = document.querySelectorAll("[title]");
-      elementsWithTitles.forEach((element) => {
-        element.dataset.title = element.getAttribute("title");
-        element.removeAttribute("title");
-      });
-    }
-    saveCookie("tipsState", tipsOn);
-    // console.log("BC-ClickTips called, tipsOn = " + tipsOn);
-  }
-
-  function ClickStill() {
-    stillOn = !stillOn;
-    saveCookie("stillState", stillOn);
-    // console.log("BC-Clickstill called, stillOn = " + stillOn);
-  }
-
-  function ClickSwingEmulation() {
-    swingEmOn = !swingEmOn;
-    saveCookie("swingEmState", swingEmOn);
-    // console.log("BC-ClickswingEm called, swingEmOn = " + swingEmOn);
-  }
-
-  function ClickGraflex() {
-    use_graflex = ! use_graflex;
-    if (use_graflex) {
-      // Clear Struggling message
-      // FIND("error_message").innerHTML = "";
-    }
-    compile();
-    saveCookie("graflexState", use_graflex);
-    // console.log("BC-ClickGraflex called, use_graflex = " + use_graflex);
-  }
-
-  function ClickInhilt() {
-    inhiltOn = !inhiltOn;
-    STATE_NUM_LEDS = 145 - STATE_NUM_LEDS;
-    saveCookie("inhiltState", inhiltOn);
-    // console.log("BC-ClickInhilt called, inhiltOn = " + inhiltOn);
-  }
-
-  function ClickSlow() {
-    slowOn = !slowOn;
-    framesPerUpdate = 60 - framesPerUpdate;
-    saveCookie("slowState", slowOn);
-    // console.log("BC-ClickSlow called, slowOn = " + slowOn);
-  }
 
 function Copy() {
   if (current_style.getType() != "COLOR") {
@@ -10242,12 +9937,9 @@ function getIncompatibleTabs(tab) {
 
 <body onload="initGL()">
 
-  <table>
+  <table class="page-container">
   <tr>
     <td class="page-left">
-      <header>
-        <h2 class="page-title">ProffieOS Style Editor</h2>
-      </header>
       <canvas 
         id="canvas_id"  class="canvas-style"
         title="Blade Preview. Move mouse to swing. Click to Clash or Do Selected Effect (and to dismiss this Tooltip.)  Goto settings to change hilt model or toggle Still mode (no swing on mouse move.)"
@@ -10422,8 +10114,8 @@ function getIncompatibleTabs(tab) {
       </script>
 
       <span class="variant-alt-container">
-        <span class="variant-label">Variant:</span>
         <span class="variant-alt-controls">
+	        <span class="variant-label">Variant:</span>
           <input
             id="VARIANT_SLIDER" name=varslider type=range class="variant-slider"
             title="Slide to adjust the Variant value."
@@ -10504,16 +10196,44 @@ function getIncompatibleTabs(tab) {
             title="Settings"
             onclick="toggleSettingsPanel()">
             <i class="fas fa-cog"></i> Settings</button>
+        </span>
 
+    <br>
+    <div id=TABS class="tabs-container">
+      <div id=TABLINKS class=tab></div>
+      <div id=TABBODIES class=tabcontainer></div>
+    </div>
+    <div class="footer-container">
+      <span class="footer-title">ProffieOS Style Editor</span>
+      <span class="footer-links">
+        <span class="other-sites">Other sites: </span>
+        <a href="https://crucible.hubbe.net/" target="_blank"><img src="https://crucible.hubbe.net/uploads/default/optimized/1X/2237f551ca8f4f69ac478df5c64aee1c951c33f5_2_180x180.png" alt="Crucible logo"></a>
+        <a href="https://pod.hubbe.net/" target="_blank"><img src="https://pod.hubbe.net/images/favicon.png" alt="Pod logo"></a>   
+        <a href="https://fredrik.hubbe.net/lightsaber/" target="_blank"><img src="https://fredrik.hubbe.net/favicon.ico" alt="Lightsaber logo"></a>   
+        <a href="https://www.fett263.com/" target="_blank"><img src="https://www.fett263.com//favicon.ico" alt="Fett263 logo"></a>   
+        <a href="https://www.facebook.com/groups/opensourcesabers/" target="_blank"><img src="https://www.facebook.com/favicon.ico" alt="Facebook logo"></a>   
+      </span>
+    </div>
+    </td>
+    <td class="page-right">
+      <div id="structured_view" class="structured-view">
+        <span class="structured-view-label">Structured view, click to edit.</span>
+        <div id="pp" class="pp"></div>
+      </div>
           <div id="settings_panel" class="settings-panel"
             title="Turning on checkboxes saves your settings for future visits to the Style Editor page.">
+
+            <button
+             title="Close Settings Panel."
+              class="close-settings" onclick="toggleSettingsPanel()">X</button>
+
               <label class="settings-header-label">Settings</label>
 
             <div class="settings-section">
               <label class="settings-section-label" title="These settings apply to the whole page.">General:</label>
 
               <label title="Toggles a Dark Mode look to this page.">
-                <input type="checkbox" id="DARK_BUTTON" name="darkmode" onclick="ClickDark()">
+                <input type="checkbox" id="DARK_BUTTON" name="darkmode" onclick="SetDarkmode()">
                 <span class="darkmode-button-label">Dark Mode</span>
               </label>
 
@@ -10536,7 +10256,7 @@ function getIncompatibleTabs(tab) {
                 <span class="still-button-label">Still</span>
               </label>
 
-              <label title="Toggles displaying swing emulation on preview blade (ie: shown when using SwingSpeed<>).">
+              <label title="e displaying swing emulation on preview blade (ie: shown when using SwingSpeed<>).">
                 <input type="checkbox" id="SWING_EMULATION_BUTTON" name="swingemulation" onclick="ClickSwingEmulation()">
                 <span class="swingemulation-button-label">Swing Emulation</span>
               </label>
@@ -10558,22 +10278,393 @@ function getIncompatibleTabs(tab) {
                 <input type="number" id="WAVLEN_VALUE" class="wavlen-value" value="500">
               </label>
             </div>
+            <br>
+            <button 
+              title="Restore all settings to default, including restoring Graflex hilt popup."
+              id="restore_defaults" onclick="ClickRestore()">Restore Defaults</button>
           </div>
-        </span>
 
-    <br>
-    <div id=TABS class="tabs-container">
-      <div id=TABLINKS class=tab></div>
-      <div id=TABBODIES class=tabcontainer></div>
-    </div>
+<script>
+
+/* Globally declare all the elements for Settings */
+var darkState = false;
+var tipsOn = true;
+var stillOn = false;
+var swingEmulateOn = true;
+var inhiltOn = false;
+var slowOn = false;
+/* var use_graflex = true; is already initialized above */
+
+var darkButton = FIND("DARK_BUTTON");
+var tipsButton = FIND("TIPS_BUTTON");
+var stillButton = FIND("STILL_BUTTON");
+var swingEmulateButton = FIND("SWING_EMULATION_BUTTON");
+var inhiltButton = FIND("INHILT_BUTTON");
+var slowButton = FIND("SLOW_BUTTON");
+var slowState = getSavedCookie("slowState");
+var wavlenInput = FIND("WAVLEN_VALUE");
+var graflexButton = FIND("GRAFLEX_BUTTON");
+
+var body = document.querySelector("body");
+var structuredView = FIND("structured_view")
+
+var myWavLen = new WavLenClass();
+var wavlenValue;
+
+/* Settings buttons saved as local cookies */
+// function getSavedCookie(buttonState) {
+//   var value = localStorage.getItem(buttonState);
+//   if (buttonState === "wavlenValue") {
+//     return parseInt(value);
+//   }
+//   return Boolean(value);
+// }
+
+function getSavedCookie(buttonState, defaultValue) {
+  var value = localStorage.getItem(buttonState);
+  console.log("BC- Retrieved cookie for " + buttonState + ": " + value);
+  if (value === null || value === "null") {
+    return defaultValue;
+  }
+  if (value === "false") {
+    return false;
+  }
+  if (buttonState === "wavlenValue") {
+    return parseInt(value);
+  }
+  return Boolean(value);
+}
 
 
-    </td>
-    <td class="page-right">
-      <div id="structured_view" class="structured-view">
-        <span class="structured-view-label">Structured view, click to edit.</span>
-        <div id="pp" class="pp"></div>
-      </div>
+
+function saveCookie(buttonState, settingIsOn) {
+  localStorage.setItem(buttonState, settingIsOn);
+}
+
+// Call the onPageLoad function when the page is loaded
+window.addEventListener('load', onPageLoad);
+
+function onPageLoad() {
+
+  // Popup notification
+console.log("BC- Saved cookie for enablePopup = " + localStorage.getItem("enablePopup"));
+  enablePopup = getSavedCookie("allowPopup", "true");
+	console.log("BC- typeof enablePopup cookie value = " + typeof localStorage.getItem("enablePopup"));
+console.log("BC- typeof default value = " + typeof "true");
+console.log("BC- enablePopup =  " + enablePopup);
+
+  // DARK_BUTTON
+console.log("BC- Saved cookie for darkState = " + localStorage.getItem("darkState"));
+darkState = getSavedCookie("darkSave", "false");
+console.log("BC- typeof darkState cookie value = " + typeof localStorage.getItem("darkState"));
+console.log("BC- typeof default value = " + typeof "true");
+console.log("BC- darkState =  " + darkState);
+
+	body.classList.toggle("dark-mode", darkState);
+	structuredView.classList.toggle("dark-mode", darkState);
+	darkButton.checked = darkState ? true : false;
+
+	// TIPS_BUTTON
+  var tipsState = getSavedCookie("tipsState");
+   // console.log("BC-getSavedCookie called, tipsState = " + tipsState);
+  if (tipsState !== "false") {
+    tipsButton.checked = true;
+    tipsOn = true;
+    body.classList.remove("tooltips-disabled");
+    const elementsWithDataTitles = document.querySelectorAll("[data-title]");
+    elementsWithDataTitles.forEach((element) => {
+      element.setAttribute("title", element.dataset.title);
+      element.removeAttribute("data-title");
+    });
+  } else {
+    tipsButton.checked = false;
+    tipsOn = false;
+    body.classList.add("tooltips-disabled");
+    const elementsWithTitles = document.querySelectorAll("[title]");
+    elementsWithTitles.forEach((element) => {
+      element.dataset.title = element.getAttribute("title");
+      element.removeAttribute("title");
+    });
+  }
+   // console.log("BC-tipsOn = " + tipsOn);
+
+  // STILL_BUTTON
+  var stillState = getSavedCookie("stillState");
+   // console.log("BC-getSavedCookie called, stillState = " + stillState);
+  if (stillState === "true") {
+    stillButton.checked = true;
+    stillOn = true;
+  }
+   // console.log("BC-stillOn = " + stillOn);
+
+
+  // SWING_EMULATION_BUTTON
+  var swingEmulateState = getSavedCookie("swingEmulateState");
+   // console.log("BC-getSavedCookie called, swingEmulateState = " + swingEmulateState);
+  if (swingEmulateState === "true") {
+    swingEmulateButton.checked = true;
+    swingEmulateOn = true;
+  }
+   // console.log("BC-swingEmulateOn = " + swingEmulateOn);
+
+  // INHILT_BUTTON
+  var inhiltState = getSavedCookie("inhiltState");
+   // console.log("BC-getSavedCookie called, inhiltState = " + inhiltState);
+  if (inhiltState === "true") {
+    inhiltButton.checked = true;
+    inhiltOn = true;
+    STATE_NUM_LEDS = 145 - STATE_NUM_LEDS;
+  }
+   // console.log("BC-inhiltOn = " + inhiltOn);
+
+  // SLOW_BUTTON
+   // console.log("BC-getSavedCookie called, slowState = " + slowState);
+  if (slowState === "true") {
+    slowButton.checked = true;
+    slowOn = true;
+    framesPerUpdate = 60 - framesPerUpdate;
+  }
+   // console.log("BC-slowOn = " + slowOn);
+
+  // WAVLEN_VALUE
+  wavlenValue = parseInt(getSavedCookie("wavlenValue"));
+  if (!wavlenValue) {
+    wavlenValue = 500;
+  }
+   // console.log("BC-getSavedCookie called, wavlenValue = " + wavlenValue);
+  wavlenInput.value = wavlenValue;
+  myWavLen.setLength(wavlenValue);
+wavlenInput.addEventListener("click", function(e) {
+  this.select(); // Select the entire contents of the input box
+});
+wavlenInput.addEventListener("input", function(e) {
+  var value = parseInt(this.value);
+  var newValue = value;
+  if (isNaN(value) || value < 1) {
+    newValue = Math.max(1, value); // Set the minimum value of 1
+  }
+  this.value = newValue;
+  saveCookie("wavlenValue", newValue);
+  myWavLen.setLength(newValue);
+});
+wavlenInput.addEventListener("keydown", function(e) {
+  if (e.key === "Enter") {
+    this.blur(); // Remove focus from the input box when Enter key is pressed
+  } else if ((e.key === "Backspace" || e.key === "Delete") && this.value.length === 1) {
+    this.value = "1"; // Autofill "1" if the only digit is deleted
+    e.preventDefault();
+  }
+});
+wavlenInput.addEventListener("keyup", function(e) {
+  if (this.value.length === 0) {
+    this.value = "1"; // Autofill "1" if the input box is empty after keyup
+    this.select(); // Select the entire contents of the input box
+  }
+});
+
+
+  // GRAFLEX_BUTTON - must be last here because calling compile() means no coming back.
+  var graflexState = getSavedCookie("graflexState");
+   // console.log("BC-getSavedCookie called, graflexState = " + graflexState);
+  if (graflexState !== "false") {
+    use_graflex = true;
+    graflexButton.checked = true;
+     // console.log("BC-use_graflex = " + use_graflex);
+    compile();
+  } else {
+    use_graflex = false;
+    graflexButton.checked = false;
+     // console.log("BC-use_graflex = " + use_graflex);
+    compile();
+  }
+} // onPageLoad()
+
+function SetDarkmode() {
+  body.classList.toggle("dark-mode");
+  structuredView.classList.toggle("dark-mode");
+  if (darkButton.checked) {
+    darkButton.checked = true;
+  } else {
+    darkButton.checked = false;
+  }
+  /* Neither of these would work. Bizarre */
+  // darkButton.checked = !darkButton.checked;
+  // darkButton.checked = darkButton.checked ? false : true;
+
+  darkState = !darkState;
+  saveCookie("darkSave", darkState);
+}
+
+var num_alternatives = 1000;
+
+function Alt() {
+  return parseInt(FIND("ALT").value);
+}
+
+function IncreaseAlt(n) {
+  var v = Alt() + n;
+  if (v < 0) v += num_alternatives;
+  if (v > num_alternatives) v -= num_alternatives;
+  FIND("ALT").value = v;
+   console.log("BC-Alt value changed: " + v);
+  if (!isNaN(v)) {
+     console.log("BC-Saving cookie altValue: " + v);
+    saveCookie("altValue", v);
+  }
+}
+
+function Variant() {
+ return parseInt(FIND("VARIANT_VALUE").value);
+}
+
+/* Variant Slider functions */
+
+function updateVariantValue(newValue) {
+    if (newValue < 0) {
+    newValue = 0;
+  } else if (newValue > 32768) {
+    newValue = 32768;
+  }
+  FIND("VARIANT_VALUE").value = newValue;
+  FIND("VARIANT_SLIDER").value = newValue;
+  console.log("Updated Variant: " + newValue);
+}
+
+var timeoutId, intervalId;
+
+// Single click arrow to adjust by 1, hold to accelerate.
+function startAdjustingValue(adjustment, inputId) {
+  adjustmentValue(adjustment, inputId);
+  var speed = 100;
+  clearTimeout(timeoutId);
+  timeoutId = setTimeout(function() {
+    var startTime = new Date().getTime();
+    intervalId = setInterval(function() {
+      var elapsedTime = new Date().getTime() - startTime;
+      var progress = elapsedTime / speed;
+      var ease = Math.pow(progress, 2);
+      var value = Math.round(adjustment * ease);
+      adjustmentValue(value, inputId);
+    }, 1000 / 60); // 60 FPS for more responsive input.
+  }, 500); // delay until hold down button acceleration starts.
+}
+
+function adjustmentValue(adjustment, inputId) {
+  var variantInput = FIND(inputId);
+  var newValue = parseInt(variantInput.value) + adjustment;
+  variantInput.value = newValue;
+  updateVariantValue(newValue);
+}
+
+// Release or mouse leave arrow button
+function stopAdjustingValue() {
+  clearInterval(intervalId);
+  clearTimeout(timeoutId);
+}
+/* End Variant Slider functions */
+
+function toggleSettingsPanel() {
+  var settingsButton = FIND("SETTINGS_BUTTON");
+  var settingsPanel = FIND("settings_panel");
+
+  // Show/hide panel
+  settingsPanel.classList.toggle("show");
+
+  // Mouseleave event listener
+  if (settingsPanel.classList.contains("show")) {
+    var timeoutId = null;
+    settingsPanel.addEventListener("mouseleave", function(e) {
+      timeoutId = setTimeout(function() {
+        settingsPanel.classList.remove("show");
+      }, 1000);
+    });
+
+    settingsPanel.addEventListener("mouseenter", function(e) {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    });
+  }
+}
+
+  function ClickDark() {
+    var structuredView = FIND("structured_view");
+    darkOn = !darkOn;
+    if (darkOn) {
+      body.classList.add("dark-mode");
+      structuredView.classList.add("dark-mode");
+    } else {
+      body.classList.remove("dark-mode");
+      structuredView.classList.remove("dark-mode");
+    }
+    saveCookie("darkSave", darkState);
+     console.log("BC-ClickTips called, darkOn = " + darkOn);
+  }
+
+  function ClickTips() {
+    tipsOn = !tipsOn;
+    if (tipsOn) {
+      body.classList.remove("tooltips-disabled");
+      const elementsWithDataTitles = document.querySelectorAll("[data-title]");
+      elementsWithDataTitles.forEach((element) => {
+        element.setAttribute("title", element.dataset.title);
+        element.removeAttribute("data-title");
+      });
+    } else {
+      body.classList.add("tooltips-disabled");
+      const elementsWithTitles = document.querySelectorAll("[title]");
+      elementsWithTitles.forEach((element) => {
+        element.dataset.title = element.getAttribute("title");
+        element.removeAttribute("title");
+      });
+    }
+    saveCookie("tipsState", tipsOn);
+     console.log("BC-ClickTips called, tipsOn = " + tipsOn);
+  }
+
+  function ClickStill() {
+    stillOn = !stillOn;
+    saveCookie("stillState", stillOn);
+     console.log("BC-Clickstill called, stillOn = " + stillOn);
+  }
+
+  function ClickSwingEmulation() {
+    swingEmulateOn = !swingEmulateOn;
+    saveCookie("swingEmulateState", swingEmulateOn);
+     console.log("BC-ClickswingEmulate called, swingEmulateOn = " + swingEmulateOn);
+  }
+
+  function ClickGraflex() {
+    use_graflex = ! use_graflex;
+    if (use_graflex) {
+      // Clear Struggling message
+      // FIND("error_message").innerHTML = "";
+    }
+    compile();
+    saveCookie("graflexState", use_graflex);
+     console.log("BC-ClickGraflex called, use_graflex = " + use_graflex);
+  }
+
+  function ClickInhilt() {
+    inhiltOn = !inhiltOn;
+    STATE_NUM_LEDS = 145 - STATE_NUM_LEDS;
+    saveCookie("inhiltState", inhiltOn);
+     console.log("BC-ClickInhilt called, inhiltOn = " + inhiltOn);
+  }
+
+  function ClickSlow() {
+    slowOn = !slowOn;
+    framesPerUpdate = 60 - framesPerUpdate;
+    saveCookie("slowState", slowOn);
+     console.log("BC-ClickSlow called, slowOn = " + slowOn);
+  }
+  function ClickRestore() {
+    localStorage.clear();
+    onPageLoad();
+  }
+
+</script>
     </td>
     </tr>
   </table>
