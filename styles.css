@@ -1,0 +1,684 @@
+/* styles.css for ProffieOS Style Editor */
+
+/* Make page elements like buttons and whitespace non-selectable with drag box */
+* {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Box sizing helps keep buttons uniform in
+size when padding and margins may change */
+* {
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  box-sizing: border-box;
+}
+
+/* Dark mode styles */
+
+/* Whole page */ 
+.dark-mode {
+  background-color: #202020;
+  color: white !important;
+  color-scheme: dark !important;
+}
+
+/* Do Selected Effect, Expand, and Layerize */
+.dark-mode .page-left .button-off,
+.dark-mode .page-left .button-off:hover {
+  background-color: #777;
+  color: darkgray;
+   box-shadow: 0 0 0 1px transparent;
+
+}
+
+/* Other buttons */
+.dark-mode button,
+.dark-mode input[type="button"] {
+  background-color: #777;
+  color: #fff;
+  border: 1px solid transparent;
+}
+.dark-mode button:hover,
+.dark-mode input[type="button"]:hover {
+  background-color: #9F9F9F;
+}
+.dark-mode button:active,
+.dark-mode input[type="button"]:active {
+  background-color: steelblue;
+}
+.dark-mode button.submit-button {
+  background-color: forestgreen;
+}
+
+/* Power and Rotate latching buttons */
+.dark-mode .page-left .button-latched,
+.dark-mode .page-left .button-latched:hover {
+  background-color: steelblue;
+}
+
+/* Lockup and More Effects dropdown menus */
+.dark-mode select {
+  background-color: #777;
+  color: #fff;
+  border: 1px solid transparent;
+  padding: 1px;
+}
+.dark-mode select:hover {
+  background-color: #9F9F9F;
+}
+
+/* Variant and Alt adjusters */
+.dark-mode .variant-alt-container {
+  background-color: steelblue;
+  color: white;
+}
+
+.dark-mode .textbox {
+  background-color: #333;
+  color: white;
+}
+.dark-mode .settings-panel {
+  border: 3px solid #ccc;
+  background: #777;
+  color: black;
+}
+.dark-mode .settings-panel button{
+  background-color: steelblue;
+}
+.dark-mode .settings-panel .settings-panel-arrow {
+  border-color: transparent #777 transparent transparent;
+}
+
+/* Tabs */
+.dark-mode .tab {
+  background-color: #333;
+}
+.dark-mode .tab button:hover {
+  background-color: #9F9F9F;
+  box-shadow: 0 0 3px 1px transparent;
+}
+.dark-mode .tab button.active {
+  background-color: steelblue;
+}
+.dark-mode .tab button.disabled {
+  background-color: #777;
+  color: #bbb;
+  cursor: not-allowed;
+}
+
+/* Structured View style arguments borders */
+.dark-mode .structured-view .selected-area-container,
+.dark-mode .structured-view .selected-area-container .pp-container {
+  background-color: steelblue;
+  border-color: white;
+}
+
+/* Keep color palette background white for reference. */
+.dark-mode .rgb-tabcontent {
+background-color: white;
+}
+
+/* Popup Window */
+.dark-mode .popup-window {
+  border: 3px solid #ccc;
+  background: #777;
+}
+
+.dark-mode .footer-container {
+  background-color: #333;
+}
+
+/* Non-dark mode styles */
+
+
+body {
+  margin-top: -3px;
+  margin-bottom: 0;
+}
+
+.page-left {
+  position: relative;
+  vertical-align: top;
+  width: 50%;
+  padding-bottom: 30px;
+}
+.page-right {
+  vertical-align: top;
+ }
+
+/* This keeps the More Effects menu and
+the Do Selected Effect button together */
+.more-menu-container {
+  white-space: nowrap;
+}
+
+/* Do Selected Effect, Expand, and Layerize */
+.page-left .button-off,
+.page-left .button-off:hover {
+  background-color: lightgray;
+  color: darkgray;
+  box-shadow: 0 0 2px 1px transparent;
+  cursor: not-allowed;
+}
+
+/* Lockup and More Effects Drop Downs */
+select {
+  background-color: #eee;
+  color: black;
+  border-radius: 5px;
+  padding: .2%;
+  font-size: .8em;
+  cursor: pointer;
+}
+select:hover {
+/*  background-color: #ddd;*/
+  box-shadow: 0 0 2px 1px dodgerblue;
+}
+/* Other buttons */
+button,
+input[type="button"] {
+  display: inline-block;
+  background-color: #eee;
+  color: black;
+  border-radius: 2px;
+  padding: 3px;
+  margin-block: 5px;
+  font-size: 14px;
+  border: 1px solid #bbb;
+  font-weight: normal;
+  transition: box-shadow 0.1s ease;
+/*  animation: none;*/
+}
+button:hover,
+input[type="button"]:hover {
+  box-shadow: 0 0 2px 1px dodgerblue;
+/*    animation-play-state: running;*/
+
+}
+button:active,
+input[type="button"]:active {
+  background-color: dodgerblue;
+}
+button.submit-button {
+  background-color: limegreen;
+  border: 1px solid green;
+}
+button.submit-button:active {
+  background-color: dodgerblue;
+}
+
+.icon-button {
+  position: relative;
+}
+
+.icon-button .fa-flip {
+  animation: none;
+}
+.icon-button:hover .fa-flip {
+  animation: flip-once 0.75s ease forwards;
+}
+@keyframes flip-once {
+  0% {
+    transform: rotateY(0deg);
+  }
+  100% {
+    transform: rotateY(360deg);
+  }
+}
+
+.icon-button .fa-spin {
+ animation: none;
+}
+.icon-button:hover .fa-spin {
+  animation: spin-once 1.5s ease forwards;
+}
+.page-left .button-latched .fa-spin {
+  animation: fa-spin 2s linear infinite;
+}
+
+@keyframes spin-once {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.icon-button .fa-beat {
+  animation: none;
+}
+.icon-button:hover .fa-beat {
+  animation: beat-once .75s ease forwards;
+}
+.icon-button.submit-button .fa-beat {
+  animation: none;
+}
+.icon-button.submit-button:hover .fa-beat {
+  animation: beat-once .75s ease forwards;
+}
+.page-left .button-on:hover .fa-beat {
+  animation: beat-once .75s ease forwards;
+}
+@keyframes beat-once {
+  0%, 90% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.2);
+  }
+}
+
+.page-left .button-off .fa-beat,
+.page-left .button-on .fa-beat,
+.page-left .button-off .fa-bounce,
+.page-left .button-on .fa-bounce{
+  animation: none;
+}
+
+.icon-button .fa-bounce {
+  animation: none;
+}
+.icon-button:hover .fa-bounce {
+  animation: bounce-once 1s cubic-bezier(0.28, 0.84, 0.42, 1) forwards;
+}
+.page-left .button-on:hover .fa-bounce {
+  animation: bounce-once 1s cubic-bezier(0.28, 0.84, 0.42, 1) forwards;
+}
+@keyframes bounce-once {
+  0%, 30%, 60%, 100% {
+    transform: translateY(0);
+  }
+  20% {
+    transform: translateY(-6px);
+  }
+  40% {
+    transform: translateY(-3px);
+  }
+}
+
+/* Power and Rotate latching buttons */
+.page-left .button-latched,
+.page-left .button-latched:hover {
+  background-color: #6ADA;
+}
+
+/* Variant and Alt adjusters */
+.variant-alt-container {
+  background: #6ADA;
+  border: 1px solid black;
+  border-radius: 4px;
+  display: inline-block;
+  padding-inline: 4px;
+}
+.variant-label {
+  margin-left: 3px;
+}
+.variant-alt-controls {
+  display: inline-flex;
+  align-items: center;
+}
+.variant-slider {
+  -webkit-appearance: none;
+  width: 65px;
+  height: 10px;
+  margin: 3px 3px;
+  margin-top: 5px;
+  cursor: pointer;
+}
+/* Thumb handle styling for Chrome, Safari, and other WebKit-based browsers */
+.variant-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  background: dodgerblue;
+  width: 14px;
+  height: 14px;
+  border-radius: 20%;
+  border: 1px solid #333;
+  margin-top: -2px;
+}
+/* Thumb handle styling for Firefox */
+.variant-slider::-moz-range-thumb {
+  background: dodgerblue;
+  width: 14px;
+  height: 14px;
+  border-radius: 20%;
+  border: 1px solid #333;
+}
+/* Thumb handle styling for Internet Explorer and Edge */
+.variant-slider::-ms-thumb {
+  background: dodgerblue;
+  width: 14px;
+  height: 14px;
+  border-radius: 20%;
+  border: 1px solid #333;
+}
+.alt-label {
+  margin-left: 8px;
+  margin-right: 3px;
+}
+
+.error-message {
+  color: red; 
+  font-weight: bold;
+}
+/* Blade Style text box */
+.textbox {
+  background-color: #eee;
+  font-size: 14px;
+  width: 100%;
+}
+/* History Tab content */
+div.MAGIC_CLASS_FUNCTION input[type=button].btn {
+  background: green;
+  color: black;
+  padding: 2px 3px;
+}
+div.MAGIC_CLASS_COLOR input[type=button].btn {
+  background: green;
+  color: black;
+  padding: 2px 3px;
+}
+div.MAGIC_CLASS_TRANSITION input[type=button].btn {
+  background: green;
+  color: black;
+  padding: 2px 3px;
+}
+div.MAGIC_CLASS_INT input[type=button].btn {
+  background: green;
+  color: black;
+  padding: 2px 3px;
+}
+div.MAGIC_CLASS_EFFECT input[type=button].btn {
+  background: green;
+  color: black;
+  padding: 2px 3px;
+}
+div.MAGIC_INVISIBLE_CLASS_EFFECT {
+  display: inline;
+}
+div.MAGIC_INVISIBLE_CLASS_TRANSITION {
+  display: inline;
+}
+div.MAGIC_INVISIBLE_CLASS_FUNCTION {
+  display: inline;
+}
+span.MAGIC_CLASS_FUNCTION input[type=button].btn {
+  background: green;
+  color: black;
+  padding: 2px 3px;
+}
+span.MAGIC_CLASS_COLOR input[type=button].btn {
+  background: green;
+  color: black;
+  padding: 2px 3px;
+}
+span.MAGIC_CLASS_TRANSITION input[type=button].btn {
+  background: green;
+  color: black;
+  padding: 2px 3px;
+}
+span.MAGIC_CLASS_INT input[type=button].btn {
+  background: green;
+  color: black;
+  padding: 2px 3px;
+}
+span.MAGIC_CLASS_EFFECT input[type=button].btn {
+  background: green;
+  color: black;
+  padding: 2px 3px;
+}
+
+.settings-panel.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.settings-panel {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: black;
+  width: 287px;
+  border: 3px solid #888;
+  background: #ddd;
+  padding: 36px;
+  padding-left: 30px;
+  border-radius: 9px;
+  box-shadow: 6px 10px 10px rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease-in-out;
+  z-index: 1000;
+}
+.settings-panel label {
+  display: flex;
+  align-items: center;
+}
+.settings-panel label input[type="checkbox"] {
+  margin-right: 8px;
+}
+.settings-section {
+  margin-bottom: 10px;
+}
+.settings-panel .settings-header-label {
+  font-weight: bold;
+  color: #333;
+  font-size: 22px;
+  margin-bottom: 10px;
+  justify-content: center;
+}
+.settings-section-label {
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+  border-bottom: 2px solid #888;
+  padding-bottom: 5px;
+}
+.settings-panel button{
+  background-color: #6ADA;
+  color: black;
+  margin-left: 46px;
+  border: 1px solid black;
+}
+.settings-panel button.close-settings {
+  background-color: #f44336;
+  position: absolute;
+  top: 0px;
+  left: -40px;
+  padding: 0px 4px;
+  font-weight: bold;
+}
+
+/* Align Wavlen Settings label */
+.wavlen-label {
+  display: block;
+  margin-top: 5px;
+}
+.wavlen-value {
+  width: 80px;
+  margin-left: 5px;
+}
+
+.tabs-container {
+  position: relative;
+}
+/* Style the tab */
+.tab {
+  overflow: hidden;
+  border: 1px solid #ccc;
+  background-color: #f1f1f1;
+}
+/* Style the buttons that are used to open the tab content */
+.tab button {
+  background-color: inherit;
+/*  font-weight: 500;
+  font-size: 16px;*/
+  float: left;
+  border: none;
+  margin: unset;
+  outline: none;
+  cursor: pointer;
+  padding: 8px;
+  transition: 0.1s ease;
+}
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background-color: #ddd;
+  box-shadow: 0 0 3px 1px transparent;
+}
+/* Create an active/current tablink class */
+.tab button.active {
+  background-color: #6ADA;
+}
+.tab button.disabled {
+  background-color: lightgray;
+  color: darkgray;
+  box-shadow: 0 0 0 1px transparent;
+  cursor: not-allowed;
+}
+/* Style the tab content */
+.tabcontent {
+  display: none;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-top: none;
+}
+
+.structured-view {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 100vh;
+  overflow-y: scroll;
+}
+.structured-view-label {
+    display: block;
+    font-size: 110%;
+    padding-top: 9px;
+    padding-bottom: 5px;
+}
+.structured-view .selected-area-container {
+  background-color: lightblue;
+}
+/* Fat font in Structured View */
+.pp span {
+  padding-left: 6px;
+  font-weight: 600;
+}
+/* Structured View style arguments borders */
+.pp-container {
+  border-color: gray;
+  border-style: solid;
+  border-width: 1px;
+  padding: 2px;
+}
+.pp-content {
+  margin-left: 1em;
+}
+/* Chartreuse highlighted borders */
+.running {
+  border-color: chartreuse;
+  border-width: 3px;
+  padding: 0px;
+}
+
+/* Structured View Layer buttons
+Add, Delete, Move Up, Move Down */
+.extra-buttons {
+  margin: 3px;
+  line-height: 1.0em;
+  font-size: 16px;
+}
+
+/* Popup Window */
+.popup-window.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.popup-window {
+  font-weight: 500;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 30%;
+  color: black;
+  border: 3px solid #888;
+  background: #ddd;
+  padding: 20px;
+  text-align: center;
+  border-radius: 9px;
+  box-shadow: 6px 10px 10px rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease-in-out;
+  z-index: 9999;
+}
+
+.popup-window button {
+  background-color: steelblue;
+  color: black;
+  border-radius: 5px;
+  padding: 3px 35px;
+  font-size: 20px;
+  font-weight: bold;
+  border: 1px solid black;
+  cursor: pointer;
+}
+.overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9998;
+}
+.overlay.show {
+  display: block;
+}
+
+/* Footer */
+.footer-title {
+  min-width: 180px;
+  font-size: 16px;
+}
+.footer-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #eee;
+  padding: 2px 15px;
+}
+.other-sites {
+  float: right;
+  padding-right: 10px;
+  margin-left: 35px;
+}
+.footer-links {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 100px;
+}
+.other-sites {
+  float: right;
+  padding-right: 10px;
+}
+.footer-links a img {
+  height: 16px;
+  width: 16px;
+  margin-right: 5px;
+}
+.footer-links a:hover {
+  color: #000;
+}
