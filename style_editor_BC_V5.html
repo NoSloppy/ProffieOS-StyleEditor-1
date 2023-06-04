@@ -1048,7 +1048,6 @@ function mouse_leave(e) {
   IN_FRAME = false;
 }
 
-var graflexState = true;
 function compile() {
     console.log("BC- Compile() gl.VERTEX_SHADER)" + gl.VERTEX_SHADER);
 
@@ -9722,7 +9721,7 @@ var swingemulateButton = FIND("SWING_EMULATION_BUTTON"), swingemulateState;
 var inhiltButton = FIND("INHILT_BUTTON"), inhiltState;
 var slowButton = FIND("SLOW_BUTTON"), slowState;
 var wavlenInput = FIND("WAVLEN_VALUE"), wavlenValue;
-var graflexButton = FIND("GRAFLEX_BUTTON");
+var graflexButton = FIND("GRAFLEX_BUTTON", graflexState);
 
 var body = document.querySelector("body");
 var structuredView;
