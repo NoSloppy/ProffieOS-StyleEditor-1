@@ -1048,8 +1048,9 @@ function mouse_leave(e) {
   IN_FRAME = false;
 }
 
-
 function compile() {
+    console.log("BC- Compile() gl.VERTEX_SHADER)" + gl.VERTEX_SHADER);
+
   // Create a shader that samples a 2D image.
   var vertexShader = gl.createShader(gl.VERTEX_SHADER);
   gl.shaderSource(vertexShader,
@@ -6853,11 +6854,10 @@ class WavLenClass extends FUNCTION {
   // WavLen value can be set in settings panel
   setLength(value) {
     this.wavlenValue = value;
-     console.log("BC-setLength-this.wavlenValue;:", this.wavlenValue);
+     console.log("Updated WavLen: ", this.wavlenValue);
   }
 
   getInteger(led) {
-     console.log("BC-myWavLen.wavlenValue: ", myWavLen.wavlenValue);
     return myWavLen.wavlenValue;
   }
 };
@@ -8627,7 +8627,7 @@ function drawScene() {
   if (bad_fps > 10 && graflexState) {
     showPopupMessage("Struggling to render hilt model.<br>Switching to simpler design.<br>To re-enable Graflex model, go to Settings.", "graflexPopup");
     graflexState = false;
-    saveState("graflexSave", false);
+    saveState("graflexStateSave", false);
     graflexButton.checked = false;
     compile();
   }
@@ -9210,7 +9210,7 @@ function enableTabs() {
   allTabsEnabled = true;
 }
 
-// Enable all tabs on page load
+// Enable all tabs on page load - timeout needed?
 window.addEventListener("load", function () {
   setTimeout(function () {
     enableTabs();
@@ -9513,10 +9513,74 @@ function getIncompatibleTabs(tab) {
         </span>
       </span>
       <br>
+    <script>
+
+    var num_alternatives = 1000;
+
+    function Alt() {
+      return parseInt(FIND("ALT").value);
+    }
+
+    function IncreaseAlt(n) {
+      var v = Alt() + n;
+      if (v < 0) v += num_alternatives;
+      if (v > num_alternatives) v -= num_alternatives;
+      FIND("ALT").value = v;
+      console.log("Updated Alt: " + v)
+    }
+    function Variant() {
+     return parseInt(FIND("VARIANT_VALUE").value);
+    }
+
+    /* Variant Slider functions */
+
+    function updateVariantValue(newValue) {
+        if (newValue < 0) {
+        newValue = 0;
+      } else if (newValue > 32768) {
+        newValue = 32768;
+      }
+      FIND("VARIANT_VALUE").value = newValue;
+      FIND("VARIANT_SLIDER").value = newValue;
+      console.log("Updated Variant: " + newValue);
+    }
+
+    var timeoutId, intervalId;
+
+    // Single click arrow to adjust by 1, hold to accelerate.
+    function startAdjustingValue(adjustment, inputId) {
+      adjustmentValue(adjustment, inputId);
+      var speed = 100;
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(function() {
+        var startTime = new Date().getTime();
+        intervalId = setInterval(function() {
+          var elapsedTime = new Date().getTime() - startTime;
+          var progress = elapsedTime / speed;
+          var ease = Math.pow(progress, 2);
+          var value = Math.round(adjustment * ease);
+          adjustmentValue(value, inputId);
+        }, 1000 / 60); // 60 FPS for more responsive input.
+      }, 500); // delay until hold down button acceleration starts.
+    }
+
+    function adjustmentValue(adjustment, inputId) {
+      var variantInput = FIND(inputId);
+      var newValue = parseInt(variantInput.value) + adjustment;
+      variantInput.value = newValue;
+      updateVariantValue(newValue);
+    }
+
+    // Release or mouse leave arrow button
+    function stopAdjustingValue() {
+      clearInterval(intervalId);
+      clearTimeout(timeoutId);
+    }
+    /* End Variant Slider functions */
+
+    </script>
 
       <span id="error_message" class="error-message"></span>
-
-
 
         <pre><textarea 
           rows=10 cols=80 id=style wrap="off" class="textbox"
@@ -9561,79 +9625,57 @@ function getIncompatibleTabs(tab) {
             <i class="fa-solid fa-cog fa-spin"></i> Settings</button>
         </span>
 
-    <br>
-    <div id=TABS class="tabs-container">
-      <div id=TABLINKS class=tab></div>
-      <div id=TABBODIES class=tabcontainer></div>
-    </div>
-    <div class="footer-container">
-      <span class="footer-title">ProffieOS Style Editor</span>
-      <span class="footer-links">
-        <span class="other-sites">Other sites: </span>
-        <a href="https://crucible.hubbe.net/" target="_blank"><img src="https://crucible.hubbe.net/uploads/default/optimized/1X/2237f551ca8f4f69ac478df5c64aee1c951c33f5_2_180x180.png" alt="Crucible logo"></a>
-        <a href="https://pod.hubbe.net/" target="_blank"><img src="https://pod.hubbe.net/images/favicon.png" alt="Pod logo"></a>   
-        <a href="https://fredrik.hubbe.net/lightsaber/" target="_blank"><img src="https://fredrik.hubbe.net/favicon.ico" alt="Lightsaber logo"></a>   
-        <a href="https://www.fett263.com/" target="_blank"><img src="https://www.fett263.com//favicon.ico" alt="Fett263 logo"></a>   
-        <a href="https://www.facebook.com/groups/opensourcesabers/" target="_blank"><img src="https://www.facebook.com/favicon.ico" alt="Facebook logo"></a>   
-      </span>
-    </div>
-    </td>
-    <td class="page-right">
-      <div id="structured_view" class="structured-view">
-        <span class="structured-view-label">Structured view, click to edit.</span>
-        <div id="pp" class="pp"></div>
-      </div>
-          <div id="settings_panel" class="settings-panel"
-            title="Turning on checkboxes saves your settings for future visits to the Style Editor page.">
+        <div id="settings_panel" class="settings-panel"
+          title="Turning on checkboxes saves your settings for future visits to the Style Editor page.">
 
-            <button
-             title="Close Settings Panel."
-              class="close-settings" onclick="toggleSettingsPanel()">X</button>
+          <button
+           title="Close Settings Panel."
+            class="close-settings" onclick="toggleSettingsPanel()">X</button>
 
-              <label class="settings-header-label">Settings</label>
+            <label class="settings-header-label">Settings</label>
 
-            <div class="settings-section">
-              <label class="settings-section-label" title="These settings apply to the whole page.">General:</label>
+           <div class="settings-section">
+            <label class="settings-section-label" title="These settings apply to the whole page.">General:</label>
 
-              <label title="Toggles a Dark Mode look to this page.">
-                <input type="checkbox" id="DARK_BUTTON" name="darkmode" onclick="ClickDarkMode()">
-                <span>Dark Mode</span>
-              </label>
+            <label title="Toggles a Dark Mode look to this page.">
+              <input type="checkbox" id="DARK_BUTTON" name="darkmode" onclick="ClickDarkMode()">
+              <span>Dark Mode</span>
+            </label>
 
-              <label title="Toggles these pop-up tooltips On or Off.">
-                <input type="checkbox" id="TIPS_BUTTON" name="tooltips" onclick="ClickTips()">
-                <span >Tool Tips</span>
-              </label>
-            </div>
+            <label title="Toggles these pop-up tooltips On or Off.">
+              <input type="checkbox" id="TIPS_BUTTON" name="tooltips" onclick="ClickTips()">
+              <span >Tool Tips</span>
+            </label>
+          </div>
 
-            <div class="settings-section">
-              <label class="settings-section-label" title="These settings apply to the blade preview above.">Blade Preview:</label>
+          <div class="settings-section">
+            <label class="settings-section-label" title="These settings apply to the blade preview above.">Blade Preview:</label>
 
-              <label title="Toggles the Graflex Hilt model in the preview.">
-                <input type="checkbox" id="GRAFLEX_BUTTON" name="graflex" onclick="ClickGraflex()">
-                <span>Graflex Hilt</span>
-              </label>
+            <label title="Toggles the Graflex Hilt model in the preview.">
+              <input type="checkbox" id="GRAFLEX_BUTTON" name="graflex" onclick="ClickGraflex()">
+              <span>Graflex Hilt</span>
+            </label>
 
-              <label title="Toggles the option for swinging around the preview blade above using mouse control.">
-                <input type="checkbox" id="STILL_BUTTON" name="still" onclick="ClickStill()">
-                <span>Still</span>
-              </label>
+            <label title="Toggles the option for swinging around the preview blade above using mouse control.">
+              <input type="checkbox" id="STILL_BUTTON" name="still" onclick="ClickStill()">
+              <span>Still</span>
+            </label>
 
-              <label title="Toggle automated swing emulation on preview blade (ie: shown when using SwingSpeed<>).">
-                <input type="checkbox" id="SWING_EMULATION_BUTTON" name="swingemulation" onclick="ClickSwingEmulation()">
-                <span>Swing Emulation</span>
-              </label>
+            <label title="Toggle automated swing emulation on preview blade (ie: shown when using SwingSpeed<>).">
+              <input type="checkbox" id="SWING_EMULATION_BUTTON" name="swingemulation" onclick="ClickSwingEmulation()">
+              <span>Swing Emulation</span>
+            </label>
 
-              <label title="Simulates In-Hilt LED blades, (no addressable pixel effects).">
-                <input type="checkbox" id="INHILT_BUTTON" name="inhilt" onclick="ClickInhilt()">
-                <span>Inhilt LED</span>
-              </label>
+            <label title="Simulates In-Hilt LED blades, (no addressable pixel effects).">
+              <input type="checkbox" id="INHILT_BUTTON" name="inhilt" onclick="ClickInhilt()">
+              <span>Inhilt LED</span>
+            </label>
 
-              <label title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement. *Note* Graflex hilt model probably won't be able to render with this on.">
-                <input type="checkbox" id="SLOW_BUTTON" name="slow" onclick="ClickSlow()">
-                <span>Slow</span>
-              </label>
-            </div>
+            <label title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement. *Note* Graflex hilt model probably won't be able to render with this on.">
+              <input type="checkbox" id="SLOW_BUTTON" name="slow" onclick="ClickSlow()">
+              <span>Slow</span>
+            </label>
+          </div>
 
             <div class="settings-section">
               <label title="Enter a custom WavLen value in milliseconds." class="wavlen-label">
@@ -9646,8 +9688,30 @@ function getIncompatibleTabs(tab) {
               title="Restore all settings to default, including restoring popups."
               id="restore_defaults" onclick="ClickRestore()">Restore Defaults</button>
           </div>
-
 <script>
+
+function toggleSettingsPanel() {
+  var settingsButton = FIND("SETTINGS_BUTTON");
+  var settingsPanel = FIND("settings_panel");
+
+  settingsPanel.classList.toggle("show");
+
+  // Mouseleave event listener
+  if (settingsPanel.classList.contains("show")) {
+    var timeoutId = null;
+    settingsPanel.addEventListener("mouseleave", function(e) {
+      timeoutId = setTimeout(function() {
+        settingsPanel.classList.remove("show");
+      }, 1000);
+    });
+    settingsPanel.addEventListener("mouseenter", function(e) {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    });
+  }
+}
 
 /* Globally declare all the elements for Settings */
 var darkButton = FIND("DARK_BUTTON"), darkState;
@@ -9657,65 +9721,65 @@ var swingemulateButton = FIND("SWING_EMULATION_BUTTON"), swingemulateState;
 var inhiltButton = FIND("INHILT_BUTTON"), inhiltState;
 var slowButton = FIND("SLOW_BUTTON"), slowState;
 var wavlenInput = FIND("WAVLEN_VALUE"), wavlenValue;
-var graflexButton = FIND("GRAFLEX_BUTTON"), graflexState;
+var graflexButton = FIND("GRAFLEX_BUTTON", graflexState);
 
 var body = document.querySelector("body");
-var structuredView = FIND("structured_view")
+var structuredView;
 
 var myWavLen = new WavLenClass();
 
 /* Settings buttons saved as local storage */
 function getSavedState(buttonState, defaultValue) {
   var value = localStorage.getItem(buttonState);
-  console.log("BC- Retrieved State for " + buttonState + ": " + value);
- // shouldn't have to do all of this checking?
-  if (value === null || value === "null") {
+  console.log("Retrieved SavedState for " + buttonState + ": " + value);
+
+  if (value === null) {
     return defaultValue;
-  }
-  if (value === "false") {
-    return false;
   }
   if (buttonState === "wavlenValue") {
     return parseInt(value);
   }
-  return Boolean(value);
-// return value;
+  // Convert the string to boolean unless it's null or "false"
+  return value !== "false";
 }
+
 
 function saveState(buttonState, settingIsOn) {
   localStorage.setItem(buttonState, settingIsOn);
 }
 
 // Call the onPageLoad function when the page is loaded
-window.addEventListener('load', onPageLoad);
+window.addEventListener('DOMContentLoaded', onPageLoad);
 
 function onPageLoad() {
 
+  structuredView = FIND("structured_view");
+
   // DARK_BUTTON
-  darkState = getSavedState("darkSave", false);
+  darkState = getSavedState("darkStateSave", false);
   body.classList.toggle("dark-mode", darkState);
   structuredView.classList.toggle("dark-mode", darkState);
   darkButton.checked = darkState ? true : false;
 
   // TIPS_BUTTON
-  tipsState = getSavedState("tipsSave", true);
+  tipsState = getSavedState("tipsStateSave", true);
   tipsButton.checked = tipsState ? true : false;
 
   // STILL_BUTTON
-  stillState = getSavedState("stillSave", false);
+  stillState = getSavedState("stillStateSave", false);
   stillButton.checked = stillState ? true : false;
 
   // SWING_EMULATION_BUTTON
-  swingemulateState = getSavedState("swingemulateSave", true);
+  swingemulateState = getSavedState("swingemulateStateSave", true);
   swingemulateButton.checked = swingemulateState ? true : false;
 
   // INHILT_BUTTON
-  inhiltState = getSavedState("inhiltSave", false);
+  inhiltState = getSavedState("inhiltStateSave", false);
   if (inhiltState) STATE_NUM_LEDS = 145 - STATE_NUM_LEDS;
   inhiltButton.checked = inhiltState ? true : false;
 
   // SLOW_BUTTON
-  slowState = getSavedState("slowSave", false);
+  slowState = getSavedState("slowStateSave", false);
   if (slowState) framesPerUpdate = 60 - framesPerUpdate;
   slowButton.checked = slowState ? true : false;
 
@@ -9746,9 +9810,10 @@ wavlenInput.addEventListener("keydown", function(e) {
 });
 
   // GRAFLEX_BUTTON - must be last here because calling compile() means no coming back.
-  graflexState = getSavedState("graflexSave", true);
+  graflexState = getSavedState("graflexStateSave", true);
     graflexButton.checked = graflexState ? true : false;
-    compile();
+    compile(); // this causes error reading null VERTEX_SHADER , but things work?
+
 } // onPageLoad()
 
 
@@ -9757,7 +9822,7 @@ function ClickDarkMode() {
   body.classList.toggle("dark-mode");
   structuredView.classList.toggle("dark-mode");
   darkButton.checked = darkState ? true : false;
-  saveState("darkSave", darkState);
+  saveState("darkStateSave", darkState);
 }
 
 function ClickTips() {
@@ -9776,136 +9841,69 @@ function ClickTips() {
     });
   }
   tipsButton.checked = tipsState ? true : false;
-  saveState("tipsSave", tipsState);
+  saveState("tipsStateSave", tipsState);
 }
 
 function ClickStill() {
   stillState = !stillState;
   stillButton.checked = stillState ? true : false;
-  saveState("stillSave", stillState);
+  saveState("stillStateSave", stillState);
 }
 
 function ClickSwingEmulation() {
   swingemulateState = !swingemulateState;
   swingemulateButton.checked = swingemulateState ? true : false;
-  saveState("swingemulateSave", swingemulateState);
+  saveState("swingemulateStateSave", swingemulateState);
 }
 
 function ClickInhilt() {
   inhiltState = !inhiltState;
   STATE_NUM_LEDS = 145 - STATE_NUM_LEDS; // this is genius simplicity
   inhiltButton.checked = inhiltState ? true : false;
-  saveState("inhiltSave", inhiltState);
+  saveState("inhiltStateSave", inhiltState);
 }
 
 function ClickSlow() {
   slowState = !slowState;
   framesPerUpdate = 60 - framesPerUpdate;
-  saveState("slowSave", slowState);
+  saveState("slowStateSave", slowState);
 }
 
 function ClickGraflex() {
   graflexState = !graflexState;
   graflexButton.checked = graflexState ? true : false;
   compile();
-  saveState("graflexSave", graflexState);
+  saveState("graflexStateSave", graflexState);
 }
 
 function ClickRestore() {
   localStorage.clear();
   onPageLoad();
 }
-
-
-var num_alternatives = 1000;
-
-function Alt() {
-  return parseInt(FIND("ALT").value);
-}
-
-function IncreaseAlt(n) {
-  var v = Alt() + n;
-  if (v < 0) v += num_alternatives;
-  if (v > num_alternatives) v -= num_alternatives;
-  FIND("ALT").value = v;
-  console.log("Updated Alt: " + v)
-}
-function Variant() {
- return parseInt(FIND("VARIANT_VALUE").value);
-}
-
-/* Variant Slider functions */
-
-function updateVariantValue(newValue) {
-    if (newValue < 0) {
-    newValue = 0;
-  } else if (newValue > 32768) {
-    newValue = 32768;
-  }
-  FIND("VARIANT_VALUE").value = newValue;
-  FIND("VARIANT_SLIDER").value = newValue;
-  console.log("Updated Variant: " + newValue);
-}
-
-var timeoutId, intervalId;
-
-// Single click arrow to adjust by 1, hold to accelerate.
-function startAdjustingValue(adjustment, inputId) {
-  adjustmentValue(adjustment, inputId);
-  var speed = 100;
-  clearTimeout(timeoutId);
-  timeoutId = setTimeout(function() {
-    var startTime = new Date().getTime();
-    intervalId = setInterval(function() {
-      var elapsedTime = new Date().getTime() - startTime;
-      var progress = elapsedTime / speed;
-      var ease = Math.pow(progress, 2);
-      var value = Math.round(adjustment * ease);
-      adjustmentValue(value, inputId);
-    }, 1000 / 60); // 60 FPS for more responsive input.
-  }, 500); // delay until hold down button acceleration starts.
-}
-
-function adjustmentValue(adjustment, inputId) {
-  var variantInput = FIND(inputId);
-  var newValue = parseInt(variantInput.value) + adjustment;
-  variantInput.value = newValue;
-  updateVariantValue(newValue);
-}
-
-// Release or mouse leave arrow button
-function stopAdjustingValue() {
-  clearInterval(intervalId);
-  clearTimeout(timeoutId);
-}
-/* End Variant Slider functions */
-
-function toggleSettingsPanel() {
-  var settingsButton = FIND("SETTINGS_BUTTON");
-  var settingsPanel = FIND("settings_panel");
-
-  // Show/hide panel
-  settingsPanel.classList.toggle("show");
-
-  // Mouseleave event listener
-  if (settingsPanel.classList.contains("show")) {
-    var timeoutId = null;
-    settingsPanel.addEventListener("mouseleave", function(e) {
-      timeoutId = setTimeout(function() {
-        settingsPanel.classList.remove("show");
-      }, 1000);
-    });
-
-    settingsPanel.addEventListener("mouseenter", function(e) {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-        timeoutId = null;
-      }
-    });
-  }
-}
-
 </script>
+
+    <br>
+    <div id=TABS class="tabs-container">
+      <div id=TABLINKS class=tab></div>
+      <div id=TABBODIES class=tabcontainer></div>
+    </div>
+    <div class="footer-container">
+      <span class="footer-title">ProffieOS Style Editor</span>
+      <span class="footer-links">
+        <span class="other-sites">Other sites: </span>
+        <a href="https://crucible.hubbe.net/" target="_blank"><img src="https://crucible.hubbe.net/uploads/default/optimized/1X/2237f551ca8f4f69ac478df5c64aee1c951c33f5_2_180x180.png" alt="Crucible logo"></a>
+        <a href="https://pod.hubbe.net/" target="_blank"><img src="https://pod.hubbe.net/images/favicon.png" alt="Pod logo"></a>   
+        <a href="https://fredrik.hubbe.net/lightsaber/" target="_blank"><img src="https://fredrik.hubbe.net/favicon.ico" alt="Lightsaber logo"></a>   
+        <a href="https://www.fett263.com/" target="_blank"><img src="https://www.fett263.com//favicon.ico" alt="Fett263 logo"></a>   
+        <a href="https://www.facebook.com/groups/opensourcesabers/" target="_blank"><img src="https://www.facebook.com/favicon.ico" alt="Facebook logo"></a>   
+      </span>
+    </div>
+    </td>
+    <td class="page-right">
+      <div id="structured_view" class="structured-view">
+        <span class="structured-view-label">Structured view, click to edit.</span>
+        <div id="pp" class="pp"></div>
+      </div>
     </td>
     </tr>
   </table>
