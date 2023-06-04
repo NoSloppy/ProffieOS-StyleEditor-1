@@ -1049,8 +1049,6 @@ function mouse_leave(e) {
 }
 
 function compile() {
-    console.log("BC- Compile() gl.VERTEX_SHADER)" + gl.VERTEX_SHADER);
-
   // Create a shader that samples a 2D image.
   var vertexShader = gl.createShader(gl.VERTEX_SHADER);
   gl.shaderSource(vertexShader,
@@ -9721,7 +9719,7 @@ var swingemulateButton = FIND("SWING_EMULATION_BUTTON"), swingemulateState;
 var inhiltButton = FIND("INHILT_BUTTON"), inhiltState;
 var slowButton = FIND("SLOW_BUTTON"), slowState;
 var wavlenInput = FIND("WAVLEN_VALUE"), wavlenValue;
-var graflexButton = FIND("GRAFLEX_BUTTON", graflexState);
+var graflexButton = FIND("GRAFLEX_BUTTON"), graflexState;
 
 var body = document.querySelector("body");
 var structuredView;
