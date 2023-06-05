@@ -783,16 +783,35 @@ var t = 0.0;
 
 var width;
 var height;
+var colorSortByName = false;
 
 // Create n textures of about 1MB each.
 function initGL() {
+  loadColorData();
+  // Clear existing tab links and tab bodies before populating
+  var tabLinksElement = FIND("TABLINKS");
+  var tabBodiesElement = FIND("TABBODIES");
+  tabLinksElement.innerHTML = "";
+  tabBodiesElement.innerHTML = "";
   AddTab("color", "Styles",effect_links.sort().join(""))
-  // Sort sortedRgbLinks based on the name:
-  sortedRgbLinks.sort((a, b) => a.name.localeCompare(b.name));
-  qlinks = sortedRgbLinks.map(color => mkcolorbutton(color.name, color.r, color.g, color.b));
-   AddTab("rgb", "Colors",
-    "<input type=color id=COLOR value='#ff0000' onclick='ClickColor()' />" +
-    qlinks.join(""));
+  if (colorSortByName) {
+    // Sort sortedRgbLinks based on the name:
+    sortedRgbLinks.sort((a, b) => a.name.localeCompare(b.name));
+    // Map sortedRgbLinks to mkcolorbuttonByName HTML strings
+    qlinks = sortedRgbLinks.map(color => mkcolorbuttonByName(color.name, color.r, color.g, color.b));
+    AddTab("rgb", "Colors",
+      qlinks.join("") +
+      "<div class='custom-color'>" +
+      "<label>Custom color </label>" +
+      "<input type='color' id='COLOR' value='#ff0000' class='color-picker' onclick='ClickColor()' /></div>");
+  } else {
+    qlinks.sort();
+    AddTab("rgb", "Colors",
+      qlinks.join("") +
+      "<div class='custom-color'>" +
+      "<label>Custom color </label>" +
+      "<input type='color' id='COLOR' value='#ff0000' class='color-picker' onclick='ClickColor()' /></div>");
+  }
   AddTab("layer", "Layers", layer_links.sort().join(""));
   AddTab("function", "Functions", function_links.sort().join(""));
   AddTab("transition", "Transitions", transition_links.sort().join(""));
@@ -2237,20 +2256,73 @@ function mapcolor(x) {
   return Math.round(x * 255);
 }
 
+
+//sort color by hue
+function rgbToHsl(r, g, b) {
+  r /= 255, g /= 255, b /= 255;
+
+  var max = Math.max(r, g, b);
+  var min = Math.min(r, g, b);
+  var h, s, l = (max + min) / 2;
+
+  if (max == min) {
+    h = s = 0; // achromatic
+  } else {
+    var d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+
+    h /= 6;
+  }
+
+  return [ h, s, l ];
+}
+
 function mkcolorbutton(name, r, g, b) {
   r = mapcolor(r);
   g = mapcolor(g);
   b = mapcolor(b);
-  var text = (name === "Black" || name === "Blue") ? "white" : "black";
-  var color = (name === "Black") ? "black" : "rgb("+r+","+g+","+b+")";
-  return "<input type=button style='border: 1px solid black;padding:8px;color:"+text+";background:"+color+"' class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
+  var hsl = rgbToHsl(r, g, b);
+  // console.log("mkcolorbutton:name="+name+"  rgb="+r+","+g+","+b+"    hsl="+hsl[0]+","+hsl[1]+","+hsl[2]+"  ");
+  var sortString;
+  if (hsl[1] == 0.0) {
+    sortString = "C:"+hsl[2];
+  } else if (hsl[1] < 0.3 || hsl[2] > 0.8 || hsl[2] < 0.2) {
+    sortString = "B:"+hsl[0];
+  } else {
+    sortString = "A:"+hsl[0];
+  }
+  var bgColor = "rgb("+r+","+g+","+b+")";
+  if (r == 0 && g == 0 && b == 0) bgColor = "black"
+  var textColor = (name === "Black" || name === "Blue") ? "white" : "black";
+  return "<input srt='"+sortString+"' type=button style='border: 1px solid black;padding:8px;color:"+textColor+";background:"+bgColor+"' class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
+}
+// ******** GOOD OGOOD GOD AND BETTTERRRRRRR ***
+function mkcolorbuttonByName(name, r, g, b) {
+  r = mapcolor(r);
+  g = mapcolor(g);
+  b = mapcolor(b);
+  var bgColor = "rgb("+r+","+g+","+b+")";
+  if (r == 0 && g == 0 && b == 0) bgColor = "black";
+  var textColor = (name === "Black" || name === "Blue") ? "white" : "black";
+  return "<input type=button style='border: 1px solid black;padding:8px;color:"+textColor+";background:"+bgColor+"' class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
 }
 
 function AddColor(name, r, g, b) {
   colorNames[r+","+g+","+b] = name;
-  sortedRgbLinks.push({name, r, g, b});
+  if(colorSortByName) {
+    sortedRgbLinks.push({name, r, g, b});
+  } else {
+    qlinks.push(mkcolorbutton(name, r, g, b));
+  }  
   all_colors[name] = new RgbClass(r, g, b);
 }
+
 
 AddTemplate("InOutHelper<SimpleClash<Lockup<Blast<Blue,White>,AudioFlicker<Blue,White>>,White>, 300, 800>");
 // AddTemplate("StyleFirePtr<Red, Yellow>");
@@ -2440,54 +2512,58 @@ AddFunction("EffectIncrementF<EFFECT_CLASH, Int<32768>, Int<8192>>");
 AddFunction("MarbleF<Int<-2000>, Int<40000>, Ifon<Int<827680>, Int<0>>, Int<1276800>>");
 AddFunction("LockupPulseF<SaberBase::LOCKUP_NORMAL>");
 
-AddColor("AliceBlue", 223, 239, 255);
-AddColor("Aqua", 0, 255, 255);
-AddColor("Aquamarine", 55, 255, 169);
-AddColor("Azure", 223, 255, 255);
-AddColor("Bisque", 255, 199, 142);
-AddColor("Black", 0, 0, 0);
-AddColor("BlanchedAlmond", 255, 213, 157);
-AddColor("Blue", 0, 0, 255);
-AddColor("Chartreuse", 55, 255, 0);
-AddColor("Coral", 255, 55, 19);
-AddColor("Cornsilk", 255, 239, 184);
-AddColor("Cyan", 0, 255, 255);
-AddColor("DarkOrange", 255, 68, 0);
-AddColor("DeepPink", 255, 0, 75);
-AddColor("DeepSkyBlue", 0, 135, 255);
-AddColor("DodgerBlue", 2, 72, 255);
-AddColor("FloralWhite", 255, 244, 223);
-AddColor("GhostWhite", 239, 239, 255);
-AddColor("Green", 0, 255, 0);
-AddColor("GreenYellow", 108, 255, 6);
-AddColor("HoneyDew", 223, 255, 223);
-AddColor("HotPink", 255, 36, 118);
-AddColor("Ivory", 255, 255, 223);
-AddColor("LavenderBlush", 255, 223, 233);
-AddColor("LemonChiffon", 255, 244, 157);
-AddColor("LightCyan", 191, 255, 255);
-AddColor("LightPink", 255, 121, 138);
-AddColor("LightSalmon", 255, 91, 50);
-AddColor("LightYellow", 255, 255, 191);
-AddColor("Magenta", 255, 0, 255);
-AddColor("MintCream", 233, 255, 244);
-AddColor("MistyRose", 255, 199, 193);
-AddColor("Moccasin", 255, 199, 119);
-AddColor("NavajoWhite", 255, 187, 108);
-AddColor("Orange", 255, 97, 0);
-AddColor("OrangeRed", 255, 14, 0);
-AddColor("PapayaWhip", 255, 221, 171);
-AddColor("PeachPuff", 255, 180, 125);
-AddColor("Pink", 255, 136, 154);
-AddColor("Red", 255, 0, 0);
-AddColor("SeaShell", 255, 233, 219);
-AddColor("Snow", 255, 244, 244);
-AddColor("SpringGreen", 0, 255, 55);
-AddColor("SteelBlue", 14, 57, 118);
-AddColor("Tomato", 255, 31, 15);
-AddColor("White", 255, 255, 255);
-AddColor("Yellow", 255, 255, 0);
-
+function loadColorData() {
+  // Clear arrays
+  sortedRgbLinks = [];
+  qlinks = [];
+  AddColor("AliceBlue", 223, 239, 255);
+  AddColor("Aqua", 0, 255, 255);
+  AddColor("Aquamarine", 55, 255, 169);
+  AddColor("Azure", 223, 255, 255);
+  AddColor("Bisque", 255, 199, 142);
+  AddColor("Black", 0, 0, 0);
+  AddColor("BlanchedAlmond", 255, 213, 157);
+  AddColor("Blue", 0, 0, 255);
+  AddColor("Chartreuse", 55, 255, 0);
+  AddColor("Coral", 255, 55, 19);
+  AddColor("Cornsilk", 255, 239, 184);
+  AddColor("Cyan", 0, 255, 255);
+  AddColor("DarkOrange", 255, 68, 0);
+  AddColor("DeepPink", 255, 0, 75);
+  AddColor("DeepSkyBlue", 0, 135, 255);
+  AddColor("DodgerBlue", 2, 72, 255);
+  AddColor("FloralWhite", 255, 244, 223);
+  AddColor("GhostWhite", 239, 239, 255);
+  AddColor("Green", 0, 255, 0);
+  AddColor("GreenYellow", 108, 255, 6);
+  AddColor("HoneyDew", 223, 255, 223);
+  AddColor("HotPink", 255, 36, 118);
+  AddColor("Ivory", 255, 255, 223);
+  AddColor("LavenderBlush", 255, 223, 233);
+  AddColor("LemonChiffon", 255, 244, 157);
+  AddColor("LightCyan", 191, 255, 255);
+  AddColor("LightPink", 255, 121, 138);
+  AddColor("LightSalmon", 255, 91, 50);
+  AddColor("LightYellow", 255, 255, 191);
+  AddColor("Magenta", 255, 0, 255);
+  AddColor("MintCream", 233, 255, 244);
+  AddColor("MistyRose", 255, 199, 193);
+  AddColor("Moccasin", 255, 199, 119);
+  AddColor("NavajoWhite", 255, 187, 108);
+  AddColor("Orange", 255, 97, 0);
+  AddColor("OrangeRed", 255, 14, 0);
+  AddColor("PapayaWhip", 255, 221, 171);
+  AddColor("PeachPuff", 255, 180, 125);
+  AddColor("Pink", 255, 136, 154);
+  AddColor("Red", 255, 0, 0);
+  AddColor("SeaShell", 255, 233, 219);
+  AddColor("Snow", 255, 244, 244);
+  AddColor("SpringGreen", 0, 255, 55);
+  AddColor("SteelBlue", 14, 57, 118);
+  AddColor("Tomato", 255, 31, 15);
+  AddColor("White", 255, 255, 255);
+  AddColor("Yellow", 255, 255, 0);
+}
 AddLayer("InOutHelperL<InOutFuncX<Int<300>,Int<800>>>");
 AddLayer("InOutTrL<TrWipe<300>,TrWipeIn<500>>");
 
@@ -9185,6 +9261,7 @@ function AddTab(tab, name, contents) {
     AddTabContent(tab, contents);
   }
 }
+
 function TabClicked(tab) {
   wasTabClicked = true;
   ActivateTab(tab);
@@ -9208,7 +9285,7 @@ function enableTabs() {
   allTabsEnabled = true;
 }
 
-// Enable all tabs on page load - timeout needed?
+// Enable all tabs on page load - needs time to let tabs load
 window.addEventListener("load", function () {
   setTimeout(function () {
     enableTabs();
@@ -9275,14 +9352,6 @@ function ActivateTab(tab) {
   wasTabClicked = false; 
 }
 
-// Return an array of tabs that are compatible with the given tab
-function getCompatibleTabs(tab) {
-  if (colorGroup.includes(tab)) {
-    return colorGroup;
-  } else {
-    return [tab];
-  }
-}
 // Return an array of tabs that are incompatible with the given tab
 function getIncompatibleTabs(tab) {
   let incompatibleTabs;
@@ -9644,6 +9713,11 @@ function getIncompatibleTabs(tab) {
               <input type="checkbox" id="TIPS_BUTTON" name="tooltips" onclick="ClickTips()">
               <span >Tool Tips</span>
             </label>
+
+            <label title="Sort the buttons in the Colors tab by name instead of by Hue.">
+              <input type="checkbox" id="COLOR_SORT" name="colorbyname" onclick="ClickColorSort()">
+              <span>Sort Colors by name</span>
+            </label>
           </div>
 
           <div class="settings-section">
@@ -9718,6 +9792,8 @@ var stillButton = FIND("STILL_BUTTON"), stillState;
 var swingemulateButton = FIND("SWING_EMULATION_BUTTON"), swingemulateState;
 var inhiltButton = FIND("INHILT_BUTTON"), inhiltState;
 var slowButton = FIND("SLOW_BUTTON"), slowState;
+var slowButton = FIND("SLOW_BUTTON"), slowState;
+var colorSortButton = FIND("COLOR_SORT"), colorSort;
 var wavlenInput = FIND("WAVLEN_VALUE"), wavlenValue;
 var graflexButton = FIND("GRAFLEX_BUTTON"), graflexState;
 
@@ -9736,6 +9812,9 @@ function getSavedState(buttonState, defaultValue) {
   }
   if (buttonState === "wavlenValue") {
     return parseInt(value);
+  }
+  if (buttonState === "colorSortSave") {
+    return value;
   }
   // Convert the string to boolean unless it's null or "false"
   return value !== "false";
@@ -9781,6 +9860,11 @@ function onPageLoad() {
   if (slowState) framesPerUpdate = 60 - framesPerUpdate;
   slowButton.checked = slowState ? true : false;
 
+  // COLOR_SORT
+  colorSort = getSavedState("colorSortSave", "hue");
+  colorSortByName = (colorSort === "name") ? true : false;
+  colorSortButton.checked = colorSortByName;
+
   // WAVLEN_VALUE
   wavlenValue = parseInt(getSavedState("wavlenValueSave", 500));
   wavlenInput.value = wavlenValue;
@@ -9810,7 +9894,6 @@ wavlenInput.addEventListener("keydown", function(e) {
   // GRAFLEX_BUTTON - must be last here because calling compile() means no coming back.
   graflexState = getSavedState("graflexStateSave", true);
     graflexButton.checked = graflexState ? true : false;
-    compile(); // this causes error reading null VERTEX_SHADER , but things work?
 
 } // onPageLoad()
 
@@ -9866,6 +9949,15 @@ function ClickSlow() {
   framesPerUpdate = 60 - framesPerUpdate;
   saveState("slowStateSave", slowState);
 }
+
+function ClickColorSort() {
+  colorSortByName = !colorSortByName
+  colorSort = colorSortByName ? "name" : "hue";
+  console.log("BC- Color sort mode set to: " + colorSort);
+  saveState("colorSortSave", colorSort);
+  initGL();
+}
+
 
 function ClickGraflex() {
   graflexState = !graflexState;
