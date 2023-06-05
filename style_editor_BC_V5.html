@@ -802,14 +802,14 @@ function initGL() {
     AddTab("rgb", "Colors",
       qlinks.join("") +
       "<div class='custom-color'>" +
-      "<label>Custom color </label>" +
+      "<label for='COLOR'>Custom color </label>" +
       "<input type='color' id='COLOR' value='#ff0000' class='color-picker' onclick='ClickColor()' /></div>");
   } else {
     qlinks.sort();
     AddTab("rgb", "Colors",
       qlinks.join("") +
       "<div class='custom-color'>" +
-      "<label>Custom color </label>" +
+      "<label for='COLOR'>Custom color </label>" +
       "<input type='color' id='COLOR' value='#ff0000' class='color-picker' onclick='ClickColor()' /></div>");
   }
   AddTab("layer", "Layers", layer_links.sort().join(""));
@@ -9791,7 +9791,6 @@ var tipsButton = FIND("TIPS_BUTTON"), tipsState;
 var stillButton = FIND("STILL_BUTTON"), stillState;
 var swingemulateButton = FIND("SWING_EMULATION_BUTTON"), swingemulateState;
 var inhiltButton = FIND("INHILT_BUTTON"), inhiltState;
-var slowButton = FIND("SLOW_BUTTON"), slowState;
 var slowButton = FIND("SLOW_BUTTON"), slowState;
 var colorSortButton = FIND("COLOR_SORT"), colorSort;
 var wavlenInput = FIND("WAVLEN_VALUE"), wavlenValue;
