@@ -513,8 +513,6 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
 /* Style the buttons that are used to open the tab content */
 .tab button {
   background-color: inherit;
-/*  font-weight: 500;
-  font-size: 16px;*/
   float: left;
   border: none;
   margin: unset;
@@ -538,12 +536,28 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   box-shadow: 0 0 0 1px transparent;
   cursor: not-allowed;
 }
+
 /* Style the tab content */
 .tabcontent {
   display: none;
   padding: 6px 12px;
   border: 1px solid #ccc;
   border-top: none;
+}
+.rgb-tabcontent {
+  color: black;
+}
+.custom-color {
+  background: #ccc;
+  text-align: center;
+  position: relative;
+}
+.rgb-tabcontent .btn {
+  border-radius: 16px;
+  width: 125px;
+}
+.rgb-tabcontent .custom-color .color-picker {
+  width: 100px;
 }
 
 .structured-view {
