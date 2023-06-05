@@ -9238,8 +9238,8 @@ var allTabsEnabled = true;
 var currentTab;
 
 function AddTab(tab, name, contents) {
-  FIND("TABLINKS").innerHTML += "<button id="+tab+"_tab class=tablinks onclick=\"ActivateTab('"+tab+"')\">" + name + "</button>";
-  FIND("TABBODIES").innerHTML += "<div id="+tab+"_tabcontent class=tabcontent></div>";
+  FIND("TABLINKS").innerHTML += "<button id=" + tab + "_tab class=tablinks onclick=\"TabClicked('"+tab+"');\">" + name + "</button>";
+  FIND("TABBODIES").innerHTML += "<div id=" + tab + "_tabcontent class=tabcontent></div>";
   if (contents) {
     AddTabContent(tab, contents);
   }
@@ -9335,14 +9335,6 @@ function ActivateTab(tab) {
   wasTabClicked = false; 
 }
 
-// // Return an array of tabs that are compatible with the given tab
-// function getCompatibleTabs(tab) {
-//   if (colorGroup.includes(tab)) {
-//     return colorGroup;
-//   } else {
-//     return [tab];
-//   }
-// }
 // Return an array of tabs that are incompatible with the given tab
 function getIncompatibleTabs(tab) {
   let incompatibleTabs;
