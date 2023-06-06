@@ -189,7 +189,6 @@ input[type="button"] {
   border: 1px solid #bbb;
   font-weight: normal;
   transition: box-shadow 0.1s ease;
-/*  animation: none;*/
 }
 button:hover,
 input[type="button"]:hover {
@@ -463,11 +462,10 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   margin-bottom: 10px;
 }
 .settings-panel .settings-header-label {
-  font-weight: bold;
+  margin-inline-start: 2.8em;
+  margin-block-start: -1.5em;
   color: #333;
   font-size: 22px;
-  margin-bottom: 10px;
-  justify-content: center;
 }
 .settings-section-label {
   font-weight: bold;
@@ -543,6 +541,9 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   padding: 6px 12px;
   border: 1px solid #ccc;
   border-top: none;
+}
+.tabcontent .btn {
+  border-radius: 5px;
 }
 .rgb-tabcontent {
   color: black;
