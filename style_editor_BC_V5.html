@@ -346,7 +346,7 @@ button.submit-button:active {
 }
 
 .error-message {
-  color: red; 
+  color: red;
   font-weight: bold;
 }
 /* Blade Style text box */
@@ -9828,7 +9828,7 @@ function ClickSave() {
   let textArea = FIND("style");
   let content = "/*\nSaved from ProffieOS Style Editor:\nhttps://fredrik.hubbe.net/lightsaber/style_editor.html\n*/" + "\n\n" + textArea.value;
   let blob = new Blob([content], {type: "text/plain;charset=utf-8"});
-  saveAs(blob, "style.txt");
+  saveAs(blob, "blade-style.txt");
 }
 
 function Copy() {
@@ -10288,7 +10288,7 @@ function IncreaseAlt(n) {
 
     function updateVariantValue(newValue) {
       // Ensure values are in range, and auto-filled zeros get registered as 0.
-      if (newValue <= 0) {
+      if (isNaN(newValue) || newValue <= 0) {
         newValue = 0;
       } else if (newValue > 32768) {
         newValue = 32768;
@@ -10511,17 +10511,19 @@ function saveState(buttonState, settingIsOn) {
 window.addEventListener('DOMContentLoaded', onPageLoad);
 
 function safeguardInputs() {
-  // Get all input elements
-  var inputs = document.querySelectorAll('input');
+  // Get all input elements that take numeric values
+  var inputs = document.querySelectorAll('input[type="text"]');
 
   inputs.forEach(function(input) {
     // Select the entire contents of the input box on click
     input.addEventListener("click", function(e) {
         this.select();
       });
-    // Prevent nulls: Autofill '0' if the input value is empty
+    // Prevent nulls and non-numeric input. 
     input.addEventListener('input', function(e) {
-      if (!this.value) {
+      var value = this.value;
+      if (isNaN(value) || value === "") {
+      // Autofill '0' if the input value is empty
         this.value = '0'; 
       }
     });
@@ -10573,10 +10575,7 @@ function onPageLoad() {
 
   wavlenInput.addEventListener("input", function(e) {
     var value = parseInt(this.value);
-    var newValue = value;
-    if (isNaN(value) || value < 1) {
-      newValue = Math.max(1, value); // Set the minimum value of 1
-    }
+    var newValue = (isNaN(value) || value < 1) ? 1 : value;
     this.value = newValue;
     saveState("wavlenValueSave", newValue);
     myWavLen.setLength(newValue);
