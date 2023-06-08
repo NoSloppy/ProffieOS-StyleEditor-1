@@ -6,13 +6,675 @@
   <meta charset="UTF-8">
   <!-- This should show up in search engine results. -->
   <meta name="description" content="ProffieOS Style Editor: Customize your Proffieboard saber blade animations with this browser based tool.">
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="fontawesome-free-6.4.0-web/css/all.css" crossorigin="anonymous"/>
-  <!--   Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com
-  License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License -->
   <title>ProffieOS Style Editor</title>
 
+<style>
+/*
+ * Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com
+ * License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License)
+ * Copyright 2023 Fonticons, Inc.
+ */
 
+.fas,
+.fa-solid {
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  display: var(--fa-display, inline-block);
+  font-style: normal;
+  font-variant: normal;
+  line-height: 1;
+  text-rendering: auto; }
+
+.fas,
+.fa-solid {
+  font-family: 'Font Awesome 6 Free'; }
+
+.fa-right-from-bracket::before {
+  content: "\f2f5"; }
+
+.fa-copy::before {
+  content: "\f0c5"; }
+
+.fa-up-right-and-down-left-from-center::before {
+  content: "\f424"; }
+
+.fa-layer-group::before {
+  content: "\f5fd"; }
+
+.fa-list::before {
+  content: "\f03a"; }
+
+.fa-arrows-rotate::before {
+  content: "\f021"; }
+
+.fa-save::before {
+  content: "\f0c7"; }
+
+.fa-cog::before {
+  content: "\f013"; }
+
+.fa-solid {
+  font-weight: 900; }
+
+
+@font-face {
+  font-family: 'Font Awesome 6 Free';
+  font-style: normal;
+  font-weight: 900;
+  font-display: block;
+  src: url("fontawesome-free-6.4.0-web/webfonts/fa-solid-900.woff2") format("woff2"), url("fontawesome-free-6.4.0-web/webfonts/fa-solid-900.ttf") format("truetype"); }
+
+/* Make page elements like buttons and whitespace non-selectable with drag box */
+* {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Box sizing helps keep buttons uniform in
+size when padding and margins may change */
+* {
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  box-sizing: border-box;
+}
+
+/* Dark mode styles */
+
+/* Whole page */ 
+.dark-mode {
+  background-color: #202020;
+  color: white !important;
+  color-scheme: dark !important;
+}
+
+/* Do Selected Effect, Expand, and Layerize */
+.dark-mode .page-left .button-off,
+.dark-mode .page-left .button-off:hover {
+  background-color: #777;
+  color: darkgray;
+   box-shadow: 0 0 0 1px transparent;
+}
+.dark-mode .settings-panel button:hover{
+  background-color: #f44336;
+}
+
+/* Other buttons */
+.dark-mode button,
+.dark-mode input[type="button"] {
+  background-color: #777;
+  color: #fff;
+  border: 1px solid transparent;
+}
+.dark-mode button:hover,
+.dark-mode input[type="button"]:hover {
+  background-color: #9F9F9F;
+}
+.dark-mode button:active,
+.dark-mode .settings-panel button:active,
+.dark-mode input[type="button"]:active {
+  background-color: steelblue;
+}
+.dark-mode button.submit-button {
+  background-color: forestgreen;
+}
+
+/* Power and Rotate latching buttons */
+.dark-mode .page-left .button-latched,
+.dark-mode .page-left .button-latched:hover {
+  background-color: steelblue;
+}
+
+/* Lockup and More Effects dropdown menus */
+.dark-mode select {
+  background-color: #777;
+  color: #fff;
+  border: 1px solid transparent;
+  padding: 1px;
+}
+.dark-mode select:hover {
+  background-color: #9F9F9F;
+}
+
+/* Variant and Alt adjusters */
+.dark-mode .variant-alt-container {
+  background-color: steelblue;
+  color: white;
+}
+
+.dark-mode .textbox {
+  background-color: #333;
+  color: white;
+}
+.dark-mode .settings-panel {
+  border: 3px solid #ccc;
+  background: #777;
+  color: black;
+}
+.dark-mode .settings-panel .settings-panel-arrow {
+  border-color: transparent #777 transparent transparent;
+}
+
+/* Tabs */
+.dark-mode .tab {
+  background-color: #333;
+}
+.dark-mode .tab button:hover {
+  background-color: #9F9F9F;
+  box-shadow: 0 0 3px 1px transparent;
+}
+.dark-mode .tab button.active {
+  background-color: steelblue;
+}
+.dark-mode .tab button.disabled {
+  background-color: #777;
+  color: #bbb;
+  cursor: not-allowed;
+}
+
+/* Structured View style arguments borders */
+.dark-mode .structured-view .selected-area-container,
+.dark-mode .structured-view .selected-area-container .pp-container {
+  background-color: steelblue;
+  border-color: white;
+}
+/* Keep color palette background white for reference. */
+.dark-mode .rgb-tabcontent {
+background-color: white;
+}
+
+/* Popup Window */
+.dark-mode .popup-window {
+  border: 3px solid #ccc;
+  background: #777;
+}
+
+.dark-mode .footer-container {
+  background-color: #333;
+}
+
+/* Non-dark mode styles */
+
+
+body {
+  margin-top: -3px;
+  margin-bottom: 0;
+}
+
+.page-left {
+  position: relative;
+  vertical-align: top;
+  width: 50%;
+  padding-bottom: 30px;
+}
+.page-right {
+  vertical-align: top;
+ }
+
+/* This keeps the More Effects menu and
+the Do Selected Effect button together */
+.more-menu-container {
+  white-space: nowrap;
+}
+
+/* Do Selected Effect, Expand, and Layerize */
+.page-left .button-off,
+.page-left .button-off:hover {
+  background-color: lightgray;
+  color: darkgray;
+  box-shadow: 0 0 2px 1px transparent;
+  cursor: not-allowed;
+}
+
+/* Lockup and More Effects Drop Downs */
+select {
+  background-color: #eee;
+  color: black;
+  border-radius: 5px;
+  padding: .2%;
+  font-size: .8em;
+  cursor: pointer;
+}
+select:hover {
+/*  background-color: #ddd;*/
+  box-shadow: 0 0 2px 1px dodgerblue;
+}
+/* Settings Panel buttons
+need to be here to not override Other Buttons below */
+.settings-panel button {
+  background-color: #f44336;
+  color: black;
+  margin-left: 46px;
+  border: 1px solid black;
+}
+.settings-panel button.close-settings {
+  position: absolute;
+  top: 0px;
+  left: -40px;
+  padding: 0px 4px;
+  font-weight: bold;
+}
+
+/* Other buttons */
+button,
+input[type="button"] {
+  display: inline-block;
+  background-color: #eee;
+  color: black;
+  border-radius: 2px;
+  padding: 3px;
+  margin-block: 5px;
+  font-size: 14px;
+  border: 1px solid #bbb;
+  font-weight: normal;
+  transition: box-shadow 0.1s ease;
+}
+button:hover,
+input[type="button"]:hover {
+  box-shadow: 0 0 2px 1px dodgerblue;
+}
+button:active,
+input[type="button"]:active {
+  background-color: dodgerblue;
+}
+button.submit-button {
+  background-color: limegreen;
+  border: 1px solid green;
+}
+button.submit-button:active {
+  background-color: dodgerblue;
+}
+
+/* Power and Rotate latching buttons */
+.page-left .button-latched,
+.page-left .button-latched:hover {
+  background-color: #A1D1F3;
+}
+
+/* Variant and Alt adjusters */
+.variant-alt-container {
+  background: #A1D1F3;
+  border: 1px solid black;
+  border-radius: 4px;
+  display: inline-block;
+  padding-inline: 4px;
+}
+.variant-label {
+  margin-left: 3px;
+}
+.variant-alt-controls {
+  display: inline-flex;
+  align-items: center;
+}
+.variant-slider {
+  -webkit-appearance: none;
+  width: 65px;
+  height: 10px;
+  margin: 3px 3px;
+  margin-top: 5px;
+  cursor: pointer;
+}
+/* Thumb handle styling for Chrome, Safari, and other WebKit-based browsers */
+.variant-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  background: dodgerblue;
+  width: 14px;
+  height: 14px;
+  border-radius: 20%;
+  border: 1px solid #333;
+  margin-top: -2px;
+}
+/* Thumb handle styling for Firefox */
+.variant-slider::-moz-range-thumb {
+  background: dodgerblue;
+  width: 14px;
+  height: 14px;
+  border-radius: 20%;
+  border: 1px solid #333;
+}
+/* Thumb handle styling for Internet Explorer and Edge */
+.variant-slider::-ms-thumb {
+  background: dodgerblue;
+  width: 14px;
+  height: 14px;
+  border-radius: 20%;
+  border: 1px solid #333;
+}
+.alt-label {
+  margin-left: 8px;
+  margin-right: 3px;
+}
+
+.error-message {
+  color: red; 
+  font-weight: bold;
+}
+/* Blade Style text box */
+.textbox {
+  background-color: #eee;
+  font-size: 14px;
+  width: 100%;
+}
+/* History Tab content */
+div.MAGIC_CLASS_FUNCTION input[type=button].btn {
+  background: green;
+  color: black;
+  padding: 2px 3px;
+}
+div.MAGIC_CLASS_COLOR input[type=button].btn {
+  background: green;
+  color: black;
+  padding: 2px 3px;
+}
+div.MAGIC_CLASS_TRANSITION input[type=button].btn {
+  background: green;
+  color: black;
+  padding: 2px 3px;
+}
+div.MAGIC_CLASS_INT input[type=button].btn {
+  background: green;
+  color: black;
+  padding: 2px 3px;
+}
+div.MAGIC_CLASS_EFFECT input[type=button].btn {
+  background: green;
+  color: black;
+  padding: 2px 3px;
+}
+div.MAGIC_INVISIBLE_CLASS_EFFECT {
+  display: inline;
+}
+div.MAGIC_INVISIBLE_CLASS_TRANSITION {
+  display: inline;
+}
+div.MAGIC_INVISIBLE_CLASS_FUNCTION {
+  display: inline;
+}
+span.MAGIC_CLASS_FUNCTION input[type=button].btn {
+  background: green;
+  color: black;
+  padding: 2px 3px;
+}
+span.MAGIC_CLASS_COLOR input[type=button].btn {
+  background: green;
+  color: black;
+  padding: 2px 3px;
+}
+span.MAGIC_CLASS_TRANSITION input[type=button].btn {
+  background: green;
+  color: black;
+  padding: 2px 3px;
+}
+span.MAGIC_CLASS_INT input[type=button].btn {
+  background: green;
+  color: black;
+  padding: 2px 3px;
+}
+span.MAGIC_CLASS_EFFECT input[type=button].btn {
+  background: green;
+  color: black;
+  padding: 2px 3px;
+}
+
+.settings-panel.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.settings-panel {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: black;
+  width: 287px;
+  border: 3px solid #888;
+  background: #ddd;
+  padding: 36px;
+  padding-left: 30px;
+  border-radius: 9px;
+  box-shadow: 6px 10px 10px rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease-in-out;
+  z-index: 1000;
+}
+.settings-panel label {
+  display: flex;
+  align-items: center;
+}
+.settings-panel label input[type="checkbox"] {
+  margin-right: 8px;
+}
+.settings-section {
+  margin-bottom: 10px;
+}
+.settings-panel .settings-header-label {
+  margin-inline-start: 2.8em;
+  margin-block-start: -1.5em;
+  color: #333;
+  font-size: 22px;
+}
+.settings-section-label {
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+  border-bottom: 2px solid #888;
+  padding-bottom: 5px;
+}
+
+/* Align Wavlen Settings label */
+.wavlen-label {
+  display: block;
+  margin-top: 5px;
+}
+.wavlen-value {
+  width: 80px;
+  margin-left: 5px;
+}
+
+.tabs-container {
+  position: relative;
+}
+/* Style the tab */
+.tab {
+  overflow: hidden;
+  border: 1px solid #ccc;
+  background-color: #f1f1f1;
+}
+/* Style the buttons that are used to open the tab content */
+.tab button {
+  background-color: inherit;
+  float: left;
+  border: none;
+  margin: unset;
+  outline: none;
+  cursor: pointer;
+  padding: 8px;
+  transition: 0.1s ease;
+}
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background-color: #ddd;
+  box-shadow: 0 0 3px 1px transparent;
+}
+/* Create an active/current tablink class */
+.tab button.active {
+  background-color: #A1D1F3;
+}
+.tab button.disabled {
+  background-color: lightgray;
+  color: darkgray;
+  box-shadow: 0 0 0 1px transparent;
+  cursor: not-allowed;
+}
+
+/* Style the tab content */
+.tabcontent {
+  display: none;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-top: none;
+}
+.tabcontent .btn {
+  border-radius: 5px;
+}
+.rgb-tabcontent {
+  color: black;
+}
+.custom-color {
+  background: #ccc;
+  text-align: center;
+  position: relative;
+}
+.rgb-tabcontent .btn {
+  border-radius: 16px;
+  width: 125px;
+}
+.rgb-tabcontent .custom-color .color-picker {
+  width: 100px;
+}
+
+.structured-view {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 100vh;
+  overflow-y: scroll;
+}
+.structured-view-label {
+  display: block;
+  font-size: 110%;
+  padding-top: 9px;
+  padding-bottom: 5px;
+}
+.structured-view .selected-area-container {
+  background-color: lightblue;
+}
+/* Fat font in Structured View */
+.pp span {
+  padding-left: 6px;
+  font-weight: 600;
+}
+/* Structured View style arguments borders */
+.pp-container {
+  border-color: gray;
+  border-style: solid;
+  border-width: 1px;
+  padding: 2px;
+}
+.pp-content {
+  margin-left: 1em;
+}
+/* Chartreuse highlighted borders */
+.running {
+  border-color: chartreuse !important;
+  border-width: 3px;
+  padding: 0px;
+}
+
+/* Structured View Layer buttons
+Add, Delete, Move Up, Move Down */
+.extra-buttons {
+  margin: 3px;
+  line-height: 1.0em;
+  font-size: 16px;
+}
+
+/* Popup Window */
+.popup-window.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.popup-window {
+  font-weight: 500;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 30%;
+  color: black;
+  border: 3px solid #888;
+  background: #ddd;
+  padding: 20px;
+  text-align: center;
+  border-radius: 9px;
+  box-shadow: 6px 10px 10px rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease-in-out;
+  z-index: 9999;
+}
+
+.popup-window button {
+  background-color: steelblue;
+  color: black;
+  border-radius: 5px;
+  padding: 3px 35px;
+  font-size: 20px;
+  font-weight: bold;
+  border: 1px solid black;
+  cursor: pointer;
+}
+.overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9998;
+}
+.overlay.show {
+  display: block;
+}
+
+/* Footer */
+.footer-title {
+  min-width: 180px;
+  font-size: 16px;
+}
+.footer-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #eee;
+  padding: 2px 15px;
+}
+.other-sites {
+  float: right;
+  padding-right: 10px;
+  margin-left: 35px;
+}
+.footer-links {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 100px;
+}
+.other-sites {
+  float: right;
+  padding-right: 10px;
+}
+.footer-links a img {
+  height: 16px;
+  width: 16px;
+  margin-right: 5px;
+}
+.footer-links a:hover {
+  color: #000;
+}
+
+
+
+
+</style>
 <script id="vertex_shader" type="x-shader/x-vertex">
 precision highp float;
 attribute vec2 a_position;
@@ -52,7 +714,7 @@ float RedPill(vec3 p) {
       sdCappedCylinder(p, 0.011, 0.08)));
   return dist;
 }
-  
+
 float Button(vec3 p) {
   float dist = 1000000.0;
   dist = min(dist, RedPill(p));
@@ -173,7 +835,7 @@ vec3 dorot(vec3 p) {
   p = p.yxz;
   p.x = -p.x;
   p *= rotx(-PI/2.0);
-  
+
 //  p = p  * roty(-0.4) * rotx(PI/5.0);
   //    p = p  * roty(-0.4) * rotx(PI/7.0);
   //    p = p * roty(-0.05);
@@ -614,7 +1276,7 @@ float shadow(in vec3 origin, in vec3 direction) {
 
   return clamp(hit, 0.0, 1.0);
 }
-    
+
 
 
 #define saturate(x) clamp(x, 0.0, 1.0)
@@ -637,8 +1299,8 @@ void main() {
                  (v_position.y) / u_width / zoom, 2.0));
     mat4 rot3 = mat4(0.0, -1.0, 0.0, 0.0,
                      0.0, 0.0, -1.0, 0.0,
-         1.0, 0.0, 0.0, 0.0,
-         0.0, 0.0, 0.0, 1.0);
+                     1.0, 0.0, 0.0, 0.0,
+                     0.0, 0.0, 0.0, 1.0);
 
     mat4 rot = rot3 * u_move_matrix;
     vec3 new_eye = (rot * vec4(eye.xyz, 1.0)).xyz;
@@ -671,13 +1333,13 @@ void main() {
 
     vec3 haze_color;
     float x = march(eye, dir, haze_color);
-        
+
     vec3 hp = eye + dir * x;
     vec3 color = vec3(0);
 
     if (x < 20.0) {
       Material mat = getMaterial(hp, dir);
-   
+
 //    vec3 normal = getNormal(hp);
 //    vec3 light_dir = light - hp;
 //    float light_dist2 = dot(light_dir, light_dir) / 10.0;
@@ -698,7 +1360,7 @@ void main() {
 //    color = haze_mix * color + (1.0 - haze_mix) * haze;
 //    color += haze_color;
 
-    
+
 //    color = sqrt(color);
 //    gl_FragColor = vec4(color, 1.0);
 
@@ -827,7 +1489,7 @@ function initGL() {
 
   // Add arg string.
   var A = "";
-  A += "Arg string: <input id=ARGSTR name=arg type=input size=80 value='builtin 0 1' onchange='ArgStringChanged()' /><br><table>";
+  A += "Arg string: <input id=ARGSTR name=arg type=text size=80 value='builtin 0 1' onchange='ArgStringChanged()' /><br><table>";
   var v = Object.keys(ArgumentName_ENUM_BUILDER.value_to_name);
   for (var i = 0; i < v.length; i++) {
     var V = parseInt(v[i]);
@@ -837,7 +1499,7 @@ function initGL() {
        A += "<input type=color id=ARGSTR_"+N+" onclick='ClickArgColor("+N+")' onchange='ClickArgColor("+N+")' >";
     } else {
        A += "<input type=button value='<'  onclick='IncreaseArg("+N+",-1)' >";
-       A += "<input id=ARGSTR_"+N+" type=input size=6 value=0 onchange='ArgChanged("+N+")' >";
+       A += "<input id=ARGSTR_"+N+" type=text size=6 value=0 onchange='ArgChanged("+N+")' >";
        A += "<input type=button value='>'  onclick='IncreaseArg("+N+",1)' >";
     }
     A += "</td></tr>\n";
@@ -863,7 +1525,7 @@ function initGL() {
   canvas.height = height * dpr;
   canvas.style.width = width + 'px';
   canvas.style.height = height + 'px';
-  
+
   gl = canvas.getContext("experimental-webgl", {colorSpace: "srgb", antialias:false});
 
   if (!gl) {
@@ -895,9 +1557,9 @@ function initGL() {
   gl.enableVertexAttribArray(shaderProgram.a_position);
   gl.vertexAttribPointer(shaderProgram.a_position, 2, gl.FLOAT, false, 0, 0);
 
-  var texture = gl.createTexture();  
+  var texture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, texture);
-    
+
   // Start the event loop.
   tick();
 }
@@ -921,9 +1583,9 @@ class Matrix {
       for (var y = 0; y < this.h; y++) {
         var sum = 0.0;
         for (var z = 0; z < this.w; z++) {
-    sum += this.get(z, y) * o.get(x, z);
+          sum += this.get(z, y) * o.get(x, z);
         }
-  ret.set(x, y, sum);
+        ret.set(x, y, sum);
       }
     }
     return ret;
@@ -1086,7 +1748,7 @@ function compile() {
     shader_code = shader_code.replace("$HILT$", FIND("hilt_cylinder").textContent);
   }
   // console.log(shader_code);
-  
+
   gl.shaderSource(fragmentShader, shader_code);
   gl.compileShader(fragmentShader);
   if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
@@ -1126,7 +1788,7 @@ function setvar(variable, val) {
   if (vartypes[variable] == "float") {
     gl.uniform1f(gl.getUniformLocation(shaderProgram, variable),  val);
     return;
-  } 
+  }
   if (vartypes[variable] == "int") {
     gl.uniform1i(gl.getUniformLocation(shaderProgram, variable),  val);
     return;
@@ -1254,7 +1916,7 @@ class STYLE {
     } catch(e) {
       if (typeof(e) == "string") {
         e = new MyError(e + " for argument " + (this.argnum + 1) + " (" + name + ")");
-  e.setArg(this.args[this.argnum]);
+        e.setArg(this.args[this.argnum]);
       }
       throw e;
     }
@@ -1287,7 +1949,7 @@ class STYLE {
      finally {
        arg.COMMENT = C;
      }
-     return ret; 
+     return ret;
   }
 
   DescribeValue(arg) {
@@ -1344,11 +2006,11 @@ class STYLE {
     if (arguments.length > 2 || this.argdefs.length > 0) {
       ret += "<";
       for (var i = 2; i < arguments.length; i += 2) {
-  if (comma) ret += ",";
-  comma = true;
-  var V = this.DescribeValue(arguments[i]);
-  var arg = this.Indent(V);
-  ret += arg;
+        if (comma) ret += ",";
+        comma = true;
+        var V = this.DescribeValue(arguments[i]);
+        var arg = this.Indent(V);
+        ret += arg;
       }
       ret += ">";
     }
@@ -1368,40 +2030,39 @@ class STYLE {
     var id = this.get_id();
     var ret = "";
     if (this.COMMENT) {
-      ret += "/* " + this.COMMENT.split("\n").join("<br>") + " */<br>";
+      ret += "/* "+this.COMMENT.split("\n").join("<br>")+" */<br>";
       console.log("RET = " + ret);
     }
     ret += "<div id=X" + id + " class='pp-container' onclick='FocusOn(" + id + ",event)'>\n";
     ret += "<span title='" + note + "'>" + name + "</span>&lt;\n";
-    ret += "<div class='pp-content' style='margin-left:1em'>\n";
+    ret += "<div class='pp-content'>\n";
     var comma = false;
     for (var i = 2; i < arguments.length; i += 2) {
       if (comma) ret += ",<br>";
       comma = true;
       var arg = arguments[i];
-      var note = arguments[i + 1];
+      var note = arguments[i+1];
       var comment = null;
       if (typeof(arg) == "number") {
-  arg = "" + arg;
+        arg = "" + arg;
       } else {
         comment = arg.COMMENT;
-  arg = this.call_pp_no_comment(arg);
+        arg = this.call_pp_no_comment(arg);
       }
       if (arg.indexOf("<br>") == -1 && arg.indexOf("<div") == -1 && !comment) {
-  ret += arg+" /* "+note+" */\n";
+        ret += arg+" /* "+note+" */\n";
       } else {
-  ret += "/* "+note+" */"+ this.extraButtons(i/2) +"<br>\n";
-  if (comment) {
-    ret += "/* "+comment+" */<br>\n";
+        ret += "/* "+note+" */"+ this.extraButtons(i/2) +"<br>\n";
+        if (comment) {
+          ret += "/* "+comment+" */<br>\n";
         }
-  ret += arg;
+        ret += arg;
       }
     }
     ret += "</div>&gt;</div>\n";
 
     return ret;
   }
-
 
   PPshort(name, note) {
     if (pp_is_url) {
@@ -1416,16 +2077,16 @@ class STYLE {
       ret += "&lt;";
       var comma = false;
       for (var i = 2; i < arguments.length; i += 2) {
-  if (comma) ret += ",";
-  comma = true;
-  var arg = arguments[i];
-  var note = arguments[i+1];
-  if (typeof(arg) == "number") {
-    ret += "<span title='"+note+"'>"+arg+"</span>";
-  } else {
-    ret += "<span>/* "+note+" */</span><br>\n";
-    ret += arg.pp();
-  }
+        if (comma) ret += ",";
+        comma = true;
+        var arg = arguments[i];
+        var note = arguments[i+1];
+        if (typeof(arg) == "number") {
+          ret += "<span title='"+note+"'>"+arg+"</span>";
+        } else {
+          ret += "<span>/* "+note+" */</span><br>\n";
+          ret += arg.pp();
+        }
       }
       ret += "&gt;";
     }
@@ -1488,12 +2149,12 @@ class STYLE {
         console.log("SET RIGHT SIDE NON-MATCH");
         return;
       }
-      
+
       var l_arg = this[this.argdefs[i].name];
       var r_arg = right[this.argdefs[i].name];
       if (typeof(l_arg) == "object" && typeof(r_arg) == "object") {
         l_arg.set_right_side(r_arg);
-      } 
+      }
     }
   }
 
@@ -1548,7 +2209,7 @@ class MACRO extends STYLE {
   IS_RUNNING() {
     if (this.expansion.IS_RUNNING)
       return this.expansion.IS_RUNNING();
-    return false;      
+    return false;
   }
   bend(t, len, scale) {
     if (this.expansion.bend)
@@ -1648,18 +2309,18 @@ class EnumBuilder {
           for (var i = 0; i < v.length; i++) {
             var V = parseInt(v[i]);
             var N = this.constructor.value_to_name[V];
-        ret += "<option value="+V;
+            ret += "<option value="+V;
             if (this.value == V) ret+=" selected";
-      ret += ">"+N+"</option>";
-    }
+            ret += ">"+N+"</option>";
+          }
           ret += "</select>";
-    return ret;
-  }
+          return ret;
+        }
 
 
         var ret = this.gencomment() + this.value;
         if (this.constructor.value_to_name[this.value]) {
-    ret = this.constructor.prefix + this.constructor.value_to_name[this.value];
+          ret = this.constructor.prefix + this.constructor.value_to_name[this.value];
         }
         return this.PPshort(ret, this.getType());
       }
@@ -1671,7 +2332,7 @@ class EnumBuilder {
 
     function ENUM(value) { return new ENUMClass(value); }
     window[this.name] = ENUM;
-    
+
     var v = Object.keys(this.value_to_name);
     for (var i = 0; i < v.length; i++) {
       var V = parseInt(v[i]);
@@ -1851,7 +2512,7 @@ class CONFIG extends STYLE {
     var id = this.get_id();
     var ret = "";
     ret += "<span title='"+ note +"'>" + name + "</span>&lt;\n";
-    ret += "<div style='margin-left:1em'>\n";
+    ret += "<div>\n";
     var comma = false;
     for (var i = 2; i < arguments.length; i += 2) {
       if (comma) ret += ",<br>";
@@ -1859,19 +2520,19 @@ class CONFIG extends STYLE {
       var arg = arguments[i];
       var note = arguments[i+1];
       if (typeof(arg) == "number") {
-  arg = "" + arg;
+        arg = "" + arg;
       } else {
-  arg = arg.pp();
+        arg = arg.pp();
       }
       var comment = arg.COMMENT;
       if (arg.indexOf("<br>") == -1 && arg.indexOf("<div") == -1 && !comment) {
-  ret += arg+" /* "+note+" */\n";
+        ret += arg+" /* "+note+" */\n";
       } else {
-  ret += "/* "+note+" */<br>\n";
-  if (comment) {
-    ret += "/* "+comment+" */<br>\n";
+        ret += "/* "+note+" */<br>\n";
+        if (comment) {
+          ret += "/* "+comment+" */<br>\n";
         }
-  ret += arg;
+        ret += arg;
       }
     }
     ret += "</div>&gt;\n";
@@ -1950,9 +2611,9 @@ class RgbClass extends STYLE {
   pp() {
     if (this.name) return this.PPshort(this.name,"Color");
     return this.PPshort("Rgb",  "RGB Color",
-      Math.round(this.r*255), "Red component",
-      Math.round(this.g*255), "Green component",
-      Math.round(this.b*255), "Blue component");
+                        Math.round(this.r*255), "Red component",
+                        Math.round(this.g*255), "Green component",
+                        Math.round(this.b*255), "Blue component");
   }
   mix(other, blend) {
     var ret = new RgbClass(0,0,0);
@@ -1978,7 +2639,7 @@ class RgbClass extends STYLE {
     ret.a = this.a * (1.0 - other.a) + other.a;
     return ret;
   }
-  
+
   // angle = 0 - 98304 (32768 * 3) (non-inclusive)
   rotate(angle) {
     var H;
@@ -2042,9 +2703,9 @@ class Rgb16Class extends RgbClass {
   pp() {
     if (this.name) return this.PPshort(this.name,"Color");
     return this.PPshort("Rgb16",  "RGB Color",
-      Math.round(this.r*65535), "Red component",
-      Math.round(this.g*65535), "Green component",
-      Math.round(this.b*65535), "Blue component");
+                        Math.round(this.r*65535), "Red component",
+                        Math.round(this.g*65535), "Green component",
+                        Math.round(this.b*65535), "Blue component");
   }
 };
 
@@ -2130,7 +2791,7 @@ function DownLayer(id, arg, event) {
   var layer = style_ids[id];
   var new_layer = new LayersClass( [layer.BASE].concat(layer.LAYERS.slice(0, arg),
                                     [layer.LAYERS[arg+1], layer.LAYERS[arg]],
-            layer.LAYERS.slice(arg+2)) );
+                                    layer.LAYERS.slice(arg+2)) );
   ReplaceNode(layer, new_layer);
 }
 
@@ -2193,8 +2854,9 @@ function encstr(s) {
 }
 
 function mkbutton2(name, val) {
-  return "<input type=button class=btn onclick='SetToAndFormat(\""+val+"\")' value='"+enc(name)+"'>\n";
+  return "<input type=button class='btn' onclick='SetToAndFormat(\""+val+"\", event)' value='"+enc(name)+"'>\n";
 }
+
 function mkbutton(name) {
   return mkbutton2(name, name);
 }
@@ -2244,7 +2906,7 @@ function AddHistory(name, type) {
   var label = name;
   if (label.length > 80) label = label.slice(0,78) + "...";
   name = name.split("\n").join(" ").split("   ").join(" ").split("  ").join(" ").split("< ").join("<");
-  var btn = "<input type=button class=btn onclick='SetToAndFormat(\""+name+"\")' value='"+enc(label)+"'>\n";
+  var btn = "<input type=button class='btn' onclick='SetToAndFormat(\""+name+"\", event)' value='"+enc(label)+"'>\n";
   var tag  = "<span class=MAGIC_CLASS_"+type+">" + btn + "</span>\n";
   history_html = tag + history_html.replace(tag, "");
   FIND("history_tabcontent").innerHTML = history_html;
@@ -2657,8 +3319,8 @@ class Range {
 
 class ColorCycleClass extends STYLE {
   constructor(COLOR, percentage, rpm,
-        ON_COLOR, on_percentage, on_rpm,
-        fade_time_millis) {
+              ON_COLOR, on_percentage, on_rpm,
+              fade_time_millis) {
     super();
     this.COLOR = ColorArg(COLOR);
     this.percentage = IntArg(percentage);
@@ -2704,29 +3366,29 @@ class ColorCycleClass extends STYLE {
   }
   pp() {
     return this.PP("ColorCycle", "Rotating beam",
-       this.COLOR, "beam color",
-       this.percentage, "percentage of blade lit",
-       this.rpm, "rotation speed",
-       this.ON_COLOR, "beam color when on",
-       this.on_percentage, "percentage of blade lit when on",
-       this.on_rpm, "rotation speed when on",
-       this.fade_time_millis, "time to transition to/from on state");
+                   this.COLOR, "beam color",
+                   this.percentage, "percentage of blade lit",
+                   this.rpm, "rotation speed",
+                   this.ON_COLOR, "beam color when on",
+                   this.on_percentage, "percentage of blade lit when on",
+                   this.on_rpm, "rotation speed when on",
+                   this.fade_time_millis, "time to transition to/from on state");
   }
 };
 
 function ColorCycle(COLOR, percentage, rpm,
-         ON_COLOR, on_percentage, on_rpm,
-         fade_time_millis) {
+               ON_COLOR, on_percentage, on_rpm,
+               fade_time_millis) {
   return new ColorCycleClass(COLOR, percentage, rpm,
-           ON_COLOR, on_percentage, on_rpm,
-           fade_time_millis);
+                             ON_COLOR, on_percentage, on_rpm,
+                             fade_time_millis);
 }
 
 
 class CylonClass extends STYLE {
   constructor(COLOR, percentage, rpm,
-        ON_COLOR, on_percentage, on_rpm,
-        fade_time_millis) {
+              ON_COLOR, on_percentage, on_rpm,
+              fade_time_millis) {
     super();
     this.COLOR = ColorArg(COLOR);
     this.percentage = IntArg(percentage);
@@ -2769,22 +3431,22 @@ class CylonClass extends STYLE {
   }
   pp() {
     return this.PP("Cylon", "Rotating beam",
-       this.COLOR, "beam color",
-       this.percentage, "percentage of blade lit",
-       this.rpm, "rotation speed",
-       this.ON_COLOR, "beam color when on",
-       this.on_percentage, "percentage of blade lit when on",
-       this.on_rpm, "rotation speed when on",
-       this.fade_time_millis, "time to transition to/from on state");
+                   this.COLOR, "beam color",
+                   this.percentage, "percentage of blade lit",
+                   this.rpm, "rotation speed",
+                   this.ON_COLOR, "beam color when on",
+                   this.on_percentage, "percentage of blade lit when on",
+                   this.on_rpm, "rotation speed when on",
+                   this.fade_time_millis, "time to transition to/from on state");
   }
 };
 
 function Cylon(COLOR, percentage, rpm,
-         ON_COLOR, on_percentage, on_rpm,
-         fade_time_millis) {
+               ON_COLOR, on_percentage, on_rpm,
+               fade_time_millis) {
   return new CylonClass(COLOR, percentage, rpm,
-      ON_COLOR, on_percentage, on_rpm,
-      fade_time_millis);
+                        ON_COLOR, on_percentage, on_rpm,
+                        fade_time_millis);
 }
 
 class OnSparkFClass extends FUNCTION {
@@ -2935,13 +3597,13 @@ class SparkleFClass extends FUNCTION {
       var fifo = 0
       var N = blade.num_leds();
       for (var i = 2; i <= N + 2; i++) {
-  var x = ((this.sparks[i-1] + this.sparks[i+1]) * 200 + this.sparks[i] * 570) / 1024;
-  this.sparks[i-1] = fifo;
-  fifo = x;
+        var x = ((this.sparks[i-1] + this.sparks[i+1]) * 200 + this.sparks[i] * 570) / 1024;
+        this.sparks[i-1] = fifo;
+        fifo = x;
       }
       this.sparks[N] = fifo;
       if (random(1000) < this.SPARK_CHANCE_PROMILLE) {
-  this.sparks[random(blade.num_leds()) + 2] += this.SPARK_INTENSITY;
+        this.sparks[random(blade.num_leds()) + 2] += this.SPARK_INTENSITY;
       }
     }
   }
@@ -3000,7 +3662,7 @@ class StrobeFClass extends FUNCTION {
     if (m - this.strobe_start_ > timeout) {
       this.strobe_start_ += timeout;
       if (m - this.strobe_start_ > strobe_millis + (1000 / strobe_frequency))
-  this.strobe_start_ = m;
+        this.strobe_start_ = m;
       this.strobe_ = !this.strobe_;
     }
   }
@@ -3125,13 +3787,13 @@ class IgnitionDelayXClass extends STYLE {
     this.blade = blade;
     if (blade.is_on()) {
       if (!this.waiting) {
-  this.waiting = true;
-  this.wait_start_time = millis();
+        this.waiting = true;
+        this.wait_start_time = millis();
       }
       var waited = millis() - this.wait_start_time;
       if (waited > delay_millis) {
-  this.is_on_ = true;
-  this.wait_start_time = millis() - delay_millis - 1;
+        this.is_on_ = true;
+        this.wait_start_time = millis() - delay_millis - 1;
       }
     } else {
       this.waiting = false;
@@ -3180,13 +3842,13 @@ class RetractionDelayXClass extends STYLE {
     this.blade = blade;
     if (!blade.is_on()) {
       if (!this.waiting) {
-  this.waiting = true;
-  this.wait_start_time = millis();
+        this.waiting = true;
+        this.wait_start_time = millis();
       }
       var waited = millis() - this.wait_start_time;
       if (waited > delay_millis) {
-  this.is_on_ = false;
-  this.wait_start_time = millis() - delay_millis - 1;
+        this.is_on_ = false;
+        this.wait_start_time = millis() - delay_millis - 1;
       }
     } else {
       this.waiting = false;
@@ -3232,7 +3894,7 @@ class RandomBlinkFClass extends FUNCTION {
       }
     }
   }
-  
+
   getInteger(led) {
     return this.state[led] ? 32768 : 0;
   }
@@ -3360,7 +4022,7 @@ class ColorSequenceClass extends STYLE {
     if (now - this.last_micros > millis_per_color * 1000) {
       if (now - this.last_micros > millis_per_color * 10000) {
         this.n = 0;
-  this.last_micros = now;
+        this.last_micros = now;
       } else {
         this.n = (this.n + 1) % this.COLORS.length;
         this.last_micros += millis_per_color * 1000;
@@ -3581,7 +4243,7 @@ class RemapClass extends STYLE {
     led = clamp(led >> 15, 0, this.num_leds);
     return this.COLOR.getColor(led).mix(
         this.COLOR.getColor(min(led + 1, this.num_leds - 1)),
-  fraction / 32768);
+        fraction / 32768);
   }
 }
 
@@ -3764,15 +4426,15 @@ class StyleFireClass extends STYLE {
       conf = this.CLASH;
     } else if (this.On(blade)) {
       if (STATE_LOCKUP == 0) {
-  conf = this.NORM;
+        conf = this.NORM;
       } else {
-  conf = this.LOCK;
+        conf = this.LOCK;
       }
     }
 
     for (var i = 0; i < this.SPEED; i++) {
       this.heat[num_leds + i] = conf.intensity_base +
-  random(random(random(conf.intensity_rand)));
+        random(random(random(conf.intensity_rand)));
     }
     for (var i = 0; i < num_leds; i++) {
       var x = (this.heat[i + this.SPEED-1] * 3 + this.heat[i + this.SPEED] * 10 + this.heat[i + this.SPEED +1] * 3) >> 4;
@@ -3871,9 +4533,9 @@ function AddPreon() {
 }
 
 var blast_hump = [ 255,255,252,247,240,232,222,211,
-       199,186,173,159,145,132,119,106,
-       94,82,72,62,53,45,38,32,
-       26,22,18,14,11,9,7,5,0 ];
+                   199,186,173,159,145,132,119,106,
+                   94,82,72,62,53,45,38,32,
+                   26,22,18,14,11,9,7,5,0 ];
 
 class BlastFClass extends FUNCTION {
   constructor(FADEOUT_MS, WAVE_SIZE, WAVE_MS, EFFECT_ARG) {
@@ -3895,11 +4557,11 @@ class BlastFClass extends FUNCTION {
       var T = (this.T - this.effects_[i].start_micros);
       var M = 1000 - T / this.FADEOUT_MS;
       if (M > 0) {
-  var dist = Math.abs(this.effects_[i].location - led / this.num_leds_);
-  var N = Math.floor(Math.abs(dist - T / (this.WAVE_MS * 1000.0)) * this.WAVE_SIZE);
-  if (N < 32) {
-    b += blast_hump[N] * M / 1000.0 / 255.0;
-  }
+        var dist = Math.abs(this.effects_[i].location - led / this.num_leds_);
+        var N = Math.floor(Math.abs(dist - T / (this.WAVE_MS * 1000.0)) * this.WAVE_SIZE);
+        if (N < 32) {
+          b += blast_hump[N] * M / 1000.0 / 255.0;
+        }
       }
     }
     return clamp(b * 32768, 0, 32768);
@@ -3967,7 +4629,7 @@ class BlastFadeoutFClass extends FUNCTION {
       var T = (this.T - this.effects_[i].start_micros);
       var M = 1000 - T / this.FADEOUT_MS;
       if (M > 0) {
-  b += M / 1000.0;
+        b += M / 1000.0;
       }
     }
     return clamp(b * 32768.0, 0, 32768.0);
@@ -4028,9 +4690,9 @@ class OriginalBlastFClass extends FUNCTION {
       var T = (this.T - this.effects_[i].start_micros);
       var t = 0.5 + T / 200000.0;
       if (x == 0.0) {
-  b += 1.0 / (t * t);
+        b += 1.0 / (t * t);
       } else {
-  b += sin(x / (t*t)) / x;
+        b += sin(x / (t*t)) / x;
       }
     }
     return min(b, 1.0) * 32768;
@@ -4085,9 +4747,9 @@ class BlinkingFClass extends FUNCTION {
     if (pulse_progress_micros > pulse_millis * 1000) {
       // Time to start a new pulse
       if (pulse_progress_micros < pulse_millis * 2000) {
-  this.pulse_start_micros_ += pulse_millis * 1000;
+        this.pulse_start_micros_ += pulse_millis * 1000;
       } else {
-  this.pulse_start_micros_ = now;
+        this.pulse_start_micros_ = now;
       }
       pulse_progress_micros = now - this.pulse_start_micros_;
     }
@@ -4249,7 +4911,7 @@ class LocalizedClashLClass extends STYLE {
       }
     }
     return ret;
-  } 
+  }
   IS_RUNNING() {
     return this.clash;
   }
@@ -4292,7 +4954,7 @@ class LockupLClass extends STYLE {
     this.add_arg("LB_SHAPE", "FUNCTION", "Lightning block shape",
             LayerFunctions(Bump(Scale(SlowNoise(Int(2000)),Int(3000),Int(16000)),
                                 Scale(BrownNoiseF(Int(10)),Int(14000),Int(8000))),
-                     Bump(Scale(SlowNoise(Int(2300)),Int(26000),Int(8000)),
+                           Bump(Scale(SlowNoise(Int(2300)),Int(26000),Int(8000)),
                                 Scale(NoisySoundLevel(),Int(5000),Int(10000))),
                            Bump(Scale(SlowNoise(Int(2300)),Int(20000),Int(30000)),
                                 Scale(IsLessThan(SlowNoise(Int(1500)),Int(8000)),Scale(NoisySoundLevel(),Int(5000),Int(0)),Int(0)))));
@@ -4373,29 +5035,29 @@ class LockupTrLClass extends STYLE {
     switch (this.active) {
        case "inactive":
           if (STATE_LOCKUP == this.LOCKUP_TYPE) {
-      if (this.CONDITION.getInteger(0)) {
-        this.active = "active";
-        this.BEGIN_TR.begin();
-        this.begin_active = true;
-      } else {
-        this.active = "skipped";
-      }
-    }
-    break;
+            if (this.CONDITION.getInteger(0)) {
+              this.active = "active";
+              this.BEGIN_TR.begin();
+              this.begin_active = true;
+            } else {
+              this.active = "skipped";
+            }
+          }
+          break;
        case "active":
          if (STATE_LOCKUP != this.LOCKUP_TYPE) {
            this.END_TR.begin();
            this.end_active = true;
            this.active = "inactive";
-   }
-   break;
+         }
+         break;
        case "skipped":
          if (STATE_LOCKUP != this.LOCKUP_TYPE) {
            this.active = "inactive";
-   }
-   break;
+         }
+         break;
     }
-         
+
 
     if (this.begin_active) {
       this.BEGIN_TR.run(blade);
@@ -4570,15 +5232,15 @@ class OneshotEffectDetector {
     if (this.type_ ==  EFFECT_CLASH && !(current_style.__handled_types[EFFECT_STAB])) {
       mask[EFFECT_STAB] = 1;
     }
-    
+
     var effects = blade.GetEffects();
     for (var i = effects.length -1 ; i >=0 ; i--) {
       if (mask[effects[i].type]) {
         if (effects[i].start_micros == this.last_detected_)
-    return 0;
-  this.last_detected_ = effects[i].start_micros;
+          return 0;
+        this.last_detected_ = effects[i].start_micros;
         last_detected_blade_effect = effects[i];
-  return effects[i];
+        return effects[i];
       }
     }
     return 0;
@@ -4590,7 +5252,7 @@ class OneshotEffectDetector {
     for (var i = effects.length -1 ; i >=0 ; i--)
       if (mask[effects[i].type])
         if (effects[i].start_micros == this.last_detected_)
-    return effects[i];
+          return effects[i];
     return 0;
   }
 };
@@ -4656,7 +5318,7 @@ class StyleRainbowPtrClass extends MACRO {
     this.add_arg("IN_MS", "INT", "retraction length in milliseconds");
     this.add_arg("CLASH_COLOR", "COLOR", "Clash color", WHITE.DOCOPY());
     this.add_arg("LOCKUP_FLICKER_COLOR", "COLOR", "lockup flicker color", WHITE.DOCOPY());
-    
+
     var tmp = AudioFlicker(Rainbow(), this.LOCKUP_FLICKER_COLOR);
     tmp = Lockup(Rainbow(), tmp);
     tmp = SimpleClash(tmp, this.CLASH_COLOR);
@@ -4677,7 +5339,7 @@ class StyleStrobePtrClass extends MACRO {
     this.add_arg("FREQUENCY", "INT", "frequency");
     this.add_arg("OUT_MS", "INT", "extension length in milliseconds");
     this.add_arg("IN_MS", "INT", "retraction length in milliseconds");
-    
+
     var strobe = Strobe(BLACK.DOCOPY(), this.STROBE_COLOR, this.FREQUENCY, 1);
     var fast_strobe = Strobe(BLACK.DOCOPY(), this.STROBE_COLOR.DOCOPY(), this.FREQUENCY * 3, 1);
     var tmp = Lockup(strobe, fast_strobe);
@@ -4692,11 +5354,11 @@ function StyleStrobePtr(strobe_color, clash_color, frequency, out_ms, in_ms) {
 
 class StyleFirePtrClass extends MACRO {
   constructor(COLOR1, COLOR2,
-          BLADE_NUM, DELAY, SPEED,
-          NORM_BASE, NORM_RAND, NORM_COOL,
-          CLSH_BASE, CLSH_RAND, CLSH_COOL,
-          LOCK_BASE, LOCK_RAND, LOCK_COOL,
-          OFF_BASE, OFF_RAND, OFF_COOL) {
+                      BLADE_NUM, DELAY, SPEED,
+                      NORM_BASE, NORM_RAND, NORM_COOL,
+                      CLSH_BASE, CLSH_RAND, CLSH_COOL,
+                      LOCK_BASE, LOCK_RAND, LOCK_COOL,
+                      OFF_BASE, OFF_RAND, OFF_COOL) {
     super("Fire Blade", arguments);
     this.add_arg("COLOR1", "COLOR", "Warm color.");
     this.add_arg("COLOR2", "COLOR", "Hot color.");
@@ -4729,11 +5391,11 @@ class StyleFirePtrClass extends MACRO {
 };
 
 function StyleFirePtr(COLOR1, COLOR2,
-          BLADE_NUM, DELAY, SPEED,
-          NORM_BASE, NORM_RAND, NORM_COOL,
-          CLSH_BASE, CLSH_RAND, CLSH_COOL,
-          LOCK_BASE, LOCK_RAND, LOCK_COOL,
-          OFF_BASE, OFF_RAND, OFF_COOL) {
+                      BLADE_NUM, DELAY, SPEED,
+                      NORM_BASE, NORM_RAND, NORM_COOL,
+                      CLSH_BASE, CLSH_RAND, CLSH_COOL,
+                      LOCK_BASE, LOCK_RAND, LOCK_COOL,
+                      OFF_BASE, OFF_RAND, OFF_COOL) {
   return new StyleFirePtrClass(COLOR1, COLOR2,
       BLADE_NUM, DELAY, SPEED,
       NORM_BASE, NORM_RAND, NORM_COOL,
@@ -4829,12 +5491,12 @@ class InOutSparkTipClass extends STYLE {
     this.last_micros_ = now;
     if (blade.is_on()) {
       if (this.extension == 0.0) {
-  // We might have been off for a while, so delta might
-  // be insanely high.
-  this.extension = 0.00001;
+        // We might have been off for a while, so delta might
+        // be insanely high.
+        this.extension = 0.00001;
       } else {
-  this.extension += delta / (this.OUT_MILLIS * 1000.0);
-  this.extension = Math.min(this.extension, 1.0);
+        this.extension += delta / (this.OUT_MILLIS * 1000.0);
+        this.extension = Math.min(this.extension, 1.0);
       }
     } else {
       this.extension -= delta / (this.IN_MILLIS * 1000.0);
@@ -4952,7 +5614,7 @@ class IntSelectClass extends FUNCTION {
 function IntSelect(ARGS) {
   return new IntSelectClass(Array.from(arguments));
 }
-         
+
 class TransitionLoopLClass extends STYLE {
   constructor(TRANSITION) {
     super("Continiously loop a transition",arguments);
@@ -5008,9 +5670,9 @@ class MultiTransitionEffectLClass extends STYLE {
     for (var i = 0; i < this.N; i++) {
       if (this.running[i]) {
         this.TRANSITIONS[i].run(blade);
-  if (this.TRANSITIONS[i].done()) {
-    this.running[i] = false;
-  }
+        if (this.TRANSITIONS[i].done()) {
+          this.running[i] = false;
+        }
       }
     }
   }
@@ -5170,10 +5832,10 @@ class InOutTrLClass extends STYLE {
       this.on_ = blade.is_on();
       if (this.on_) {
         this.OUT_TR.begin();
-  this.out_active_ = true;
+        this.out_active_ = true;
       } else {
         this.IN_TR.begin();
-  this.in_active_ = true;
+        this.in_active_ = true;
       }
     }
 
@@ -5322,7 +5984,7 @@ class BendTimePowXClass extends TIME_FUNCTION {
 }
 
 function BendTimePowX(MILLIS, BEND_FUNCTION) {
-  return new BendTimePowXClass(MILLIS, BEND_FUNCTION);    
+  return new BendTimePowXClass(MILLIS, BEND_FUNCTION);
 }
 
 class ReverseTimeXClass extends TIME_FUNCTION {
@@ -5400,7 +6062,7 @@ class TrInstantClass extends TRANSITION {
   run(blade) {}
   begin() {}
   done() { return true; }
-  getColor(A, B, led) { return B; }  
+  getColor(A, B, led) { return B; }
 };
 
 function TrInstant() { return new TrInstantClass(); }
@@ -5614,7 +6276,7 @@ class TrWipeInXClass extends TRANSITION_BASE {
     this.num_leds_ = blade.num_leds();
     this.fade_ = new Range(this.num_leds_-
                            this.update(this.num_leds_),
-         this.num_leds_);
+                           this.num_leds_);
   }
   getColor(A, B, led) {
     var mix = this.fade_.Intersect(new Range(led, (led + 1))).Size();
@@ -6009,7 +6671,7 @@ class TrConcatClass extends TRANSITION {
     return this.ARGS[this.pos_].getColor(A, B, led);
   }
 };
-  
+
 function TrConcat(ARGS) {
   return new TrConcatClass(Array.from(arguments));
 }
@@ -6140,7 +6802,7 @@ class TrExtendXClass extends TRANSITION {
     this.TRANSITION.run(blade);
     if (!this.extending && this.TRANSITION.done()) {
         this.extending = true;
-  this.millis.begin();
+        this.millis.begin();
     }
     if (this.extending) {
        this.millis.run(blade);
@@ -6394,7 +7056,7 @@ class TrLoopUntilClass extends TRANSITION {
     if (!this.pulsed) {
       if (this.PULSE.getInteger(0)) {
         this.OUT.begin();
-  this.pulsed = true;
+        this.pulsed = true;
       }
     }
     if (this.pulsed) {
@@ -6442,7 +7104,7 @@ class VolumeLevelClass extends FUNCTION {
 function VolumeLevel() {
   return new VolumeLevelClass();
 }
-  
+
 class BumpClass extends FUNCTION {
   constructor() {
     super("Function returning a bump shape", arguments);
@@ -6544,7 +7206,7 @@ class InOutFuncXClass extends FUNCTION {
         this.extension = 0.00001;
       } else {
         this.extension += delta / (this.OUT_MILLIS.getInteger(0) * 1000.0);
-  this.extension = Math.min(this.extension, 1.0);
+        this.extension = Math.min(this.extension, 1.0);
       }
     } else {
       this.extension -= delta / (this.IN_MILLIS.getInteger(0) * 1000.0);
@@ -6771,14 +7433,14 @@ class TriggerClass extends FUNCTION {
           return;
         case TRIGGER_SUSTAIN:
           this.value = 32768;
-        return;
+          return;
         case TRIGGER_RELEASE:
           this.value = 32768 - t * 32768 / micros_for_state;
           return;
         case TRIGGER_OFF:
           this.value = 0;
           return;
-  }
+        }
       }
       if (this.TRIGGER_STATE >= 4) throw "Weird state?";
       this.trigger_state++;
@@ -7583,9 +8245,9 @@ class ResponsiveLockupLClass extends MACRO {
     this.add_arg("BOTTOM", "FUNCTION", "lowermost lockup limit", Int(6000));
     this.add_arg("SIZE", "FUNCTION", "lockup size", Scale(SwingSpeed(100), Int(9000), Int(14000)));
     this.SetExpansion(LockupTrL(AlphaL(COLOR, Bump(Scale(BladeAngle(), this.TOP, this.BOTTOM), this.SIZE)),
-                   this.TR1,
-                   this.TR2,
-               LOCKUP_TYPE(LOCKUP_NORMAL)));;
+                                       this.TR1,
+                                       this.TR2,
+                                       LOCKUP_TYPE(LOCKUP_NORMAL)));;
   }
   argify(state) {
     state.color_argument = LOCKUP_COLOR_ARG;
@@ -7608,9 +8270,9 @@ class ResponsiveDragLClass extends MACRO {
     this.add_arg("SIZE1", "FUNCTION", "lower twist limit", Int(2000));
     this.add_arg("SIZE2", "FUNCTION", "upper twist limit", Int(10000));
     this.SetExpansion(LockupTrL(AlphaL(COLOR, SmoothStep(Int(32000), Scale(TwistAngle(), this.SIZE1, this.SIZE2))),
-                   this.TR1,
-                   this.TR2,
-               LOCKUP_TYPE(LOCKUP_DRAG)));
+                                       this.TR1,
+                                       this.TR2,
+                                       LOCKUP_TYPE(LOCKUP_DRAG)));
   }
   argify(state) {
     state.color_argument = DRAG_COLOR_ARG;
@@ -7633,9 +8295,9 @@ class ResponsiveMeltLClass extends MACRO {
     this.add_arg("SIZE1", "FUNCTION", "lower twist limit", Int(4000));
     this.add_arg("SIZE2", "FUNCTION", "upper twist limit", Int(10000));
     this.SetExpansion(LockupTrL(AlphaL(this.COLOR, SmoothStep(Int(30000), Scale(TwistAngle(), this.SIZE1, this.SIZE2))),
-                   this.TR1,
-                   this.TR2,
-               LOCKUP_TYPE(LOCKUP_MELT)));
+                                       this.TR1,
+                                       this.TR2,
+                                       LOCKUP_TYPE(LOCKUP_MELT)));
   }
 };
 
@@ -7686,8 +8348,8 @@ class ResponsiveClashLClass extends MACRO {
     this.add_arg("SIZE", "FUNCTION", "lockup size", Int(10000));
     this.SetExpansion(TransitionEffectL(TrConcat(this.TR1,
                                                  AlphaL(COLOR, Bump(Scale(BladeAngle(), this.TOP, this.BOTTOM), this.SIZE)),
-             this.TR2),
-                EFFECT(EFFECT_CLASH)));
+                                                 this.TR2),
+                                        EFFECT(EFFECT_CLASH)));
   }
   argify(state) {
     state.color_argument = CLASH_COLOR_ARG;
@@ -7768,9 +8430,9 @@ class ResponsiveBlastFadeLClass extends MACRO {
     this.add_arg("EFFECT", "EFFECT", "effect type", EFFECT(EFFECT_BLAST));
     this.SetExpansion(
         MultiTransitionEffectL(
-      TrConcat(TrInstant(),
-               AlphaL(this.COLOR, Bump(Scale(BladeAngle(), this.TOP, this.BOTTOM), this.SIZE)),
-         TrFadeX(this.FADE)),
+            TrConcat(TrInstant(),
+                     AlphaL(this.COLOR, Bump(Scale(BladeAngle(), this.TOP, this.BOTTOM), this.SIZE)),
+                     TrFadeX(this.FADE)),
             this.EFFECT));
 
   }
@@ -7797,8 +8459,8 @@ class ResponsiveStabLClass extends MACRO {
     this.SetExpansion(
        TransitionEffectL(TrConcat(this.TR1,
                                   AlphaL(COLOR, SmoothStep(Int(32000), Scale(BladeAngle(), this.SIZE1, this.SIZE2))),
-          this.TR2),
-             EFFECT(EFFECT_STAB)));
+                                  this.TR2),
+                         EFFECT(EFFECT_STAB)));
 
   }
   argify(state) {
@@ -7940,7 +8602,7 @@ class HoldPeakFClass extends FUNCTION {
       this.last_peak = millis();
     }
   }
-  
+
   getInteger(led) {
     return this.value;
   }
@@ -8412,17 +9074,17 @@ class Parser {
       if (this.peek() == ' ' || this.peek() == '\t' || this.peek() == '\n' || this.peek() == '\r') { this.pos++; continue; }
       if (this.peek() == '/')  {
         if (this.peek2() == '*') {
-    this.pos += 2;
-    while (this.pos < this.str.length && !(this.peek() == '*' && this.peek2() == '/')) this.pos++;
-    this.pos += 2;
-    continue;
-  }
+          this.pos += 2;
+          while (this.pos < this.str.length && !(this.peek() == '*' && this.peek2() == '/')) this.pos++;
+          this.pos += 2;
+          continue;
+        }
         if (this.peek2() == '/') {
-    this.pos += 2;
-    while (this.pos < this.str.length && this.peek() != '\n') this.pos++;
-    this.pos ++;
-    continue;
-  }
+          this.pos += 2;
+          while (this.pos < this.str.length && this.peek() != '\n') this.pos++;
+          this.pos ++;
+          continue;
+        }
       }
       return this.str.substr(start_pos, this.pos - start_pos); // trim?
     }
@@ -8435,7 +9097,7 @@ class Parser {
        console.trace();
     }
   }
-  
+
   startswithnewline(str) {
     var tmp = str.trimStart();
     var start = str.substr(0, str.length - tmp.length);
@@ -8472,12 +9134,12 @@ class Parser {
     while (true) {
       var c = this.peek();
       if ((c >= 'a' && c <= 'z') ||
-    (c >= 'A' && c <= 'Z') ||
-    (c >= '0' && c <= '9') || c == '_' || c == ':') {
-  ret += c;
-  this.pos++;
+          (c >= 'A' && c <= 'Z') ||
+          (c >= '0' && c <= '9') || c == '_' || c == ':') {
+        ret += c;
+        this.pos++;
       } else {
-  return ret;
+        return ret;
       }
     }
   }
@@ -8522,21 +9184,21 @@ class Parser {
       if (this.peek() != '>') {
         this.pos = POS; // backtrack for comments
         while (true) {
-    var v = this.parse_internal();
+          var v = this.parse_internal();
           args.push(v);
           this.skipspace2();
           if (this.peek() != ',') break;
           this.pos++;
-    POS = this.pos
-    var comment = this.skipspace2();
-    if (this.startswithnewline(comment)) {
-      // Comment belongs to next value.
-      // rewind and let parse_unary do it.
-      this.pos = POS;
-    } else {
-      v.addcomment(this.stripcomment(comment));
-      if (v.COMMENT) console.log("SETCOMMENT:" + v.COMMENT);
-    }
+          POS = this.pos
+          var comment = this.skipspace2();
+          if (this.startswithnewline(comment)) {
+            // Comment belongs to next value.
+            // rewind and let parse_unary do it.
+            this.pos = POS;
+          } else {
+            v.addcomment(this.stripcomment(comment));
+            if (v.COMMENT) console.log("SETCOMMENT:" + v.COMMENT);
+          }
         }
       }
       if (this.peek() != '>') {
@@ -8546,14 +9208,14 @@ class Parser {
       if (this.peek() == '(') {
         this.pos++;
         argstring = this.parse_optional_string();
-  if (this.peek() != ')') throw "Missing )";
-  this.pos++;
+        if (this.peek() != ')') throw "Missing )";
+        this.pos++;
       }
     }
     var ret;
     if (this.identifiers[id]) {
       if (args != 0) {
-  throw "Unexpected arguments";
+        throw "Unexpected arguments";
       }
       ret = this.identifiers[id]();
     } else if (this.classes[id]) {
@@ -8563,17 +9225,17 @@ class Parser {
       if (args == 0) args = [null];
       // var ret = new (Function.prototype.bind.apply(this.classes[id], args));
       try {
-  ret = classes[id].apply(args[0], args.slice(1));
+        ret = classes[id].apply(args[0], args.slice(1));
       } catch(e) {
-  if (typeof(e) == "string")
-    e = new MyError(id +": " + e);
-  if (typeof(e) == "object" && e.constructor == MyError)
-    e.desc = id + ": " + e.desc;
-  if (typeof(e) == "object" && e.constructor == MyError && e.end_pos == -1) {
-    e.setBegin(start_of_atom);
-    e.setEnd(this.pos);
-  }
-  throw e;
+        if (typeof(e) == "string")
+          e = new MyError(id +": " + e);
+        if (typeof(e) == "object" && e.constructor == MyError)
+          e.desc = id + ": " + e.desc;
+        if (typeof(e) == "object" && e.constructor == MyError && e.end_pos == -1) {
+          e.setBegin(start_of_atom);
+          e.setEnd(this.pos);
+        }
+        throw e;
       }
       // console.log(ret);
       if (argstring) {
@@ -8750,7 +9412,7 @@ function drawScene() {
   // TODO: Generate mipmaps, then adjust level based on distance from blade
   gl.texImage2D(
       gl.TEXTURE_2D,
-      0,  // level
+      0,        // level
       gl.RGBA,  // internalFormat
       num_leds, 2,   // width, height
       0,        // border
@@ -8776,7 +9438,7 @@ function drawScene() {
     var rotation = default_move_matrix();
     rotation = rotation.mult(Matrix.mkyrot(u_value));
     rotation = rotation.mult(Matrix.mkzrot(u_value / 7.777));
-    
+
   } else {
     if (0) {
       OLD_MOVE_MATRIX = default_move_matrix();
@@ -8785,7 +9447,7 @@ function drawScene() {
     }
     rotate_start = new Date().getTime();
   }
-  gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_time"), 
+  gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_time"),
                (new Date().getTime() - start) / 1000.0);
   gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_width"), width);
   gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_height"), height);
@@ -8826,9 +9488,9 @@ function ReplaceCurrentFocus(str) {
   var old_focus = current_focus;
   current_focus = 0;
   focus_catcher = 0;
-    
+
   var parser = new Parser(str, classes, identifiers);
-  try {  
+  try {
       style_tree = parser.parse();
   }
   catch(e) {
@@ -8874,7 +9536,7 @@ function ReplaceCurrentFocus(str) {
     type = current_style.getType();
     classname = current_style.constructor.name;
   }
-  
+
   AddHistory(current_focus_url, current_style.getType());
   console.log("TYPE = " + type);
   // FIND("color_links").className = type == "COLOR" ? "normal" : "grayout";
@@ -8902,29 +9564,30 @@ function ReplaceCurrentFocus(str) {
         if (rule.cssText.toLowerCase().includes("magic_class_" + type.toLowerCase())) {
           rule.style.background = "lightblue";
           rule.style.color = "black";
-  } else {
+        } else {
           rule.style.background = "lightgray";
           rule.style.color = "darkgray";
-  }
+        }
       }
       if (rule.cssText.toLowerCase().includes("magic_invisible_class_") ) {
         if (rule.cssText.toLowerCase().includes("magic_invisible_class_" + type.toLowerCase())) {
           rule.style.display = 'inline';
-  } else {
+        } else {
           rule.style.display = 'none';
-  }
+        }
       }
     }
   }
 }
+
 
 function Run() {
   var sty = FIND("style");
   var err = FIND("error_message");
   var str = sty.value;
   var parser = new Parser(str,
-        classes,
-        identifiers);
+                          classes,
+                          identifiers);
   err.innerHTML = "";
   try {
     current_style = parser.parse();
@@ -8935,33 +9598,33 @@ function Run() {
     console.log(typeof(e));
     if (typeof(e) == "string") {
 
-  err.innerHTML = e;
-  sty.focus();
-  sty.setSelectionRange(parser.pos, parser.pos);
+        err.innerHTML = e;
+        sty.focus();
+        sty.setSelectionRange(parser.pos, parser.pos);
 
-  parser = new Parser("BLACK",
-          classes,
-          identifiers);
-  current_style = parser.parse();
-  compile();
-  return;
+        parser = new Parser("BLACK",
+                            classes,
+                            identifiers);
+        current_style = parser.parse();
+        compile();
+        return;
       } else if (typeof(e) == "object" && e.constructor == MyError) {
-  err.innerHTML = e.desc;
-  sty.focus();
-  if (e.begin_pos > -1) {
+        err.innerHTML = e.desc;
+        sty.focus();
+        if (e.begin_pos > -1) {
           sty.setSelectionRange(e.begin_pos, e.end_pos);
-  } else {
+        } else {
           sty.setSelectionRange(parser.pos, parser.pos);
-  }
+        }
 
-  parser = new Parser("BLACK",
-          classes,
-          identifiers);
-  current_style = parser.parse();
-  compile();
-  return;
+        parser = new Parser("BLACK",
+                            classes,
+                            identifiers);
+        current_style = parser.parse();
+        compile();
+        return;
       } else {
-  throw e;
+        throw e;
       }
   }
   ReplaceCurrentFocus(str);
@@ -9031,6 +9694,7 @@ function IncreaseArg(ARG, I) {
   var tag = FIND("ARGSTR_"+N);
   tag.value = parseInt(tag.value) + I;
   setARG(ARG, tag.value);
+  console.log("Updated " + N + " : " + tag.value)
 }
 
 function ClickArgColor(ARG) {
@@ -9059,19 +9723,25 @@ function SetTo(str) {
   window.history.replaceState(old, "Style Editor", window.location.href);
   window.history.pushState(str, "Style Editor", url);
   window.onpopstate = PopState;
-         
+
   FIND("style").value = str;
   Run();
 }
 
-function SetToAndFormat(str) {
+function SetToAndFormat(str, event) {
   var parser = new Parser(str, classes, identifiers);
   var style = parser.parse();
   pp_is_url++;
   var url = style.pp();
   pp_is_url--;
   SetTo(url);
+
+  // If the clicked element is a button in either the "Examples" or "History" tab, enable all tabs
+  if (event && (event.target.closest('.example-tabcontent') || event.target.closest('.history-tabcontent'))) {
+    enableTabs();
+  }
 }
+
 
 function FocusOnLow(id) {
   console.log("FOCUSON: " + id);
@@ -9256,7 +9926,8 @@ var currentTab;
 
 function AddTab(tab, name, contents) {
   FIND("TABLINKS").innerHTML += "<button id=" + tab + "_tab class=tablinks onclick=\"TabClicked('"+tab+"');\">" + name + "</button>";
-  FIND("TABBODIES").innerHTML += "<div id=" + tab + "_tabcontent class=tabcontent></div>";
+  FIND("TABBODIES").innerHTML += "<div id=" + tab + "_tabcontent class='tabcontent " + tab + "-tabcontent'></div>";
+
   if (contents) {
     AddTabContent(tab, contents);
   }
@@ -9268,11 +9939,7 @@ function TabClicked(tab) {
 }
 
 function AddTabContent(tab, data) {
-  var tabContentElement = FIND(tab + "_tabcontent");
-  tabContentElement.innerHTML += data;
-  if (tab === 'rgb') {
-    tabContentElement.classList.add('rgb-tabcontent');
-  }
+  FIND(tab + "_tabcontent").innerHTML += data;
 }
 
 var tablinks = document.getElementsByClassName("tablinks");
@@ -9297,6 +9964,9 @@ function ActivateTab(tab) {
     console.log("No such tab");
     return;
   }
+  if (tab === "arg_string") {
+    safeguardInputs();
+  }
   // If the tab is already active, clicking it again
   // allows "unlocking" of the other tabs. 
   // This is useful when you want to change the top level
@@ -9312,7 +9982,7 @@ function ActivateTab(tab) {
     return;
   }
 
-  // Get all elements with class="tabcontent" and hide them
+  // Get all elements with class="tabcontent" and hide them to clear last selected tabcontents.
   var tabcontent = document.getElementsByClassName("tabcontent");
   for (var i = 0; i < tabcontent.length; i++) {
     tabcontent[i].style.display = "none";
@@ -9372,10 +10042,10 @@ function getIncompatibleTabs(tab) {
 
 <body onload="initGL()">
 
-  <table class="page-container">
+  <table>
   <tr>
     <td class="page-left">
-      <canvas 
+      <canvas
         id="canvas_id"
         title="Blade Preview. Move mouse to swing. Click to Clash or Do Selected Effect (and to dismiss this Tooltip.)  Goto settings to change hilt model or toggle Still mode (no swing on mouse move.)"
         onmousemove='mouse_move(event)' onmouseleave='mouse_leave(event)'
@@ -9429,7 +10099,7 @@ function getIncompatibleTabs(tab) {
         type=button id="do_selected" value="Do Selected Effect"
         title="Press this to trigger the EFFECT selected in the More Effects menu.">
     </span>
-    
+
   <script>
          // Get the menu and button elements
         const menu = FIND('more_effects_menu');
@@ -9550,28 +10220,28 @@ function getIncompatibleTabs(tab) {
             min="0" max="32768" step="1" value="0"
             oninput="updateVariantValue(this.value)" >
           <input
-            id="VARIANT_MINUS" name=varminus type=button value="<" 
+            id="VARIANT_MINUS" name=varminus type=button value="<"
             title="Decreases the Variant value. Hold to increase speed of the changing value."
             onmousedown="startAdjustingValue(-1, 'VARIANT_SLIDER')"
             onmouseup="stopAdjustingValue()"
             onmouseleave="stopAdjustingValue()" >
           <input
-            id="VARIANT_VALUE" name=varvalue type=input size="6" value="0"
+            id="VARIANT_VALUE" name=varvalue type=text size="6" value="0"
             title="The current Variant value. You can also type in this field for direct entry of a value."
             oninput="updateVariantValue(this.value)" >
-          <input 
+          <input
             id="VARIANT_PLUS" name=varplus type=button value=">"
             title="Increases the Variant value. Hold to increase speed of the changing value."
             onmousedown="startAdjustingValue(1, 'VARIANT_SLIDER')"
             onmouseup="stopAdjustingValue()"
             onmouseleave="stopAdjustingValue()" >
         <span class="alt-label">Alt:</span>
-          <input 
+          <input
             id="ALT_MINUS" name=altminus type=button value="<"
             title="Decreases the Alt value."
             onclick="IncreaseAlt(-1)" >
           <input
-            id="ALT" name=alt type=input size="3" value="0"
+            id="ALT" name=alt type=text size="3" value="0"
             title="The current Alt value. You can also type in this field for direct entry of a value." >
           <input
             id="ALT_PLUS" name=altplus type=button value=">"
@@ -9588,13 +10258,28 @@ function getIncompatibleTabs(tab) {
       return parseInt(FIND("ALT").value);
     }
 
-    function IncreaseAlt(n) {
-      var v = Alt() + n;
-      if (v < 0) v += num_alternatives;
-      if (v > num_alternatives) v -= num_alternatives;
-      FIND("ALT").value = v;
-      console.log("Updated Alt: " + v)
-    }
+function updateAltValue(newValue) {
+  if (isNaN(newValue)) {
+    newValue = 0;
+  } else if (newValue > num_alternatives) {
+    newValue = num_alternatives;
+  }
+  FIND("ALT").value = newValue;
+  console.log("Updated Alt: " + newValue);
+}
+
+FIND("ALT").addEventListener('input', function(e) {
+  updateAltValue(parseInt(this.value));
+});
+
+function IncreaseAlt(n) {
+  var v = Alt() + n;
+  if (v < 0) v += num_alternatives;
+  if (v > num_alternatives) v -= num_alternatives;
+  FIND("ALT").value = v;
+  console.log("Updated Alt: " + v)
+}
+
     function Variant() {
      return parseInt(FIND("VARIANT_VALUE").value);
     }
@@ -9602,7 +10287,8 @@ function getIncompatibleTabs(tab) {
     /* Variant Slider functions */
 
     function updateVariantValue(newValue) {
-        if (newValue < 0) {
+      // Ensure values are in range, and auto-filled zeros get registered as 0.
+      if (newValue <= 0) {
         newValue = 0;
       } else if (newValue > 32768) {
         newValue = 32768;
@@ -9649,47 +10335,46 @@ function getIncompatibleTabs(tab) {
 
       <span id="error_message" class="error-message"></span>
 
-        <pre><textarea 
+        <pre><textarea
           rows=10 cols=80 id=style wrap="off" class="textbox"
           title="Style and value editing area. Edits in here are committed by clicking the Submit button below." >
         </textarea></pre>
 
         <span>
           <button 
-            class="submit-button icon-button" title="Submit what is currently in the text box above."
+            class="submit-button" title="Submit what is currently in the text box above."
             onclick="Run()">
-            <i class="fa-solid fa-right-from-bracket fa-beat"></i> Submit</button>
+            <i class="fa-solid fa-right-from-bracket"></i> Submit</button>
           <button 
-            class="icon-button" title="Adds StylePtr&lt;&gt;() wrapper and copies the style to the clipboard."
+            title="Adds StylePtr&lt;&gt;() wrapper and copies the style to the clipboard."
             onclick="Copy()">
-            <i class="fa-solid fa-copy fa-flip icon-flip"></i> Copy</button>
+            <i class="fa-solid fa-copy"></i> Copy</button>
           <button 
-            class="icon-button" id="expand_button"
+            id="expand_button"
             title="Reveals the &quot;under the hood&quot; code that the shorthand macro uses. This allows access to otherwise omitted arguments, and is only an active button when applicable."
             onclick="DoExpand()">
-            <i class="fa-solid fa-up-right-and-down-left-from-center fa-beat"></i> Expand</button>
+            <i class="fa-solid fa-up-right-and-down-left-from-center"></i> Expand</button>
           <button 
-            class="icon-button" id="layerize_button"
+            id="layerize_button"
             title="Transforms nested version style code and breaks it out into more contemporary Layers format."
             onclick="DoLayerize()">
-            <i class="fa-solid fa-layer-group fa-bounce"></i> Layerize</button>
+            <i class="fa-solid fa-layer-group"></i> Layerize</button>
           <button
-            class="icon-button" title="Converts arguments to their ARG version counterparts for use with ProffieOS Workbench or Edit Mode. See the &quot;ArgString&quot; tab below."
+            title="Converts arguments to their ARG version counterparts for use with ProffieOS Workbench or Edit Mode. See the &quot;ArgString&quot; tab below."
             onclick="DoArgify()">
-            <i class="fa-solid fa-list fa-bounce"></i> Argify</button>
+            <i class="fa-solid fa-list"></i> Argify</button>
           <button
-            id="ROTATE_BUTTON" class="icon-button" title="Toggles animation of the preview blade above."
+            id="ROTATE_BUTTON" title="Toggles animation of the preview blade above."
             onclick="ClickRotate()">
-            <i class="fa-solid fa-arrows-rotate fa-spin"></i> Rotate</button>
-
+            <i class="fa-solid fa-arrows-rotate"></i> Rotate</button>
           <button 
-            class="icon-button" title="Save the blade style to your computer."
+            title="Save the blade style to your computer."
             onclick="ClickSave()">
-            <i class="fa-solid fa-save fa-beat"></i> Save</button>
+            <i class="fa-solid fa-save"></i> Save</button>
           <button 
-            id="SETTINGS_BUTTON" class="icon-button" title="Settings"
+            id="SETTINGS_BUTTON" title="Settings"
             onclick="toggleSettingsPanel()">
-            <i class="fa-solid fa-cog fa-spin"></i> Settings</button>
+            <i class="fa-solid fa-cog"></i> Settings</button>
         </span>
 
         <div id="settings_panel" class="settings-panel"
@@ -9752,7 +10437,7 @@ function getIncompatibleTabs(tab) {
             <div class="settings-section">
               <label title="Enter a custom WavLen value in milliseconds." class="wavlen-label">
                 WavLen time:
-                <input type="number" id="WAVLEN_VALUE" class="wavlen-value" value="500">
+                <input type=text id="WAVLEN_VALUE" class="wavlen-value" value="500">
               </label>
             </div>
             <br>
@@ -9805,14 +10490,12 @@ var myWavLen = new WavLenClass();
 function getSavedState(buttonState, defaultValue) {
   var value = localStorage.getItem(buttonState);
   console.log("Retrieved SavedState for " + buttonState + ": " + value);
+  console.log("Type of retrieved value: " + typeof value);
 
   if (value === null) {
     return defaultValue;
   }
-  if (buttonState === "wavlenValue") {
-    return parseInt(value);
-  }
-  if (buttonState === "colorSortSave") {
+  if (buttonState === "colorSortSave" || buttonState === "wavlenValueSave"){
     return value;
   }
   // Convert the string to boolean unless it's null or "false"
@@ -9827,7 +10510,26 @@ function saveState(buttonState, settingIsOn) {
 // Call the onPageLoad function when the page is loaded
 window.addEventListener('DOMContentLoaded', onPageLoad);
 
+function safeguardInputs() {
+  // Get all input elements
+  var inputs = document.querySelectorAll('input');
+
+  inputs.forEach(function(input) {
+    // Select the entire contents of the input box on click
+    input.addEventListener("click", function(e) {
+        this.select();
+      });
+    // Prevent nulls: Autofill '0' if the input value is empty
+    input.addEventListener('input', function(e) {
+      if (!this.value) {
+        this.value = '0'; 
+      }
+    });
+  });
+}
+
 function onPageLoad() {
+  safeguardInputs();
 
   structuredView = FIND("structured_view");
 
@@ -9868,27 +10570,17 @@ function onPageLoad() {
   wavlenValue = parseInt(getSavedState("wavlenValueSave", 500));
   wavlenInput.value = wavlenValue;
   myWavLen.setLength(wavlenValue);
-wavlenInput.addEventListener("click", function(e) {
-  this.select(); // Select the entire contents of the input box
-});
-wavlenInput.addEventListener("input", function(e) {
-  var value = parseInt(this.value);
-  var newValue = value;
-  if (isNaN(value) || value < 1) {
-    newValue = Math.max(1, value); // Set the minimum value of 1
-  }
-  this.value = newValue;
-  saveState("wavlenValueSave", newValue);
-  myWavLen.setLength(newValue);
-});
-wavlenInput.addEventListener("keydown", function(e) {
-  if (e.key === "Enter") {
-    this.blur(); // Remove focus from the input box when Enter key is pressed
-  } else if ((e.key === "Backspace" || e.key === "Delete") && this.value.length === 1) {
-    this.value = "1"; // Autofill "1" if the only digit is deleted
-    e.preventDefault();
-  }
-});
+
+  wavlenInput.addEventListener("input", function(e) {
+    var value = parseInt(this.value);
+    var newValue = value;
+    if (isNaN(value) || value < 1) {
+      newValue = Math.max(1, value); // Set the minimum value of 1
+    }
+    this.value = newValue;
+    saveState("wavlenValueSave", newValue);
+    myWavLen.setLength(newValue);
+  });
 
   // GRAFLEX_BUTTON - must be last here because calling compile() means no coming back.
   graflexState = getSavedState("graflexStateSave", true);
@@ -9974,17 +10666,17 @@ function ClickRestore() {
     <br>
     <div id=TABS class="tabs-container">
       <div id=TABLINKS class=tab></div>
-      <div id=TABBODIES class=tabcontainer></div>
+      <div id=TABBODIES></div>
     </div>
     <div class="footer-container">
       <span class="footer-title">ProffieOS Style Editor</span>
       <span class="footer-links">
         <span class="other-sites">Other sites: </span>
         <a href="https://crucible.hubbe.net/" target="_blank"><img src="https://crucible.hubbe.net/uploads/default/optimized/1X/2237f551ca8f4f69ac478df5c64aee1c951c33f5_2_180x180.png" alt="Crucible logo"></a>
-        <a href="https://pod.hubbe.net/" target="_blank"><img src="https://pod.hubbe.net/images/favicon.png" alt="Pod logo"></a>   
-        <a href="https://fredrik.hubbe.net/lightsaber/" target="_blank"><img src="https://fredrik.hubbe.net/favicon.ico" alt="Lightsaber logo"></a>   
-        <a href="https://www.fett263.com/" target="_blank"><img src="https://www.fett263.com//favicon.ico" alt="Fett263 logo"></a>   
-        <a href="https://www.facebook.com/groups/opensourcesabers/" target="_blank"><img src="https://www.facebook.com/favicon.ico" alt="Facebook logo"></a>   
+        <a href="https://pod.hubbe.net/" target="_blank"><img src="https://pod.hubbe.net/images/favicon.png" alt="Pod logo"></a>
+        <a href="https://fredrik.hubbe.net/lightsaber/" target="_blank"><img src="https://fredrik.hubbe.net/favicon.ico" alt="Lightsaber logo"></a>
+        <a href="https://www.fett263.com/" target="_blank"><img src="https://www.fett263.com//favicon.ico" alt="Fett263 logo"></a>
+        <a href="https://www.facebook.com/groups/opensourcesabers/" target="_blank"><img src="https://www.facebook.com/favicon.ico" alt="Facebook logo"></a>
       </span>
     </div>
     </td>
