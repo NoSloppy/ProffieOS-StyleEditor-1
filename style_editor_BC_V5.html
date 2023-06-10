@@ -10263,7 +10263,7 @@ function getIncompatibleTabs(tab) {
           <input
             id="ALT" name=alt type='number' value="0"
             title="The current Alt value. You can also type in this field for direct entry of a value."
-            onfocusout="SafeguardInputs(event)" >
+            oninput="updateAltValue(this.value)" onfocusout="SafeguardInputs(event)" >
           <input
             id="ALT_PLUS" name=altplus type=button value=">"
             title="Increases the Alt value."
