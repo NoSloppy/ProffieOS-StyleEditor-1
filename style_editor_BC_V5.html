@@ -284,6 +284,19 @@ button.submit-button {
 button.submit-button:active {
   background-color: dodgerblue;
 }
+/*Keep from browser takeover of number inputs */
+input[type='number'] {
+  width: 60px;
+  height: 22px;
+}
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+}
 
 /* Power and Rotate latching buttons */
 .page-left .button-latched,
@@ -567,7 +580,7 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
 }
 /* Chartreuse highlighted borders */
 .running {
-  border-color: chartreuse !important;
+  border-color: chartreuse;
   border-width: 3px;
   padding: 0px;
 }
@@ -580,6 +593,47 @@ Add, Delete, Move Up, Move Down */
   font-size: 16px;
 }
 
+/* Footer */
+.footer-title {
+  min-width: 180px;
+  font-size: 16px;
+}
+.footer-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #eee;
+  padding: 2px 15px;
+}
+.other-sites {
+  float: right;
+  padding-right: 10px;
+  margin-left: 35px;
+}
+.footer-links {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 100px;
+}
+.other-sites {
+  float: right;
+  padding-right: 10px;
+}
+.footer-links a img {
+  height: 16px;
+  width: 16px;
+  margin-right: 5px;
+}
+.footer-links a:hover {
+  color: #000;
+}
 /* Popup Window */
 .popup-window.show {
   opacity: 1;
@@ -629,52 +683,9 @@ Add, Delete, Move Up, Move Down */
   display: block;
 }
 
-/* Footer */
-.footer-title {
-  min-width: 180px;
-  font-size: 16px;
-}
-.footer-container {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #eee;
-  padding: 2px 15px;
-}
-.other-sites {
-  float: right;
-  padding-right: 10px;
-  margin-left: 35px;
-}
-.footer-links {
-  display: flex;
-  align-items: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 100px;
-}
-.other-sites {
-  float: right;
-  padding-right: 10px;
-}
-.footer-links a img {
-  height: 16px;
-  width: 16px;
-  margin-right: 5px;
-}
-.footer-links a:hover {
-  color: #000;
-}
-
-
-
-
 </style>
+
+
 <script id="vertex_shader" type="x-shader/x-vertex">
 precision highp float;
 attribute vec2 a_position;
@@ -1439,6 +1450,15 @@ void main() {
 </script>
 
 <script>
+
+function SafeguardInputs(e) {
+  if (e.target.value == "") {
+    console.log("SafeguardInputs() run to avoid null value");
+    var changeEvent = new Event('change');
+    e.target.value = 0; e.target.dispatchEvent(changeEvent);
+  }
+}
+
 var gl = null;
 var shaderProgram = null;
 var t = 0.0;
@@ -1499,7 +1519,7 @@ function initGL() {
        A += "<input type=color id=ARGSTR_"+N+" onclick='ClickArgColor("+N+")' onchange='ClickArgColor("+N+")' >";
     } else {
        A += "<input type=button value='<'  onclick='IncreaseArg("+N+",-1)' >";
-       A += "<input id=ARGSTR_"+N+" type=text size=6 value=0 onchange='ArgChanged("+N+")' >";
+       A += "<input id=ARGSTR_"+N+" type='number' size=6 value=0 onchange='ArgChanged("+N+")' onfocusout='SafeguardInputs(event)' >";
        A += "<input type=button value='>'  onclick='IncreaseArg("+N+",1)' >";
     }
     A += "</td></tr>\n";
@@ -9687,6 +9707,7 @@ function ArgChanged(ARG) {
   var N = ArgumentName_ENUM_BUILDER.value_to_name[ARG];
   var tag = FIND("ARGSTR_"+N);
   setARG(ARG, tag.value);
+  console.log("Updated " + N + " : " + tag.value)
 }
 
 function IncreaseArg(ARG, I) {
@@ -9919,6 +9940,7 @@ function DoArgify() {
 
 // Tab mania.
 const allTabs = ["color", "rgb", "layer", "function", "transition", "effect", "lockup_type", "arguments", "example", "history", "arg_string"];
+// The "color group" are the 3 tabs that contain valid replacements for a COLOR.
 const colorGroup = ["color", "rgb", "layer"];
 var wasTabClicked = false;
 var allTabsEnabled = true;
@@ -9964,15 +9986,14 @@ function ActivateTab(tab) {
     console.log("No such tab");
     return;
   }
-  if (tab === "arg_string") {
-    safeguardInputs();
-  }
-  // If the tab is already active, clicking it again
-  // allows "unlocking" of the other tabs. 
-  // This is useful when you want to change the top level
-  // of the Structured View to something completely different.
-  // However, it's most important to maintain the lock on non-applicable tabs
-  // if the tab is active from a clicked type Structured View selection.
+  /* The priority is to have non-applicable tabs be disabled
+  if the tab is active due to a clicked type in the Structured View 
+  (therefore showing only valid replacement choices).
+  If the tab is already active, clicking it again
+  allows "unlocking" of the other tabs. 
+  This is useful when you want to change the top level
+  of the Structured View to something completely different.
+  */
   var activeTab = FIND(tab + "_tab");
   if (activeTab.classList.contains("active") && wasTabClicked) {
     // If the clicked tab is already active, enable all tabs
@@ -10022,7 +10043,6 @@ function ActivateTab(tab) {
   wasTabClicked = false; 
 }
 
-// Return an array of tabs that are incompatible with the given tab
 function getIncompatibleTabs(tab) {
   let incompatibleTabs;
 
@@ -10226,9 +10246,9 @@ function getIncompatibleTabs(tab) {
             onmouseup="stopAdjustingValue()"
             onmouseleave="stopAdjustingValue()" >
           <input
-            id="VARIANT_VALUE" name=varvalue type=text size="6" value="0"
+            id="VARIANT_VALUE" name=varvalue type='number' value="0"
             title="The current Variant value. You can also type in this field for direct entry of a value."
-            oninput="updateVariantValue(this.value)" >
+            oninput="updateVariantValue(this.value)" onfocusout="SafeguardInputs(event)" >
           <input
             id="VARIANT_PLUS" name=varplus type=button value=">"
             title="Increases the Variant value. Hold to increase speed of the changing value."
@@ -10241,8 +10261,9 @@ function getIncompatibleTabs(tab) {
             title="Decreases the Alt value."
             onclick="IncreaseAlt(-1)" >
           <input
-            id="ALT" name=alt type=text size="3" value="0"
-            title="The current Alt value. You can also type in this field for direct entry of a value." >
+            id="ALT" name=alt type='number' value="0"
+            title="The current Alt value. You can also type in this field for direct entry of a value."
+            onfocusout="SafeguardInputs(event)" >
           <input
             id="ALT_PLUS" name=altplus type=button value=">"
             title="Increases the Alt value."
@@ -10258,19 +10279,19 @@ function getIncompatibleTabs(tab) {
       return parseInt(FIND("ALT").value);
     }
 
-function updateAltValue(newValue) {
-  if (isNaN(newValue)) {
-    newValue = 0;
-  } else if (newValue > num_alternatives) {
-    newValue = num_alternatives;
-  }
-  FIND("ALT").value = newValue;
-  console.log("Updated Alt: " + newValue);
-}
+// function updateAltValue(newValue) {
+//   if (isNaN(newValue)) {
+//     newValue = 0;
+//   } else if (newValue > num_alternatives) {
+//     newValue = num_alternatives;
+//   }
+//   FIND("ALT").value = newValue;
+//   console.log("Updated Alt: " + newValue);
+// }
 
-FIND("ALT").addEventListener('input', function(e) {
-  updateAltValue(parseInt(this.value));
-});
+// FIND("ALT").addEventListener('input', function(e) {
+//   updateAltValue(parseInt(this.value));
+// });
 
 function IncreaseAlt(n) {
   var v = Alt() + n;
@@ -10288,7 +10309,7 @@ function IncreaseAlt(n) {
 
     function updateVariantValue(newValue) {
       // Ensure values are in range, and auto-filled zeros get registered as 0.
-      if (isNaN(newValue) || newValue <= 0) {
+      if (newValue < 0) {
         newValue = 0;
       } else if (newValue > 32768) {
         newValue = 32768;
@@ -10437,7 +10458,7 @@ function IncreaseAlt(n) {
             <div class="settings-section">
               <label title="Enter a custom WavLen value in milliseconds." class="wavlen-label">
                 WavLen time:
-                <input type=text id="WAVLEN_VALUE" class="wavlen-value" value="500">
+                <input type='number' id="WAVLEN_VALUE" class="wavlen-value" value="500">
               </label>
             </div>
             <br>
@@ -10510,28 +10531,7 @@ function saveState(buttonState, settingIsOn) {
 // Call the onPageLoad function when the page is loaded
 window.addEventListener('DOMContentLoaded', onPageLoad);
 
-function safeguardInputs() {
-  // Get all input elements that take numeric values
-  var inputs = document.querySelectorAll('input[type="text"]');
-
-  inputs.forEach(function(input) {
-    // Select the entire contents of the input box on click
-    input.addEventListener("click", function(e) {
-        this.select();
-      });
-    // Prevent nulls and non-numeric input. 
-    input.addEventListener('input', function(e) {
-      var value = this.value;
-      if (isNaN(value) || value === "") {
-      // Autofill '0' if the input value is empty
-        this.value = '0'; 
-      }
-    });
-  });
-}
-
 function onPageLoad() {
-  safeguardInputs();
 
   structuredView = FIND("structured_view");
 
