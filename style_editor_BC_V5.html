@@ -173,10 +173,15 @@ size when padding and margins may change */
 }
 
 /* Structured View style arguments borders */
-.dark-mode .structured-view .selected-area-container,
-.dark-mode .structured-view .selected-area-container .pp-container {
+.dark-mode .structured-view .selected-area-container {
   background-color: steelblue;
+}
+.dark-mode .pp-container {
   border-color: white;
+}
+
+.dark-mode .pp-container .running {
+  border-color: chartreuse;
 }
 /* Keep color palette background white for reference. */
 .dark-mode .rgb-tabcontent {
@@ -409,7 +414,7 @@ span.MAGIC_CLASS_FUNCTION input[type=button].btn {
   padding: 2px 3px;
 }
 span.MAGIC_CLASS_COLOR input[type=button].btn {
-  background: green;
+  background: red;
   color: black;
   padding: 2px 3px;
 }
@@ -485,9 +490,9 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   margin-left: 5px;
 }
 
-.tabs-container {
+/*.tabs-container {
   position: relative;
-}
+}*/
 /* Style the tab */
 .tab {
   overflow: hidden;
@@ -1455,7 +1460,11 @@ function SafeguardInputs(e) {
   if (e.target.value == "") {
     console.log("SafeguardInputs() run to avoid null value");
     var changeEvent = new Event('change');
-    e.target.value = 0; e.target.dispatchEvent(changeEvent);
+    e.target.value = 0;
+    if (e.target.id === "VARIANT_VALUE") {
+      FIND("VARIANT_SLIDER").value = 0;
+    }
+    e.target.dispatchEvent(changeEvent);
   }
 }
 
@@ -1465,7 +1474,6 @@ var t = 0.0;
 
 var width;
 var height;
-var colorSortByName = false;
 
 // Create n textures of about 1MB each.
 function initGL() {
@@ -1476,7 +1484,7 @@ function initGL() {
   tabLinksElement.innerHTML = "";
   tabBodiesElement.innerHTML = "";
   AddTab("color", "Styles",effect_links.sort().join(""))
-  if (colorSortByName) {
+  if (colorsortState.get()) {
     // Sort sortedRgbLinks based on the name:
     sortedRgbLinks.sort((a, b) => a.name.localeCompare(b.name));
     // Map sortedRgbLinks to mkcolorbuttonByName HTML strings
@@ -1681,7 +1689,7 @@ function mouse_speed(t1, t2) {
 }
 
 function mouse_move(e) {
-  if (FIND("STILL_BUTTON").checked) return;
+  if (stillState.get()) return;
   IN_FRAME = true;
   var canvas = FIND("canvas_id");
   var rect = canvas.getBoundingClientRect();
@@ -1722,7 +1730,7 @@ function get_swing_speed() {
   if (len >= 6) {
     return mouse_speed(0, len - 6);
   }
-  if (IN_FRAME || FIND("SWING_EMULATION_BUTTON").checked) return 0.0;
+  if (IN_FRAME || !autoswingState.get()) return 0.0;
   return Math.sin(millis() * Math.PI / 1000.0) * 250 + 250
 }
 
@@ -1749,6 +1757,8 @@ function mouse_leave(e) {
   IN_FRAME = false;
 }
 
+var graflexState = true;
+
 function compile() {
   // Create a shader that samples a 2D image.
   var vertexShader = gl.createShader(gl.VERTEX_SHADER);
@@ -1762,7 +1772,7 @@ function compile() {
   variables = [];
 //  shader_code = shader_code.replace("$FUNCTION$", current_style.gencode());
   shader_code = shader_code.replace("$VARIABLES$", variables.join("\n"));
-  if (graflexState) {
+  if (graflexState.get()) {
     shader_code = shader_code.replace("$HILT$", FIND("hilt_graflex").textContent);
   } else {
     shader_code = shader_code.replace("$HILT$", FIND("hilt_cylinder").textContent);
@@ -2984,7 +2994,7 @@ function mkcolorbutton(name, r, g, b) {
   var textColor = (name === "Black" || name === "Blue") ? "white" : "black";
   return "<input srt='"+sortString+"' type=button style='border: 1px solid black;padding:8px;color:"+textColor+";background:"+bgColor+"' class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
 }
-// ******** GOOD OGOOD GOD AND BETTTERRRRRRR ***
+
 function mkcolorbuttonByName(name, r, g, b) {
   r = mapcolor(r);
   g = mapcolor(g);
@@ -2997,7 +3007,7 @@ function mkcolorbuttonByName(name, r, g, b) {
 
 function AddColor(name, r, g, b) {
   colorNames[r+","+g+","+b] = name;
-  if(colorSortByName) {
+  if (colorsortState.get()) {
     sortedRgbLinks.push({name, r, g, b});
   } else {
     qlinks.push(mkcolorbutton(name, r, g, b));
@@ -7612,7 +7622,6 @@ class WavLenClass extends FUNCTION {
     this.wavlenValue = value;
      console.log("Updated WavLen: ", this.wavlenValue);
   }
-
   getInteger(led) {
     return myWavLen.wavlenValue;
   }
@@ -9382,12 +9391,9 @@ function drawScene() {
   } else {
      if (bad_fps) bad_fps --;
   }
-  if (bad_fps > 10 && graflexState) {
+  if (bad_fps > 10 && graflexState.get()) {
     showPopupMessage("Struggling to render hilt model.<br>Switching to simpler design.<br>To re-enable Graflex model, go to Settings.", "graflexPopup");
-    graflexState = false;
-    saveState("graflexStateSave", false);
-    graflexButton.checked = false;
-    compile();
+     graflexState.set(false);
   }
   num_leds = blade.num_leds()
   var pixels = new Uint8Array(num_leds * 4 * 2);
@@ -9574,6 +9580,8 @@ function ReplaceCurrentFocus(str) {
     ActivateTab("layer");
   } else if (type == "COLOR" && (classname == "Rgb16Class" || classname == "RgbClass")) {
     ActivateTab("rgb");
+  } else if (type === "ArgumentName") {
+    ActivateTab("arguments");
   } else {
     ActivateTab(type.toLowerCase());
   }
@@ -9951,7 +9959,6 @@ var currentTab;
 function AddTab(tab, name, contents) {
   FIND("TABLINKS").innerHTML += "<button id=" + tab + "_tab class=tablinks onclick=\"TabClicked('"+tab+"');\">" + name + "</button>";
   FIND("TABBODIES").innerHTML += "<div id=" + tab + "_tabcontent class='tabcontent " + tab + "-tabcontent'></div>";
-
   if (contents) {
     AddTabContent(tab, contents);
   }
@@ -10250,7 +10257,8 @@ function getIncompatibleTabs(tab) {
           <input
             id="VARIANT_VALUE" name=varvalue type='number' value="0"
             title="The current Variant value. You can also type in this field for direct entry of a value."
-            oninput="updateVariantValue(this.value)" onfocusout="SafeguardInputs(event)" >
+            oninput="updateVariantValue(this.value)"
+            onfocusout="SafeguardInputs(event)" >
           <input
             id="VARIANT_PLUS" name=varplus type=button value=">"
             title="Increases the Variant value. Hold to increase speed of the changing value."
@@ -10265,7 +10273,8 @@ function getIncompatibleTabs(tab) {
           <input
             id="ALT" name=alt type='number' value="0"
             title="The current Alt value. You can also type in this field for direct entry of a value."
-            oninput="updateAltValue(this.value)" onfocusout="SafeguardInputs(event)" >
+            oninput="updateAltValue(this.value)"
+            onfocusout="SafeguardInputs(event)" >
           <input
             id="ALT_PLUS" name=altplus type=button value=">"
             title="Increases the Alt value."
@@ -10401,52 +10410,53 @@ function IncreaseAlt(n) {
            title="Close Settings Panel."
             class="close-settings" onclick="toggleSettingsPanel()">X</button>
 
-            <h2 class="settings-header-label">Settings</h2>
+          <h2 class="settings-header-label" title="Settings Panel">Settings</h2>
 
-           <div class="settings-section">
+          <div class="settings-section">
             <h4 class="settings-section-label" title="These settings apply to the whole page.">General:</h4>
 
             <label title="Toggles a Dark Mode look to this page.">
-              <input type="checkbox" id="DARK_BUTTON" name="darkmode" onclick="ClickDarkMode()">
+              <input type="checkbox" id="DARK_BUTTON" name="darkmode" onclick="handleSettings(this)">
               <span>Dark Mode</span>
             </label>
 
             <label title="Toggles these pop-up tooltips On or Off.">
-              <input type="checkbox" id="TIPS_BUTTON" name="tooltips" onclick="ClickTips()">
+              <input type="checkbox" id="TIPS_BUTTON" name="tooltips" onclick="handleSettings(this)">
               <span >Tool Tips</span>
             </label>
 
-            <label title="Sort the buttons in the Colors tab by name instead of by Hue.">
-              <input type="checkbox" id="COLOR_SORT" name="colorbyname" onclick="ClickColorSort()">
+            <label title="Toggle between sorting the Colors tab hue or by name.">
+              <input type="checkbox" id="COLORSORT_BUTTON" name="colorsort" onclick="handleSettings(this)">
               <span>Sort Colors by name</span>
             </label>
+
           </div>
 
           <div class="settings-section">
             <h4 class="settings-section-label" title="These settings apply to the blade preview above.">Blade Preview:</h4>
 
             <label title="Toggles the Graflex Hilt model in the preview.">
-              <input type="checkbox" id="GRAFLEX_BUTTON" name="graflex" onclick="ClickGraflex()">
+              <input type="checkbox" id="GRAFLEX_BUTTON" name="graflex" onclick="handleSettings(this)">
               <span>Graflex Hilt</span>
             </label>
 
             <label title="Toggles the option for swinging around the preview blade above using mouse control.">
-              <input type="checkbox" id="STILL_BUTTON" name="still" onclick="ClickStill()">
+              <input type="checkbox" id="STILL_BUTTON" name="still" onclick="handleSettings(this)">
               <span>Still</span>
             </label>
 
-            <label title="Toggle automated swing emulation on preview blade (ie: shown when using SwingSpeed<>).">
-              <input type="checkbox" id="SWING_EMULATION_BUTTON" name="swingemulation" onclick="ClickSwingEmulation()">
+            <label title="Toggles automated swing emulation on the preview blade while at rest (ie: shown when using SwingSpeed<>). Swinging while hovering over the preview area always shows swing blade effects according to movements.">
+              <input type="checkbox" id="AUTOSWING_BUTTON" name="autoswing" onclick="handleSettings(this)">
               <span>Swing Emulation</span>
             </label>
 
             <label title="Simulates In-Hilt LED blades, (no addressable pixel effects).">
-              <input type="checkbox" id="INHILT_BUTTON" name="inhilt" onclick="ClickInhilt()">
+              <input type="checkbox" id="INHILT_BUTTON" name="inhilt" onclick="handleSettings(this)">
               <span>Inhilt LED</span>
             </label>
 
             <label title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement. *Note* Graflex hilt model probably won't be able to render with this on.">
-              <input type="checkbox" id="SLOW_BUTTON" name="slow" onclick="ClickSlow()">
+              <input type="checkbox" id="SLOW_BUTTON" name="slow" onclick="handleSettings(this)">
               <span>Slow</span>
             </label>
           </div>
@@ -10487,114 +10497,69 @@ function toggleSettingsPanel() {
   }
 }
 
-/* Globally declare all the elements for Settings */
-var darkButton = FIND("DARK_BUTTON"), darkState;
-var tipsButton = FIND("TIPS_BUTTON"), tipsState;
-var stillButton = FIND("STILL_BUTTON"), stillState;
-var swingemulateButton = FIND("SWING_EMULATION_BUTTON"), swingemulateState;
-var inhiltButton = FIND("INHILT_BUTTON"), inhiltState;
-var slowButton = FIND("SLOW_BUTTON"), slowState;
-var colorSortButton = FIND("COLOR_SORT"), colorSort;
-var wavlenInput = FIND("WAVLEN_VALUE"), wavlenValue;
-var graflexButton = FIND("GRAFLEX_BUTTON"), graflexState;
+// Call the onPageLoad function when the page is loaded
+window.addEventListener('DOMContentLoaded', onPageLoad);
 
+var all_saved_states = [];
+var state_by_checkbox = new Map();
 var body = document.querySelector("body");
 var structuredView;
-
+var wavlenInput = FIND("WAVLEN_VALUE");
 var myWavLen = new WavLenClass();
 
 /* Settings buttons saved as local storage */
 function getSavedState(buttonState, defaultValue) {
   var value = localStorage.getItem(buttonState);
   console.log("Retrieved SavedState for " + buttonState + ": " + value);
-  console.log("Type of retrieved value: " + typeof value);
 
   if (value === null) {
     return defaultValue;
   }
-  if (buttonState === "colorSortSave" || buttonState === "wavlenValueSave"){
+  if (buttonState === "wavlenStateSave"){
     return value;
   }
-  // Convert the string to boolean unless it's null or "false"
   return value !== "false";
 }
-
 
 function saveState(buttonState, settingIsOn) {
   localStorage.setItem(buttonState, settingIsOn);
 }
 
-// Call the onPageLoad function when the page is loaded
-window.addEventListener('DOMContentLoaded', onPageLoad);
-
-function onPageLoad() {
-
-  structuredView = FIND("structured_view");
-
-  // DARK_BUTTON
-  darkState = getSavedState("darkStateSave", false);
-  body.classList.toggle("dark-mode", darkState);
-  structuredView.classList.toggle("dark-mode", darkState);
-  darkButton.checked = darkState ? true : false;
-
-  // TIPS_BUTTON
-  tipsState = getSavedState("tipsStateSave", true);
-  tipsButton.checked = tipsState ? true : false;
-
-  // STILL_BUTTON
-  stillState = getSavedState("stillStateSave", false);
-  stillButton.checked = stillState ? true : false;
-
-  // SWING_EMULATION_BUTTON
-  swingemulateState = getSavedState("swingemulateStateSave", true);
-  swingemulateButton.checked = swingemulateState ? true : false;
-
-  // INHILT_BUTTON
-  inhiltState = getSavedState("inhiltStateSave", false);
-  if (inhiltState) STATE_NUM_LEDS = 145 - STATE_NUM_LEDS;
-  inhiltButton.checked = inhiltState ? true : false;
-
-  // SLOW_BUTTON
-  slowState = getSavedState("slowStateSave", false);
-  if (slowState) framesPerUpdate = 60 - framesPerUpdate;
-  slowButton.checked = slowState ? true : false;
-
-  // COLOR_SORT
-  colorSort = getSavedState("colorSortSave", "hue");
-  colorSortByName = (colorSort === "name") ? true : false;
-  colorSortButton.checked = colorSortByName;
-
-  // WAVLEN_VALUE
-  wavlenValue = parseInt(getSavedState("wavlenValueSave", 500));
-  wavlenInput.value = wavlenValue;
-  myWavLen.setLength(wavlenValue);
-
-  wavlenInput.addEventListener("input", function(e) {
-    var value = parseInt(this.value);
-    var newValue = (isNaN(value) || value < 1) ? 1 : value;
-    this.value = newValue;
-    saveState("wavlenValueSave", newValue);
-    myWavLen.setLength(newValue);
-  });
-
-  // GRAFLEX_BUTTON - must be last here because calling compile() means no coming back.
-  graflexState = getSavedState("graflexStateSave", true);
-    graflexButton.checked = graflexState ? true : false;
-
-} // onPageLoad()
-
-
-function ClickDarkMode() {
-  darkState = !darkState;
-  body.classList.toggle("dark-mode");
-  structuredView.classList.toggle("dark-mode");
-  darkButton.checked = darkState ? true : false;
-  saveState("darkStateSave", darkState);
+class SavedState {
+  constructor(name, def, update_function, type = "checkbox") {
+    this.name = name;
+    this.def = def;
+    this.update_function = update_function;
+    this.type = type;
+    all_saved_states.push(this);
+    const checkbox = FIND(this.name.toUpperCase()+"_BUTTON");
+    state_by_checkbox.set(checkbox, this);
+  }
+  onload() {
+    this.set(getSavedState(this.name + "StateSave", this.def));
+  }
+  set(value) {
+    this.value = value;
+    if (this.type === "checkbox") {
+      FIND(this.name.toUpperCase() + "_BUTTON").checked = value ? true : false;
+    } else if (this.type === "number") {
+      FIND(this.name.toUpperCase() + "_VALUE").value = value;
+    }
+    saveState(this.name + "StateSave", value);
+    this.update_function(value);
+  }
+  get() {
+    return this.value;
+  }
 }
 
-function ClickTips() {
-  tipsState = !tipsState;
-  if (tipsState) {
+var darkState = new SavedState("dark", false, (on) => {
+  body.classList.toggle("dark-mode", on);
+  structuredView.classList.toggle("dark-mode", on);
+});
+
+var tipsState = new SavedState("tips", true, (on) => { 
+ if (on) {
     const elementsWithDataTitles = document.querySelectorAll("[data-title]");
     elementsWithDataTitles.forEach((element) => {
       element.setAttribute("title", element.dataset.title);
@@ -10607,49 +10572,37 @@ function ClickTips() {
       element.removeAttribute("title");
     });
   }
-  tipsButton.checked = tipsState ? true : false;
-  saveState("tipsStateSave", tipsState);
-}
-
-function ClickStill() {
-  stillState = !stillState;
-  stillButton.checked = stillState ? true : false;
-  saveState("stillStateSave", stillState);
-}
-
-function ClickSwingEmulation() {
-  swingemulateState = !swingemulateState;
-  swingemulateButton.checked = swingemulateState ? true : false;
-  saveState("swingemulateStateSave", swingemulateState);
-}
-
-function ClickInhilt() {
-  inhiltState = !inhiltState;
-  STATE_NUM_LEDS = 145 - STATE_NUM_LEDS; // this is genius simplicity
-  inhiltButton.checked = inhiltState ? true : false;
-  saveState("inhiltStateSave", inhiltState);
-}
-
-function ClickSlow() {
-  slowState = !slowState;
-  framesPerUpdate = 60 - framesPerUpdate;
-  saveState("slowStateSave", slowState);
-}
-
-function ClickColorSort() {
-  colorSortByName = !colorSortByName
-  colorSort = colorSortByName ? "name" : "hue";
-  console.log("BC- Color sort mode set to: " + colorSort);
-  saveState("colorSortSave", colorSort);
+});
+var colorsortState = new SavedState("colorsort", false, (on) => {
   initGL();
+});
+var graflexState = new SavedState("graflex", true, (on) => { compile(); });
+var stillState = new SavedState("still", false, (on) => {});
+var autoswingState = new SavedState("autoswing", true, (on) => {});
+var inhiltState = new SavedState("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
+var slowState = new SavedState("slow", false, (on) => { framesPerUpdate = on ? 60 : 0; });
+var wavlenState = new SavedState("wavlen", 500, (value) => {
+  myWavLen.setLength(value);
+}, "number");
+wavlenInput.addEventListener("input", function(e) {
+  var value = parseInt(this.value);
+  var newValue = (isNaN(value) || value < 1) ? 1 : value;
+  this.value = newValue;
+  wavlenState.set(newValue);
+});
+
+function onPageLoad() {
+  initGL();
+  structuredView = FIND("structured_view");
+  
+  all_saved_states.forEach(state => {
+    state.onload();
+  });
 }
 
-
-function ClickGraflex() {
-  graflexState = !graflexState;
-  graflexButton.checked = graflexState ? true : false;
-  compile();
-  saveState("graflexStateSave", graflexState);
+function handleSettings(checkbox) {
+  var state = state_by_checkbox.get(checkbox);
+  state.set(!state.get());
 }
 
 function ClickRestore() {
@@ -10659,7 +10612,8 @@ function ClickRestore() {
 </script>
 
     <br>
-    <div id=TABS class="tabs-container">
+    <!-- <div id=TABS class="tabs-container"> -->
+    <div id=TABS>
       <div id=TABLINKS class=tab></div>
       <div id=TABBODIES></div>
     </div>
