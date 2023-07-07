@@ -9343,13 +9343,12 @@ var framesPerUpdate = 0;
 var bad_fps = 0;
 
 </script>
-
 <div id="popup_window" class="popup-window">
   <p id="popup_message"></p>
   <button title="OK" onclick="dismissPopupMessage()">OK</button>
   <br>
   <label title="Don't show this again. Click 'Restore Defaults' in Settings to re-enable.">
-    <input type="checkbox" id="dont_show_again" name="dontshow" onclick="DontShowAgain()">
+    <input type="checkbox" id="dont_show_again" name="dontshow" onclick="DontShowAgain(this.checked)">
     <span>Don't show this again</span>
   </label>
 </div>
@@ -9362,6 +9361,9 @@ var bad_fps = 0;
 
   function showPopupMessage(message, currentPopup) {
     popupIdentifier = currentPopup;
+    var checkbox = FIND("dont_show_again");
+    checkbox.checked = localStorage.getItem(popupIdentifier) === "false";
+
     if (localStorage.getItem(popupIdentifier) === "false") {
       console.log(popupIdentifier + " is disabled.");
     } else {
@@ -9376,9 +9378,9 @@ var bad_fps = 0;
     overlay.classList.remove("show");
   }
 
-  function DontShowAgain() {
-    localStorage.setItem(popupIdentifier, "false");
-  console.log("Saving " + popupIdentifier + " false");
+  function DontShowAgain(checkboxState) {
+    localStorage.setItem(popupIdentifier, checkboxState ? "false" : "true");
+    console.log("Saving " + popupIdentifier + " " + (checkboxState ? "false" : "true"));
   }
 
 function drawScene() {
@@ -10529,7 +10531,7 @@ class SavedState {
     state_by_checkbox.set(checkbox, this);
   }
   onload() {
-    this.set(getSavedState(this.name + "StateSave", this.def));
+    this.set(getSavedState(this.name + "Save", this.def));
   }
   set(value) {
     this.value = value;
@@ -10538,12 +10540,10 @@ class SavedState {
     } else if (this.type === "number") {
       FIND(this.name.toUpperCase() + "_VALUE").value = value;
     }
-    saveState(this.name + "StateSave", value);
+    saveState(this.name + "Save", value);
     this.update_function(value);
   }
-  get() {
-    return this.value;
-  }
+  get() { return this.value; }
 }
 
 var darkState = new SavedState("dark", false, (on) => {
