@@ -9362,7 +9362,6 @@ var bad_fps = 0;
   function showPopupMessage(message, currentPopup) {
     popupIdentifier = currentPopup;
     var checkbox = FIND("dont_show_again");
-    
     checkbox.checked = localStorage.getItem(popupIdentifier) === "false";
 
     if (localStorage.getItem(popupIdentifier) === "false") {
@@ -9380,7 +9379,6 @@ var bad_fps = 0;
   }
 
   function DontShowAgain(checkboxState) {
-    // If checkbox is checked (meaning "Don't show again"), save as "false". Otherwise, save as "true".
     localStorage.setItem(popupIdentifier, checkboxState ? "false" : "true");
     console.log("Saving " + popupIdentifier + " " + (checkboxState ? "false" : "true"));
   }
