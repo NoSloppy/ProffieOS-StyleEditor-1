@@ -1755,7 +1755,6 @@ function mouse_leave(e) {
   IN_FRAME = false;
 }
 
-var graflexState = true;
 
 function compile() {
   // Create a shader that samples a 2D image.
@@ -9379,8 +9378,9 @@ var bad_fps = 0;
   }
 
   function DontShowAgain(checkboxState) {
-    localStorage.setItem(popupIdentifier, checkboxState ? "false" : "true");
-    console.log("Saving " + popupIdentifier + " " + (checkboxState ? "false" : "true"));
+    checkboxState = !checkboxState;
+    localStorage.setItem(popupIdentifier, checkboxState);
+    console.log("Saving " + popupIdentifier + " " + checkboxState);
   }
 
 function drawScene() {
@@ -10415,7 +10415,7 @@ function IncreaseAlt(n) {
               <span>Dark Mode</span>
             </label>
 
-            <label title="Toggles these pop-up tooltips On or Off.">
+            <label title="Toggles pop-up tooltips such as this On or Off.">
               <input type="checkbox" id="TIPS_BUTTON" name="tooltips" onclick="handleSettings(this)">
               <span >Tool Tips</span>
             </label>
@@ -10510,7 +10510,7 @@ function getSavedState(buttonState, defaultValue) {
   if (value === null) {
     return defaultValue;
   }
-  if (buttonState === "wavlenStateSave"){
+  if (buttonState === "wavlenSave"){
     return value;
   }
   return value !== "false";
