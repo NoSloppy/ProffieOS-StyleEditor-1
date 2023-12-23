@@ -2242,7 +2242,7 @@ class STYLE {
 
 class MACRO extends STYLE {
   SetExpansion(expansion) {
-    this.expansion = expansion.DOCOPY();
+    this.expansion = expansion;
   }
   run(blade) { this.expansion.run(blade); }
   getInteger(led) { return this.expansion.getInteger(led); }
