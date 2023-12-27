@@ -1565,13 +1565,6 @@ function initGL() {
   Run();
   DoLayerize();
 
-  //FIND("color_links").innerHTML = byHueLinks;
-  //FIND("effect_links").innerHTML = effect_links;
-  //FIND("effect_type_links").innerHTML = effect_type_links;
-  //FIND("template_links").innerHTML = template_links;
-  //FIND("function_links").innerHTML = function_links;
-  //FIND("transition_links").innerHTML = transition_links;
-
   // Bind a vertex buffer with a single triangle
   var buffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -2589,14 +2582,6 @@ function ClickColor() {
   var B = FixColor(color_button.value.substr(5,2));
   SetTo("Rgb16<"+R+","+G+","+B+">");
 }
-
-//var byHueLinks = "<b>Colors</b> <input type=color id=COLOR value='#ff0000' onclick='ClickColor()' />";
-//var effect_links = "<b>Effects:</b>";
-//var layer_links = "";
-//var effect_type_links = "<b>Effect Types:</b>";
-//var template_links = "<b>Templates:</b>";
-//var function_links = "<b>Functions:</b>";
-//var transition_links = "<b>Transitions:</b>";
 
 var effect_links = [];
 var layer_links = [];
