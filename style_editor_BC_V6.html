@@ -1519,6 +1519,7 @@ function initGL() {
 
   width = window.innerWidth;
   height = window.innerHeight;
+  canvas_id.setAttribute("title", "Blade Preview.\nMove mouse to swing. Click to Clash\nor to Do Selected Effect (and to dismiss this Tooltip.)\nGoto settings to change hilt model or toggle Mouse Swings mode (swinging with mouse moves.)");
 
   if(window.devicePixelRatio !== undefined) {
     dpr = window.devicePixelRatio;
@@ -3042,8 +3043,11 @@ AddEffect("Rgb16<0,0,65536>");
 AddEffect("Rgb<100,100,100>");
 AddEffect("RgbCycle");
 AddEffect("RotateColorsX<Variation,Red>");
+
 AddEffect("Sequence<Red, Black, 100, 37, 0b0001010100011100, 0b0111000111000101, 0b0100000000000000>");
 AddLayer("SequenceL<Red, 100, 37, 0b0001010100011100, 0b0111000111000101, 0b0100000000000000>");
+AddFunction("SequenceF<100, 37, 0b0001010100011100, 0b0111000111000101, 0b0100000000000000>");
+
 AddEffectWL("SimpleClash<Red, White, 40>");
 AddEffect("Sparkle<Blue>");
 AddLayer("SparkleL");
@@ -3134,7 +3138,7 @@ AddFunction("PulsingF<Int<800>>");
 AddFunction("RandomBlinkF<Int<3000>>");
 AddFunction("RandomF");
 AddFunction("RandomPerLEDF");
-AddFunction("SequenceF<100, 37, 0b0001010100011100, 0b0111000111000101, 0b0100000000000000>");
+// AddFunction("SequenceF<100, 37, 0b0001010100011100, 0b0111000111000101, 0b0100000000000000>");
 AddFunction("SparkleF");
 AddFunction("StrobeF<Int<15>, Int<1>>");
 AddFunction("BlastFadeoutF");
@@ -4568,6 +4572,9 @@ function AddBoot() {
 function AddPreon() {
   blade.addEffect(EFFECT_PREON, 0.0);
 }
+function AddPostoff() {
+  blade.addEffect(EFFECT_POSTOFF, 0.0);
+}
 
 var blast_hump = [ 255,255,252,247,240,232,222,211,
                    199,186,173,159,145,132,119,106,
@@ -5690,29 +5697,35 @@ class MultiTransitionEffectLClass extends STYLE {
     this.effect_ = new OneshotEffectDetector(this.EFFECT);
     this.TRANSITIONS=[];
     this.running=[];
+    this.E=[];
     this.pos = 0;
     for (var i = 0; i < this.N; i++) {
       this.TRANSITIONS.push(this.TRANSITION.DOCOPY());
       this.running.push(false);
+      this.E.push(null);
     }
     HandleEffectType(EFFECT_ARG);
   }
   run(blade) {
+    var TMP = last_detected_blade_effect;
     var e = this.effect_.Detect(blade);
     if (e) {
       this.TRANSITIONS[this.pos].begin();
       this.running[this.pos] = true;
+      this.E[this.pos] = last_detected_blade_effect;
       this.pos++;
       if (this.pos == this.N) this.pos = 0;
     }
     for (var i = 0; i < this.N; i++) {
       if (this.running[i]) {
+        last_detected_blade_effect = this.E[i];
         this.TRANSITIONS[i].run(blade);
         if (this.TRANSITIONS[i].done()) {
           this.running[i] = false;
         }
       }
     }
+    last_detected_blade_effect = last_detected_blade_effect;
   }
   getColor(led) {
     var ret = Transparent();
@@ -6677,36 +6690,52 @@ class TrConcatClass extends TRANSITION {
     // Last argument must be a transition.
     this.add_arg("TRANSITION" + i, "TRANSITION", "Transiton " + i);
     this.pos_ = this.ARGS.length;
+    this.c1p = -1;
+    this.c2p = -1;
+  }
+  updateC2P() {
+     for (var i = this.pos_ + 1; i < this.ARGS.length - 1; i++) {
+       if (this.ARGS[i].getType() != "TRANSITION") {
+         this.c2p = i;
+         return;
+       }
+     }
+     this.c2p = -1;
   }
   begin() {
     this.pos_ = 0;
+    this.c1p = -1;
+    this.updateC2P();
     this.ARGS[0].begin();
   }
   done() {
     return this.pos_ >= this.ARGS.length;
   }
+
   run(blade) {
-    for (var i = 0; i < this.ARGS.length; i++) {
-      if (this.ARGS[i].getType() != "TRANSITION") {
-        this.ARGS[i].run(blade);
-      }
-    }
+    if (this.done()) return;
+    if (this.c1p != -1) this.ARGS[this.c1p].run(blade);
+    if (this.c2p != -1) this.ARGS[this.c2p].run(blade);
     while (this.pos_ < this.ARGS.length) {
       this.ARGS[this.pos_].run(blade);
       if (!this.ARGS[this.pos_].done()) break;
       this.pos_++;
       if (this.done()) break;
-      if (this.ARGS[this.pos_].getType() != "TRANSITION") this.pos_++;
+      if (this.ARGS[this.pos_].getType() != "TRANSITION") {
+
+        this.c1p = this.c2p;
+  this.updateC2P()
+        if (this.c2p != -1) this.ARGS[this.c2p].run(blade);
+        this.pos_++;
+      }
       if (this.done()) break;
       this.ARGS[this.pos_].begin();
     }
   }
   getColor(A, B, led) {
     if (this.done()) return B;
-    if (this.pos_ != 0 && this.ARGS[this.pos_-1].getType() != "TRANSITION")
-      A = this.ARGS[this.pos_-1].getColor(led);
-    if (this.pos_ < this.ARGS.length - 1 && this.ARGS[this.pos_+1].getType() != "TRANSITION")
-      B = this.ARGS[this.pos_+1].getColor(led);
+    if (this.c1p != -1) A = this.ARGS[this.c1p].getColor(led);
+    if (this.c2p != -1) B = this.ARGS[this.c2p].getColor(led);
     return this.ARGS[this.pos_].getColor(A, B, led);
   }
 };
@@ -10172,7 +10201,7 @@ function getIncompatibleTabs(tab) {
       <div class="canvas-container">      
         <canvas
           id="canvas_id"
-          title="Blade Preview. Move mouse to swing. Click to Clash or Do Selected Effect (and to dismiss this Tooltip.)  Goto settings to change hilt model or toggle Mouse Swings mode (no swing on mouse move.)"
+          
           onmousemove='mouse_move(event)' onmouseleave='mouse_leave(event)'
           onclick='AddClickedEffect()'>
         </canvas>
@@ -10201,12 +10230,15 @@ function getIncompatibleTabs(tab) {
       <button
         title="Simulates powering on the Proffieboard. Triggers style code Int<using EFFECT_BOOT."
         onclick="AddBoot()">Boot</button>
-      <button
+<!--       <button
         title="Simulates changing presets. Triggers style code using EFFECT_NEWFONT."
-        onclick="AddNewfont()">NewFont</button>
+        onclick="AddNewfont()">NewFont</button> -->
       <button
         title="Simulates &quot;pre-ignition&quot;; pressing the power button when there are preon.wav files available in the current font. Triggers style code using EFFECT_PREON."
         onclick="AddPreon()">Preon</button>
+      <button
+        title="Simulates &quot;post-retraction&quot;; autofollows retraction when there are pstoff.wav files available in the current font. Triggers style code using EFFECT_POSTOFF."
+        onclick="AddPostoff()">Postoff</button>
 
       <select
         id="LOCKUP" name="lockup"
@@ -10249,6 +10281,7 @@ function getIncompatibleTabs(tab) {
             EFFECT_BOOT,
             EFFECT_NEWFONT,
             EFFECT_PREON,
+            EFFECT_POSTOFF,
           ].includes(Number(value)));
 
         // Add sub-groups for the different categories of effects
