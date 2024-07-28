@@ -8,7 +8,6 @@
   <meta name="description" content="ProffieOS Style Editor: Customize your Proffieboard saber blade animations with this browser based tool.">
   <link rel="shortcut icon" type="image/png" href="SE_Favicon.png">
   <title>ProffieOS Style Editor</title>
-
 <style>
 /*
  * Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com
@@ -2981,7 +2980,7 @@ function AddColor(name, r, g, b) {
   all_colors[name] = new RgbClass(r, g, b);
 }
 
-
+// Examples tab
 AddTemplate("InOutHelper<SimpleClash<Lockup<Blast<Blue,White>,AudioFlicker<Blue,White>>,White>, 300, 800>");
 // AddTemplate("StyleFirePtr<Red, Yellow>");
 AddTemplate("InOutHelper<EasyBlade<OnSpark<Green>, White>, 300, 800>>");
@@ -3017,6 +3016,7 @@ AddEffect("Cylon<Red, 5, 20>");
 AddEffect("Gradient<Blue, Green, Yellow, Red>");
 AddEffect("Gradient<Red, Blue, Green>");
 AddEffect("Gradient<Red, Blue>");
+AddEffect("HardStripes<4000,-800,Blue,HotPink>");
 AddEffect("Hue<16384>");
 AddEffectWL("HumpFlicker<Green, Magenta, 50>");
 AddEffect("InOutHelper<White, 300, 800, Black>");
@@ -3030,6 +3030,7 @@ AddEffect("Mix<Int<16384>, Red, Blue>");
 AddEffect("OnSpark<Green, White, 200>");
 AddLayer("OnSparkL<White, Int<200>>");
 AddEffectWL("OriginalBlast<Blue, White>");
+AddEffect("Pixelate<Gradient<Red,Blue,Green>, 5>");
 AddEffect("Pulsing<Blue, Red, 800>");
 AddLayer("PulsingL<Red, Int<800>>");
 AddEffect("Rainbow");
@@ -3082,11 +3083,7 @@ AddTransition("TrJoin<TrFade<500>, TrWipe<500>>");
 AddTransition("TrJoinR<TrFade<500>, TrWipe<500>>");
 AddTransition("TrRandom<TrFade<500>, TrWipe<500>, TrBoing<500, 2>>");
 AddTransition("TrSelect<Variation,TrFade<500>, TrWipe<500>, TrBoing<500, 2>>");
-
-
 AddTransition("TrSequence<TrFade<500>, TrWipe<500>, TrBoing<500, 2>>");
-
-
 AddTransition("TrSmoothFade<300>");
 AddTransition("TrWipe<500>");
 AddTransition("TrWipeIn<500>");
@@ -3569,6 +3566,51 @@ class OnSparkClass extends MACRO {
 
 function OnSpark(T, SPARK_COLOR, MILLIS) {
   return new OnSparkClass(T, SPARK_COLOR, MILLIS);
+}
+
+class PixelateXClass extends STYLE {
+  constructor(COLOR, PIXEL_SIZE_FUNC = new Int(2)) {
+    super("Pixelate", Array.from(arguments)); // Include arguments for display
+    this.COLOR = COLOR;
+    this.PIXEL_SIZE_FUNC = PIXEL_SIZE_FUNC;
+    this.last_led = -1;
+    this.last_color = Rgb(0, 0, 0); // Assuming Rgb is a function that returns a color object
+    this.add_arg("COLOR", "COLOR", "Color");
+    this.add_arg("PIXEL_SIZE_FUNC", "FUNCTION", "Pixel Size");
+  }
+
+  run(blade) {
+    super.run(blade);
+    this.PIXEL_SIZE_FUNC.run(blade);
+    return this.COLOR.run(blade);
+  }
+
+  getColor(led) {
+    if (Math.abs(led - this.last_led) >= this.PIXEL_SIZE_FUNC.getInteger(led)) {
+      this.last_led = led;
+      this.last_color = this.COLOR.getColor(led);
+    }
+    return this.last_color;
+  }
+}
+
+function PixelateX(COLOR, PIXEL_SIZE_FUNC = new Int(2)) {
+  return new PixelateXClass(COLOR, PIXEL_SIZE_FUNC);
+}
+
+class PixelateClass extends MACRO {
+  constructor(COLOR, PIXEL_SIZE = 2) {
+    super("Pixelate", Array.from(arguments)); // Include arguments for display
+    this.COLOR = COLOR;
+    this.PIXEL_SIZE = PIXEL_SIZE;
+    this.add_arg("COLOR", "COLOR", "Color");
+    this.add_arg("PIXEL_SIZE", "INT", "Pixel Size");
+    this.SetExpansion(new PixelateXClass(COLOR, new Int(this.PIXEL_SIZE)));
+  }
+}
+
+function Pixelate(COLOR, PIXEL_SIZE = 2) {
+  return new PixelateClass(COLOR, PIXEL_SIZE);
 }
 
 class PulsingFClass extends FUNCTION {
@@ -4110,7 +4152,6 @@ class EffectSequenceClass extends STYLE {
 function EffectSequence(MPC, C) {
   return new EffectSequenceClass(Array.from(arguments));
 };
-
 class StripesXClass extends STYLE {
   constructor(ARGS) {
     super("Configurable rainbow", ARGS);
@@ -4169,6 +4210,73 @@ class StripesClass extends MACRO {
 
 function Stripes(W,S,C) {
   return new StripesClass(Array.from(arguments));
+}
+
+class HardStripesXClass extends STYLE {
+  constructor(ARGS) {
+    super("Configurable hard stripes", ARGS);
+    this.add_arg("WIDTH", "FUNCTION", "Stripe width");
+    this.add_arg("SPEED", "FUNCTION", "Scroll speed");
+    this.COLORS = ARGS.slice(2);
+    for (var i = 1; i < this.COLORS.length + 1; i++)
+      this.add_arg("COLOR" + i, "COLOR", "COLOR " + i);
+    this.last_micros = 0;
+    this.m = 0;
+  }
+  run(blade) {
+    super.run(blade);
+    var now_micros = micros();
+    var delta_micros = now_micros - this.last_micros;
+    this.last_micros = now_micros;
+    this.m = MOD((this.m + delta_micros * this.SPEED.getInteger(0) / 333), (this.COLORS.length * 341 * 1024));
+    this.mult = (50000 * 1024 / this.WIDTH.getInteger(0));
+  }
+  HARD_GET_COLOR(N, led, p, ret) {
+    if (N >= this.COLORS.length || p < 0) return;
+    var segment_size = 341;
+    if (p < segment_size) {
+      var tmp = this.COLORS[N].getColor(led);
+      if (p > 0 && p < 512) { // One-pixel transition logic
+        var mul = sin(p * Math.PI / 512.0);
+        ret.r = tmp.r * mul;
+        ret.g = tmp.g * mul;
+        ret.b = tmp.b * mul;
+      } else {
+        ret.r = tmp.r;
+        ret.g = tmp.g;
+        ret.b = tmp.b;
+      }
+    } else {
+      this.HARD_GET_COLOR(N + 1, led, p - segment_size, ret);
+    }
+  }
+  getColor(led) {
+    var p = ((this.m + led * this.mult) >> 10) % (this.COLORS.length * 341);
+    var ret = Rgb(0, 0, 0);
+    this.HARD_GET_COLOR(0, led, p, ret);
+    return ret;
+  }
+}
+
+function HardStripesX(W, S, C) {
+  return new HardStripesXClass(Array.from(arguments));
+}
+
+class HardStripesClass extends MACRO {
+  constructor(ARGS) {
+    super("Configurable hard stripes", ARGS);
+    this.add_arg("WIDTH", "INT", "Stripe width");
+    this.add_arg("SPEED", "INT", "Scroll speed");
+    this.COLORS = ARGS.slice(2);
+    for (var i = 1; i < this.COLORS.length + 1; i++)
+      this.add_arg("COLOR" + i, "COLOR", "COLOR " + i);
+
+    this.SetExpansion(new HardStripesXClass([Int(this.WIDTH), Int(this.SPEED)].concat(this.COLORS)));
+  }
+}
+
+function HardStripes(W, S, C) {
+  return new HardStripesClass(Array.from(arguments));
 }
 
 class AudioFlickerLClass extends MACRO {
@@ -7946,7 +8054,7 @@ function SlowNoise(SPEED) {
 
 class IsLessThanClass extends FUNCTION {
   constructor(F, V) {
-    super("Returns 32768 if F < V, 0 otherwise.", arguments);
+    super("Returns 32768 if F < V, otherwise 0.", arguments);
     this.add_arg("F", "FUNCTION", "F");
     this.add_arg("V", "FUNCTION", "V");
   }
@@ -7961,7 +8069,7 @@ function IsLessThan(F, V) {
 
 class IsGreaterThanClass extends MACRO {
   constructor(F, V) {
-    super("Returns 32768 if F > V, 0 otherwise.", arguments);
+    super("Returns 32768 if F > V, otherwise 0.", arguments);
     this.add_arg("F", "FUNCTION", "F");
     this.add_arg("V", "FUNCTION", "V");
     this.SetExpansion(IsLessThan(V.DOCOPY(), F.DOCOPY()));
@@ -7974,7 +8082,7 @@ function IsGreaterThan(F, V) {
 
 class IsBetweenClass extends FUNCTION {
   constructor(F, BOTTOM, TOP) {
-    super("Returns 32768 if BOTTOM < F < TOP, 0 otherwise.", arguments);
+    super("Returns 32768 if BOTTOM < F < TOP, otherwise 0.", arguments);
     this.add_arg("F", "FUNCTION", "F");
     this.add_arg("BOTTOM", "FUNCTION", "BOTTOM");
     this.add_arg("TOP", "FUNCTION", "TOP");
@@ -8426,7 +8534,7 @@ function BladeAngle(MIN, MAX) {
 
 class LockupPulseFClass extends FUNCTION {
   constructor() {
-    super("32768 if specified lockup type, 0 otherwise.", arguments);
+    super("32768 if specified lockup type, otherwise 0.", arguments);
     this.add_arg("LOCKUP_TYPE", "LOCKUP_TYPE", "Lockup type");
     this.value_ = 0;
   }
@@ -8972,6 +9080,8 @@ function newCall(Cls) {
     FOCUS : Focus,
     FireConfig : FireConfig,
     Gradient : Gradient,
+    HardStripes : HardStripes,
+    HardStripesX : HardStripesX,
     HumpFlicker : HumpFlicker,
     HumpFlickerL : HumpFlickerL,
     HumpFlickerF : HumpFlickerF,
@@ -9000,6 +9110,8 @@ function newCall(Cls) {
     OriginalBlast : OriginalBlast,
     OriginalBlastL : OriginalBlastL,
     OriginalBlastF : OriginalBlastF,
+    Pixelate : Pixelate,
+    PixelateX : PixelateX,
     Pulsing : Pulsing,
     PulsingX : PulsingX,
     PulsingL : PulsingL,
@@ -9086,10 +9198,8 @@ function newCall(Cls) {
     TrJoin : TrJoin,
     TrJoinR : TrJoinR,
     TrRandom : TrRandom,
-    TrSelect : TrSelect,
-    
+    TrSelect : TrSelect,    
     TrSequence : TrSequence,
-    
     TrWaveX : TrWaveX,
     TrSparkX : TrSparkX,
     TrTrailSparkX : TrTrailSparkX,
@@ -9274,7 +9384,6 @@ AddIdentifier("HaltRed", Rgb.bind(null, 255, 0, 19));
 AddIdentifier("MoltenCore", Rgb.bind(null, 255, 24, 0));
 AddIdentifier("SafetyOrange", Rgb.bind(null, 255, 33, 0));
 AddIdentifier("OrangeJuice", Rgb.bind(null, 255, 55, 0));
-AddIdentifier("Orange", Rgb.bind(null, 255, 97, 0));
 AddIdentifier("ImperialYellow", Rgb.bind(null, 255, 115, 0));
 AddIdentifier("SchoolBus", Rgb.bind(null, 255, 176, 0));
 AddIdentifier("SuperSaiyan", Rgb.bind(null, 255, 186, 0));
@@ -10374,9 +10483,9 @@ function getIncompatibleTabs(tab) {
       <button
         title="Simulates powering on the Proffieboard. Triggers style code Int<using EFFECT_BOOT."
         onclick="AddBoot()">Boot</button>
-<!--       <button
+      <button
         title="Simulates changing presets. Triggers style code using EFFECT_NEWFONT."
-        onclick="AddNewfont()">NewFont</button> -->
+        onclick="AddNewfont()">NewFont</button>
       <button
         title="Simulates &quot;pre-ignition&quot;; pressing the power button when there are preon.wav files available in the current font. Triggers style code using EFFECT_PREON."
         onclick="AddPreon()">Preon</button>
@@ -10657,7 +10766,7 @@ function IncreaseAlt(n) {
             <i class="fa-solid fa-copy"></i> Copy</button>
           <button 
             id="expand_button"
-            title="Reveals the &quot;under the hood&quot; code that the shorthand macro uses. This allows access to otherwise omitted arguments, and is only an active button when applicable."
+            title="Reveals the &quot;under the hood&quot; code that the shorthand macro uses. This allows access to otherwise omitted arguments, and most importantly allows functions to be used instead of just numbers. It is only an active button when applicable."
             onclick="DoExpand()">
             <i class="fa-solid fa-up-right-and-down-left-from-center"></i> Expand</button>
           <button 
