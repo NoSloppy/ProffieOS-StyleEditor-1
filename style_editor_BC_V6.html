@@ -8,7 +8,6 @@
   <meta name="description" content="ProffieOS Style Editor: Customize your Proffieboard saber blade animations with this browser based tool.">
   <link rel="shortcut icon" type="image/png" href="SE_Favicon.png">
   <title>ProffieOS Style Editor</title>
-<!-- <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script> -->
 <style>
 /*
  * Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com
@@ -4169,7 +4168,7 @@ class StripesXClass extends STYLE {
     var now_micros = micros();
     var delta_micros = now_micros - this.last_micros;
     this.last_micros = now_micros;
-    this.m = MOD((this.m + delta_micros * this.SPEED.getInteger(0) / 333), (this.COLORS.length * 341 * 1024));
+    this.m = MOD( (this.m + delta_micros * this.SPEED.getInteger(0) / 333), (this.COLORS.length * 341 * 1024))
     this.mult = (50000 * 1024 / this.WIDTH.getInteger(0));
   }
   GET_COLOR(N, led, p, ret) {
@@ -4181,18 +4180,18 @@ class StripesXClass extends STYLE {
       ret.g += tmp.g * mul;
       ret.b += tmp.b * mul;
     }
-    this.GET_COLOR(N + 1, led, p - 341, ret);
+    this.GET_COLOR(N+1, led, p - 341, ret);
   }
   getColor(led) {
     var p = ((this.m + led * this.mult) >> 10) % (this.COLORS.length * 341);
-    var ret = Rgb(0, 0, 0);
+    var ret = Rgb(0,0,0);
     this.GET_COLOR(0, led, p, ret);
     this.GET_COLOR(0, led, p + 341 * this.COLORS.length, ret);
     return ret;
   }
 }
 
-function StripesX(W, S, C) {
+function StripesX(W,S,C) {
   return new StripesXClass(Array.from(arguments));
 }
 
@@ -4209,7 +4208,7 @@ class StripesClass extends MACRO {
   }
 }
 
-function Stripes(W, S, C) {
+function Stripes(W,S,C) {
   return new StripesClass(Array.from(arguments));
 }
 
@@ -9198,10 +9197,8 @@ function newCall(Cls) {
     TrJoin : TrJoin,
     TrJoinR : TrJoinR,
     TrRandom : TrRandom,
-    TrSelect : TrSelect,
-    
+    TrSelect : TrSelect,    
     TrSequence : TrSequence,
-
     TrWaveX : TrWaveX,
     TrSparkX : TrSparkX,
     TrTrailSparkX : TrTrailSparkX,
@@ -11001,7 +10998,7 @@ function ClickRestore() {
 }
 
 </script>
-<!-- <model-viewer alt="Neil Armstrong's Spacesuit from the Smithsonian Digitization Programs Office and National Air and Space Museum" src="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb" ar environment-image="https://modelviewer.dev/shared-assets/environments/moon_1k.hdr" poster="https://modelviewer.dev/shared-assets/models/NeilArmstrong.webp" shadow-intensity="1" camera-controls touch-action="pan-y"></model-viewer> -->
+
     <br>
     <!-- <div id=TABS class="tabs-container"> -->
     <div id=TABS>
