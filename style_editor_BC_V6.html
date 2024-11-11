@@ -3346,15 +3346,39 @@ class BladeEffect {
 
 
 class Range {
-  constructor(start, end) {
+  constructor(start = 0, end = 0) {
     this.start = start;
     this.end = end;
   }
-  Size() { return max(0, this.end - this.start); }
-  Intersect(other) {
-    return new Range(max(this.start, other.start), min(this.end, other.end));
+
+  size() {
+    if (this.start >= this.end) return 0;
+    return this.end - this.start;
   }
-};
+
+  intersect(other) {
+    return new Range(Math.max(this.start, other.start), Math.min(this.end, other.end));
+  }
+
+  static intersectWithStripes(stripeWidth, mod, end) {
+    return Math.floor(end / mod) * stripeWidth + Math.min(stripeWidth, end % mod);
+  }
+
+  intersectWithStripes(stripeWidth, mod) {
+    return Range.intersectWithStripes(stripeWidth, mod, this.end) - 
+           Range.intersectWithStripes(stripeWidth, mod, this.start);
+  }
+
+  intersectWithStripesRange(stripe, mod) {
+    if (!(stripe instanceof Range)) {
+      stripe = new Range(stripe.start, stripe.end);
+    }
+    let shift = mod - stripe.start;
+    let tmp = new Range(this.start + shift, this.end + shift);
+    return tmp.intersectWithStripes(stripe.size(), mod);
+  }
+}
+
 
 // TODO
 // Gray out buttons not applicable to the current type. - BC WIP.
@@ -4151,6 +4175,7 @@ class EffectSequenceClass extends STYLE {
 function EffectSequence(MPC, C) {
   return new EffectSequenceClass(Array.from(arguments));
 };
+
 class StripesXClass extends STYLE {
   constructor(ARGS) {
     super("Configurable rainbow", ARGS);
@@ -4211,6 +4236,86 @@ function Stripes(W,S,C) {
   return new StripesClass(Array.from(arguments));
 }
 
+// close but joints look wrong.
+
+// class HardStripesXClass extends STYLE {
+//   constructor(ARGS) {
+//     super("Configurable hard stripes", ARGS);
+//     this.add_arg("WIDTH", "FUNCTION", "Stripe width");
+//     this.add_arg("SPEED", "FUNCTION", "Scroll speed");
+//     this.COLORS = ARGS.slice(2);
+//     for (let i = 1; i < this.COLORS.length + 1; i++) {
+//       this.add_arg("COLOR" + i, "COLOR", "COLOR " + i);
+//     }
+//     this.last_micros = 0;
+//     this.m = 0;
+//   }
+
+//   run(blade) {
+//     super.run(blade);
+//     let now_micros = micros();
+//     let delta_micros = now_micros - this.last_micros;
+//     this.last_micros = now_micros;
+//     this.m = MOD((this.m + delta_micros * this.SPEED.getInteger(0) / 333), (this.COLORS.length * 341 * 1024));
+//     this.mult = (50000 * 1024 / this.WIDTH.getInteger(0));
+//   }
+
+//   HARD_GET_COLOR(pixel, N, led, p, mod, ret) {
+//     if (N >= this.COLORS.length || p < 0) return;
+    
+//     let segment_size = 341;
+//     let stripe = new Range(p, p + segment_size);
+//     let weight = pixel.intersectWithStripesRange(stripe, mod);
+
+//     if (weight) {
+//       let tmp = this.COLORS[N].getColor(led);
+//       if (weight === pixel.size()) {
+//         ret.r = tmp.r;
+//         ret.g = tmp.g;
+//         ret.b = tmp.b;
+//         return;
+//       } else {
+//         weight = weight * 16384 / pixel.size();
+//         ret.r = clamp(ret.r + ((tmp.r * weight) >> 14), 0, 65535);
+//         ret.g = clamp(ret.g + ((tmp.g * weight) >> 14), 0, 65535);
+//         ret.b = clamp(ret.b + ((tmp.b * weight) >> 14), 0, 65535);
+//       }
+//     }
+
+//     if (N + 1 < this.COLORS.length) {
+//       this.HARD_GET_COLOR(pixel, N + 1, led, p + segment_size, mod, ret);
+//     }
+//   }
+
+//   getColor(led) {
+//     let p = ((this.m + led * this.mult) >> 10) % (this.COLORS.length * 341);
+//     let ret = Rgb(0, 0, 0);
+//     this.HARD_GET_COLOR(new Range(0, this.mult >> 10), 0, led, p, this.COLORS.length * 341, ret);
+//     return ret;
+//   }
+// }
+
+// function HardStripesX(W, S, C) {
+//   return new HardStripesXClass(Array.from(arguments));
+// }
+
+// class HardStripesClass extends MACRO {
+//   constructor(ARGS) {
+//     super("Configurable hard stripes", ARGS);
+//     this.add_arg("WIDTH", "INT", "Stripe width");
+//     this.add_arg("SPEED", "INT", "Scroll speed");
+//     this.COLORS = ARGS.slice(2);
+//     for (let i = 1; i < this.COLORS.length + 1; i++) {
+//       this.add_arg("COLOR" + i, "COLOR", "COLOR " + i);
+//     }
+
+//     this.SetExpansion(new HardStripesXClass([Int(this.WIDTH), Int(this.SPEED)].concat(this.COLORS)));
+//   }
+// }
+
+// function HardStripes(W, S, C) {
+//   return new HardStripesClass(Array.from(arguments));
+// }
 class HardStripesXClass extends STYLE {
   constructor(ARGS) {
     super("Configurable hard stripes", ARGS);
@@ -4227,37 +4332,47 @@ class HardStripesXClass extends STYLE {
     var now_micros = micros();
     var delta_micros = now_micros - this.last_micros;
     this.last_micros = now_micros;
-    this.m = MOD((this.m + delta_micros * this.SPEED.getInteger(0) / 333), (this.COLORS.length * 341 * 1024));
+    this.m = MOD( (this.m + delta_micros * this.SPEED.getInteger(0) / 333), (this.COLORS.length * 341 * 1024))
     this.mult = (50000 * 1024 / this.WIDTH.getInteger(0));
   }
-  HARD_GET_COLOR(N, led, p, ret) {
+
+  GET_COLOR(N, led, p, ret) {
     if (N >= this.COLORS.length || p < 0) return;
     var segment_size = 341;
-    if (p < segment_size) {
+    var stripe_start = p;
+    var stripe_end = p + segment_size;
+    
+    // Determine the intersection range
+    var intersection_start = Math.max(0, stripe_start);
+    var intersection_end = Math.min(this.mult >> 10, stripe_end);
+    var weight = intersection_end - intersection_start;
+
+    if (weight > 0) {
       var tmp = this.COLORS[N].getColor(led);
-      if (p > 0 && p < 512) { // One-pixel transition logic
-        var mul = sin(p * Math.PI / 512.0);
-        ret.r = tmp.r * mul;
-        ret.g = tmp.g * mul;
-        ret.b = tmp.b * mul;
-      } else {
+      if (weight == this.mult >> 10) {
         ret.r = tmp.r;
         ret.g = tmp.g;
         ret.b = tmp.b;
+        return;
+      } else {
+        var scaling_factor = weight * 16384 / (this.mult >> 10);
+        ret.r += tmp.r * scaling_factor / 16384.0;
+        ret.g += tmp.g * scaling_factor / 16384.0;
+        ret.b += tmp.b * scaling_factor / 16384.0;
       }
-    } else {
-      this.HARD_GET_COLOR(N + 1, led, p - segment_size, ret);
     }
+    this.GET_COLOR(N+1, led, p + segment_size, ret);
   }
+
   getColor(led) {
     var p = ((this.m + led * this.mult) >> 10) % (this.COLORS.length * 341);
-    var ret = Rgb(0, 0, 0);
-    this.HARD_GET_COLOR(0, led, p, ret);
+    var ret = Rgb(0,0,0);
+    this.GET_COLOR(0, led, p, ret);
     return ret;
   }
 }
 
-function HardStripesX(W, S, C) {
+function HardStripesX(W,S,C) {
   return new HardStripesXClass(Array.from(arguments));
 }
 
@@ -4274,10 +4389,9 @@ class HardStripesClass extends MACRO {
   }
 }
 
-function HardStripes(W, S, C) {
+function HardStripes(W,S,C) {
   return new HardStripesClass(Array.from(arguments));
 }
-
 class AudioFlickerLClass extends MACRO {
   constructor(COLOR) {
     super("Audio flicker layer, higher volumes means less transparent.", arguments);
@@ -6490,7 +6604,9 @@ class TrCenterWipeClass extends MACRO {
   constructor(MILLIS, POS) {
     super("WipeIn transition", arguments);
     this.add_arg("MILLIS", "INT", "Center Wipe time in milliseconds.");
-    this.add_arg("POS", "INT", "Position", 16384);
+    // this.add_arg("POS", "INT", "Position", 16384);
+    this.add_arg("POS", "TIME_FUNCTION", "Position", Int(16384)); // Updated POS to "TIME_FUNCTION"
+
     this.SetExpansion(TrCenterWipeX(Int(MILLIS), Int(this.POS)));
   }
 }
@@ -6502,7 +6618,9 @@ class TrCenterWipeSparkXClass extends MACRO {
     super("WipeIn transition", arguments);
     this.add_arg("COLOR", "COLOR", "Color");
     this.add_arg("MILLIS", "FUNCTION", "Center Wipe time in milliseconds.");
-    this.add_arg("POS", "INT", "Position", Int(16384));
+    // this.add_arg("POS", "INT", "Position", Int(16384));
+    this.add_arg("POS", "TIME_FUNCTION", "Position", Int(16384)); // Updated POS to "TIME_FUNCTION"
+
     this.SetExpansion(TrJoin(TrCenterWipeX(MILLIS, this.POS),TrWaveX(COLOR, Sum(MILLIS, MILLIS, MILLIS, MILLIS), Int(200), Sum(MILLIS, MILLIS), this.POS)));
   }
 }
@@ -6514,7 +6632,9 @@ class TrCenterWipeSparkClass extends MACRO {
     super("WipeIn transition", arguments);
     this.add_arg("COLOR", "COLOR", "Color");
     this.add_arg("MILLIS", "INT", "Center Wipe time in milliseconds.");
-    this.add_arg("POS", "INT", "Position", 16384);
+    // this.add_arg("POS", "INT", "Position", 16384);
+    this.add_arg("POS", "TIME_FUNCTION", "Position", Int(16384)); // Updated POS to "TIME_FUNCTION"
+
     this.SetExpansion(TrJoin(TrCenterWipeX(Int(MILLIS), Int(this.POS)),TrWaveX(COLOR, Sum(Int(MILLIS), Int(MILLIS), Int(MILLIS), Int(MILLIS)), Int(200), Sum(Int(MILLIS), Int(MILLIS)), Int(this.POS))));
   }
 }
@@ -6549,7 +6669,7 @@ class TrCenterWipeInClass extends MACRO {
   constructor(MILLIS, POS) {
     super("WipeIn transition", arguments);
     this.add_arg("MILLIS", "INT", "Center Wipe time in milliseconds.");
-    this.add_arg("POS", "INT", "Position", 16384);
+    this.add_arg("POS", "FUNCTION", "Position", 16384);
     this.SetExpansion(TrCenterWipeInX(Int(MILLIS), Int(this.POS)));
   }
 }
@@ -6561,7 +6681,7 @@ class TrCenterWipeInSparkXClass extends MACRO {
     super("WipeIn transition", arguments);
     this.add_arg("COLOR", "COLOR", "Color");
     this.add_arg("MILLIS", "TIME_FUNCTION", "Center Wipe time in milliseconds.");
-    this.add_arg("POS", "INT", "Position", Int(16384));
+    this.add_arg("POS", "FUNCTION", "Position", Int(16384));
     this.SetExpansion(TrJoin(TrCenterWipeInX(MILLIS, this.POS),TrJoin(TrWaveX(COLOR, MILLIS.DOCOPY(), Int(200), Sum(MILLIS, MILLIS), Int(0)),TrWaveX(COLOR, MILLIS, Int(200), Sum(MILLIS, MILLIS), Int(32768)))));
 
   }
@@ -7025,7 +7145,7 @@ class TrSelectClass extends TRANSITION {
   constructor(ARGS) {
     super("Select transitions", ARGS);
     this.TRANSITIONS = Array.from(ARGS).slice(1);
-    this.add_arg("F", "FUNCTION", "Transition to select");
+    this.add_arg("F", "FUNCTION", "FUNCTION to select Transition");
     for (var i = 1; i <= max(this.TRANSITIONS.length, 1); i++) {
       this.add_arg("TRANSITION" + i, "TRANSITION", "Transiton " + i);
     }
