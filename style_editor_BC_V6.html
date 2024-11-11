@@ -3016,7 +3016,7 @@ AddEffect("Cylon<Red, 5, 20>");
 AddEffect("Gradient<Blue, Green, Yellow, Red>");
 AddEffect("Gradient<Red, Blue, Green>");
 AddEffect("Gradient<Red, Blue>");
-AddEffect("HardStripes<4000,-800,Blue,HotPink>");
+// AddEffect("HardStripes<4000,-800,Blue,HotPink>");
 AddEffect("Hue<16384>");
 AddEffectWL("HumpFlicker<Green, Magenta, 50>");
 AddEffect("InOutHelper<White, 300, 800, Black>");
@@ -3344,40 +3344,51 @@ class BladeEffect {
   }
 };
 
-
 class Range {
-  constructor(start = 0, end = 0) {
+  constructor(start, end) {
     this.start = start;
     this.end = end;
   }
-
-  size() {
-    if (this.start >= this.end) return 0;
-    return this.end - this.start;
+  Size() { return max(0, this.end - this.start); }
+  Intersect(other) {
+    return new Range(max(this.start, other.start), min(this.end, other.end));
   }
+};
+// For HardStripes to work...but it doesn't 
 
-  intersect(other) {
-    return new Range(Math.max(this.start, other.start), Math.min(this.end, other.end));
-  }
+// class Range {
+//   constructor(start = 0, end = 0) {
+//     this.start = start;
+//     this.end = end;
+//   }
 
-  static intersectWithStripes(stripeWidth, mod, end) {
-    return Math.floor(end / mod) * stripeWidth + Math.min(stripeWidth, end % mod);
-  }
+//   size() {
+//     if (this.start >= this.end) return 0;
+//     return this.end - this.start;
+//   }
 
-  intersectWithStripes(stripeWidth, mod) {
-    return Range.intersectWithStripes(stripeWidth, mod, this.end) - 
-           Range.intersectWithStripes(stripeWidth, mod, this.start);
-  }
+//   intersect(other) {
+//     return new Range(Math.max(this.start, other.start), Math.min(this.end, other.end));
+//   }
 
-  intersectWithStripesRange(stripe, mod) {
-    if (!(stripe instanceof Range)) {
-      stripe = new Range(stripe.start, stripe.end);
-    }
-    let shift = mod - stripe.start;
-    let tmp = new Range(this.start + shift, this.end + shift);
-    return tmp.intersectWithStripes(stripe.size(), mod);
-  }
-}
+//   static intersectWithStripes(stripeWidth, mod, end) {
+//     return Math.floor(end / mod) * stripeWidth + Math.min(stripeWidth, end % mod);
+//   }
+
+//   intersectWithStripes(stripeWidth, mod) {
+//     return Range.intersectWithStripes(stripeWidth, mod, this.end) - 
+//            Range.intersectWithStripes(stripeWidth, mod, this.start);
+//   }
+
+//   intersectWithStripesRange(stripe, mod) {
+//     if (!(stripe instanceof Range)) {
+//       stripe = new Range(stripe.start, stripe.end);
+//     }
+//     let shift = mod - stripe.start;
+//     let tmp = new Range(this.start + shift, this.end + shift);
+//     return tmp.intersectWithStripes(stripe.size(), mod);
+//   }
+// }
 
 
 // TODO
@@ -4316,82 +4327,87 @@ function Stripes(W,S,C) {
 // function HardStripes(W, S, C) {
 //   return new HardStripesClass(Array.from(arguments));
 // }
-class HardStripesXClass extends STYLE {
-  constructor(ARGS) {
-    super("Configurable hard stripes", ARGS);
-    this.add_arg("WIDTH", "FUNCTION", "Stripe width");
-    this.add_arg("SPEED", "FUNCTION", "Scroll speed");
-    this.COLORS = ARGS.slice(2);
-    for (var i = 1; i < this.COLORS.length + 1; i++)
-      this.add_arg("COLOR" + i, "COLOR", "COLOR " + i);
-    this.last_micros = 0;
-    this.m = 0;
-  }
-  run(blade) {
-    super.run(blade);
-    var now_micros = micros();
-    var delta_micros = now_micros - this.last_micros;
-    this.last_micros = now_micros;
-    this.m = MOD( (this.m + delta_micros * this.SPEED.getInteger(0) / 333), (this.COLORS.length * 341 * 1024))
-    this.mult = (50000 * 1024 / this.WIDTH.getInteger(0));
-  }
 
-  GET_COLOR(N, led, p, ret) {
-    if (N >= this.COLORS.length || p < 0) return;
-    var segment_size = 341;
-    var stripe_start = p;
-    var stripe_end = p + segment_size;
+
+// Still not right
+
+// class HardStripesXClass extends STYLE {
+//   constructor(ARGS) {
+//     super("Configurable hard stripes", ARGS);
+//     this.add_arg("WIDTH", "FUNCTION", "Stripe width");
+//     this.add_arg("SPEED", "FUNCTION", "Scroll speed");
+//     this.COLORS = ARGS.slice(2);
+//     for (var i = 1; i < this.COLORS.length + 1; i++)
+//       this.add_arg("COLOR" + i, "COLOR", "COLOR " + i);
+//     this.last_micros = 0;
+//     this.m = 0;
+//   }
+//   run(blade) {
+//     super.run(blade);
+//     var now_micros = micros();
+//     var delta_micros = now_micros - this.last_micros;
+//     this.last_micros = now_micros;
+//     this.m = MOD( (this.m + delta_micros * this.SPEED.getInteger(0) / 333), (this.COLORS.length * 341 * 1024))
+//     this.mult = (50000 * 1024 / this.WIDTH.getInteger(0));
+//   }
+
+//   GET_COLOR(N, led, p, ret) {
+//     if (N >= this.COLORS.length || p < 0) return;
+//     var segment_size = 341;
+//     var stripe_start = p;
+//     var stripe_end = p + segment_size;
     
-    // Determine the intersection range
-    var intersection_start = Math.max(0, stripe_start);
-    var intersection_end = Math.min(this.mult >> 10, stripe_end);
-    var weight = intersection_end - intersection_start;
+//     // Determine the intersection range
+//     var intersection_start = Math.max(0, stripe_start);
+//     var intersection_end = Math.min(this.mult >> 10, stripe_end);
+//     var weight = intersection_end - intersection_start;
 
-    if (weight > 0) {
-      var tmp = this.COLORS[N].getColor(led);
-      if (weight == this.mult >> 10) {
-        ret.r = tmp.r;
-        ret.g = tmp.g;
-        ret.b = tmp.b;
-        return;
-      } else {
-        var scaling_factor = weight * 16384 / (this.mult >> 10);
-        ret.r += tmp.r * scaling_factor / 16384.0;
-        ret.g += tmp.g * scaling_factor / 16384.0;
-        ret.b += tmp.b * scaling_factor / 16384.0;
-      }
-    }
-    this.GET_COLOR(N+1, led, p + segment_size, ret);
-  }
+//     if (weight > 0) {
+//       var tmp = this.COLORS[N].getColor(led);
+//       if (weight == this.mult >> 10) {
+//         ret.r = tmp.r;
+//         ret.g = tmp.g;
+//         ret.b = tmp.b;
+//         return;
+//       } else {
+//         var scaling_factor = weight * 16384 / (this.mult >> 10);
+//         ret.r += tmp.r * scaling_factor / 16384.0;
+//         ret.g += tmp.g * scaling_factor / 16384.0;
+//         ret.b += tmp.b * scaling_factor / 16384.0;
+//       }
+//     }
+//     this.GET_COLOR(N+1, led, p + segment_size, ret);
+//   }
 
-  getColor(led) {
-    var p = ((this.m + led * this.mult) >> 10) % (this.COLORS.length * 341);
-    var ret = Rgb(0,0,0);
-    this.GET_COLOR(0, led, p, ret);
-    return ret;
-  }
-}
+//   getColor(led) {
+//     var p = ((this.m + led * this.mult) >> 10) % (this.COLORS.length * 341);
+//     var ret = Rgb(0,0,0);
+//     this.GET_COLOR(0, led, p, ret);
+//     return ret;
+//   }
+// }
 
-function HardStripesX(W,S,C) {
-  return new HardStripesXClass(Array.from(arguments));
-}
+// function HardStripesX(W,S,C) {
+//   return new HardStripesXClass(Array.from(arguments));
+// }
 
-class HardStripesClass extends MACRO {
-  constructor(ARGS) {
-    super("Configurable hard stripes", ARGS);
-    this.add_arg("WIDTH", "INT", "Stripe width");
-    this.add_arg("SPEED", "INT", "Scroll speed");
-    this.COLORS = ARGS.slice(2);
-    for (var i = 1; i < this.COLORS.length + 1; i++)
-      this.add_arg("COLOR" + i, "COLOR", "COLOR " + i);
+// class HardStripesClass extends MACRO {
+//   constructor(ARGS) {
+//     super("Configurable hard stripes", ARGS);
+//     this.add_arg("WIDTH", "INT", "Stripe width");
+//     this.add_arg("SPEED", "INT", "Scroll speed");
+//     this.COLORS = ARGS.slice(2);
+//     for (var i = 1; i < this.COLORS.length + 1; i++)
+//       this.add_arg("COLOR" + i, "COLOR", "COLOR " + i);
 
-    this.SetExpansion(new HardStripesXClass([Int(this.WIDTH), Int(this.SPEED)].concat(this.COLORS)));
-  }
-}
+//     this.SetExpansion(new HardStripesXClass([Int(this.WIDTH), Int(this.SPEED)].concat(this.COLORS)));
+//   }
+// }
 
-function HardStripes(W,S,C) {
-  return new HardStripesClass(Array.from(arguments));
-}
+// function HardStripes(W,S,C) {
+//   return new HardStripesClass(Array.from(arguments));
+// }
+
 class AudioFlickerLClass extends MACRO {
   constructor(COLOR) {
     super("Audio flicker layer, higher volumes means less transparent.", arguments);
@@ -9199,8 +9215,8 @@ function newCall(Cls) {
     FOCUS : Focus,
     FireConfig : FireConfig,
     Gradient : Gradient,
-    HardStripes : HardStripes,
-    HardStripesX : HardStripesX,
+    // HardStripes : HardStripes,
+    // HardStripesX : HardStripesX,
     HumpFlicker : HumpFlicker,
     HumpFlickerL : HumpFlickerL,
     HumpFlickerF : HumpFlickerF,
