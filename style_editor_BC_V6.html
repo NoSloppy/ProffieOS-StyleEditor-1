@@ -6696,7 +6696,7 @@ class TrCenterWipeInClass extends MACRO {
   constructor(MILLIS, POS) {
     super("WipeIn transition", arguments);
     this.add_arg("MILLIS", "INT", "Center Wipe time in milliseconds.");
-    this.add_arg("POS", "FUNCTION", "Position", 16384);
+    this.add_arg("POS", "INT", "Position", 16384);
     this.SetExpansion(TrCenterWipeInX(Int(MILLIS), Int(this.POS)));
   }
 }
@@ -7978,7 +7978,7 @@ class MultClass extends FUNCTION {
     super("Multiply values. Note - Uses fixed point 16.15 multiplication", ARGS);
     this.FUNCTIONS = Array.from(ARGS);
     for (var i = 1; i < this.FUNCTIONS.length + 1; i++)
-      this.add_arg("FUNCTION" + i, "FUNCTION", "Function " + i);
+      this.add_arg("FUNCTION" + i, "FUNCTION", "COLOR " + i);
   }
   getInteger(led) {
     var ret = this.FUNCTIONS[0].getInteger(led);
@@ -11025,15 +11025,13 @@ function IncreaseAlt(n) {
               <input type="checkbox" id="BENCHMARK_BUTTON" name="benchmark" onclick="handleClick(this)">
               <span>Benchmark</span>
             </label>
-          </div>
-          <div class="settings-section">
             <label title="Enter a custom WavLen value in milliseconds." class="wavlen-label">
               WavLen time:
               <input type='number' id="WAVLEN_VALUE" class="wavlen-value" value="500">
             </label>
           </div>
           <br>
-          <button 
+          <button
             title="Restore all settings to default, including restoring popups."
             id="restore_defaults" onclick="ClickRestore()">Restore Defaults</button>
         </div>
