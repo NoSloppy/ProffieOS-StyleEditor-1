@@ -3503,7 +3503,6 @@ class Range {
 // TODO
 // Gray out buttons not applicable to the current type. - BC WIP.
 // Save -> save to local storage (keep 10?) maybe with images?
-// save as -> save to local storage with name - BC basic version done.
 // Mix
 
 class ColorCycleClass extends STYLE {
@@ -6045,7 +6044,7 @@ function TransitionLoop(C, T) { return new TransitionLoopClass(C, T); }
 class MultiTransitionEffectLClass extends STYLE {
   constructor(TRANSITION, EFFECT_ARG, N) {
     super("Trigger transitions on an effect.", arguments);
-    this.add_arg("TRANSITION", "TRANSITION", "from Effect Color back to Base");
+    this.add_arg("TRANSITION", "TRANSITION", "Transition Effects");
     this.add_arg("EFFECT", "EFFECT", "Effect type");
     this.add_arg("N", "INT", "Simultaneous effects.", 3);
     this.effect_ = new OneshotEffectDetector(this.EFFECT);
@@ -6068,7 +6067,7 @@ class MultiTransitionEffectLClass extends STYLE {
       this.running[this.pos] = true;
       this.E[this.pos] = last_detected_blade_effect;
       this.pos++;
-      if (this.pos == this.N) this.pos = 0;
+      if (this.pos >= this.N) this.pos = 0;
     }
     for (var i = 0; i < this.N; i++) {
       if (this.running[i]) {
@@ -6085,7 +6084,7 @@ class MultiTransitionEffectLClass extends STYLE {
     var ret = Transparent();
     var P = this.pos + 1;
     for (var i = 0; i < this.N; i++) {
-      if (P > this.N) P = 0;
+      if (P >= this.N) P = 0;
       if (this.running[P]) {
         ret = this.TRANSITIONS[P].getColor(ret, ret, led);
       }
@@ -6132,7 +6131,7 @@ function MultiTransitionEffect(T, EC, T1, T2, E, N) {
 class TransitionEffectLClass extends STYLE {
   constructor(EFFECT_COLOR, TRANSITION1, TRANSITION2, EFFECT_ARG) {
     super("Trigger transitions on an effect.", arguments);
-    this.add_arg("TRANSITION", "TRANSITION", "from Effect Color back to Base");
+    this.add_arg("TRANSITION", "TRANSITION", "Transition Effect");
     this.add_arg("EFFECT", "EFFECT", "Effect type");
     this.effect_ = new OneshotEffectDetector(this.EFFECT);
     this.run_ = false;
@@ -7266,7 +7265,7 @@ class TrSelectClass extends TRANSITION {
   constructor(ARGS) {
     super("Select transitions", ARGS);
     this.TRANSITIONS = Array.from(ARGS).slice(1);
-    this.add_arg("F", "FUNCTION", "FUNCTION to select Transition");
+    this.add_arg("F", "FUNCTION", "This FUNCTION selects which of the transitions to use");
     for (var i = 1; i <= max(this.TRANSITIONS.length, 1); i++) {
       this.add_arg("TRANSITION" + i, "TRANSITION", "Transiton " + i);
     }
@@ -7940,9 +7939,9 @@ class SawClass extends FUNCTION {
     this.pos = fract(this.pos + delta / 60000000.0 * this.RPM.getInteger(0));
     var high = this.HIGH.getInteger(0);
     var low = this.LOW.getInteger(0);
-    this.value = low + this.pos * (high - low);
+    this.value = Math.floor(low + this.pos * (high - low));
   }
-  getInteger(led) { return Math.floor(this.value); }
+  getInteger(led) { return this.value; }
 };
 
 function Saw(RPM, LOW, HIGH) { return new SawClass(RPM, LOW, HIGH); }
@@ -8069,7 +8068,7 @@ function RampF() {
 
 class MultClass extends FUNCTION {
   constructor(ARGS) {
-    super("Multiply values. Note - Uses fixed point 16.15 multiplication", ARGS);
+    super("Multiply values. Uses fixed point 16.15 multiplication", ARGS);
     this.FUNCTIONS = Array.from(ARGS);
     for (var i = 1; i < this.FUNCTIONS.length + 1; i++)
       this.add_arg("FUNCTION" + i, "FUNCTION", "COLOR " + i);
@@ -11117,7 +11116,7 @@ function IncreaseAlt(n) {
           <div class="settings-section">
             <h4 class="settings-section-label" title="These settings are useful for people making modifications to the style editor.">Developer Settings:</h4>
             <label title="Benchmark how many passes we can render per frame.">
-              <input type="checkbox" id="BENCHMARK_BUTTON" name="benchmark" onclick="handleClick(this)">
+              <input type="checkbox" id="BENCHMARK_BUTTON" name="benchmark" onclick="handleSettings(this)">
               <span>Benchmark</span>
             </label>
             <label title="Enter a custom WavLen value in milliseconds." class="wavlen-label">
@@ -11184,37 +11183,55 @@ function saveState(buttonState, settingIsOn) {
 }
 
 class SavedState {
-  constructor(name, def, update_function, type = "checkbox") {
+  constructor(name, def, update_function) {
     this.name = name;
     this.def = def;
     this.update_function = update_function;
-    this.type = type;
     all_saved_states.push(this);
-    const checkbox = FIND(this.name.toUpperCase()+"_BUTTON");
-    state_by_checkbox.set(checkbox, this);
   }
   onload() {
     this.set(getSavedState(this.name + "Save", this.def));
   }
   set(value) {
-    this.value = value;
-    if (this.type === "checkbox") {
-      FIND(this.name.toUpperCase() + "_BUTTON").checked = value ? true : false;
-    } else if (this.type === "number") {
-      FIND(this.name.toUpperCase() + "_VALUE").value = value;
-    }
-    saveState(this.name + "Save", value);
-    this.update_function(value);
+    throw new Error("set() must be implemented by subclass");
   }
   get() { return this.value; }
 }
 
-var darkState = new SavedState("dark", false, (on) => {
+class SavedStateBool extends SavedState {
+  constructor(name, def, update_function) {
+    super(name, def, update_function);
+    // For checkboxes, store the mapping for use in handleSettings().
+    const checkbox = FIND(name.toUpperCase() + "_BUTTON");
+    state_by_checkbox.set(checkbox, this);
+  }
+  set(value) {
+    this.value = value;
+    FIND(this.name.toUpperCase() + "_BUTTON").checked = value ? true : false;
+    saveState(this.name + "Save", value);
+    this.update_function(value);
+  }
+}
+
+class SavedStateNumber extends SavedState {
+  constructor(name, def, update_function) {
+    super(name, def, update_function);
+  }
+  set(value) {
+    this.value = value;
+    FIND(this.name.toUpperCase() + "_VALUE").value = value;
+    saveState(this.name + "Save", value);
+    this.update_function(value);
+  }
+}
+
+
+var darkState = new SavedStateBool("dark", false, (on) => {
   body.classList.toggle("dark-mode", on);
   structuredView.classList.toggle("dark-mode", on);
 });
 
-var tipsState = new SavedState("tips", true, (on) => { 
+var tipsState = new SavedStateBool("tips", true, (on) => { 
  if (on) {
     const elementsWithDataTitles = document.querySelectorAll("[data-title]");
     elementsWithDataTitles.forEach((element) => {
@@ -11230,19 +11247,19 @@ var tipsState = new SavedState("tips", true, (on) => {
   }
 });
 
-var colorsortState = new SavedState("colorsort", false, (on) => {
+var colorsortState = new SavedStateBool("colorsort", false, (on) => {
   updateRgbTabContent();
 });
 
-var graflexState = new SavedState("graflex", true, (on) => { compile(); });
-var mouseswingsState = new SavedState("mouseswings", false, (on) => {});
-var autoswingState = new SavedState("autoswing", true, (on) => {});
-var inhiltState = new SavedState("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
-var slowState = new SavedState("slow", false, (on) => { framesPerUpdate = on ? 10 : 0; time_factor = framesPerUpdate == 0 ? 1000 : (500/framesPerUpdate)});
-var benchmarkState = new SavedState("benchmark", false, (on) => { AA=1; compile(); FIND("error_message").innerHTML = ""; });
-var wavlenState = new SavedState("wavlen", 500, (value) => {
+var graflexState = new SavedStateBool("graflex", true, (on) => { compile(); });
+var mouseswingsState = new SavedStateBool("mouseswings", false, (on) => {});
+var autoswingState = new SavedStateBool("autoswing", true, (on) => {});
+var inhiltState = new SavedStateBool("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
+var slowState = new SavedStateBool("slow", false, (on) => { framesPerUpdate = on ? 10 : 0; time_factor = framesPerUpdate == 0 ? 1000 : (500/framesPerUpdate)});
+var benchmarkState = new SavedStateBool("benchmark", false, (on) => { AA=1; compile(); FIND("error_message").innerHTML = ""; });
+var wavlenState = new SavedStateNumber("wavlen", 500, (value) => {
   myWavLen.setLength(value);
-}, "number");
+});
 wavlenInput.addEventListener("input", function(e) {
   var value = parseInt(this.value);
   var newValue = (isNaN(value) || value < 1) ? 1 : value;
