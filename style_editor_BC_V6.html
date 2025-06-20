@@ -2076,11 +2076,13 @@ class STYLE {
       var note = arguments[i+1];
       var comment = null;
       if (typeof(arg) == "number") {
-        arg = "" + arg;
+      // arg = "" + arg;
+        arg = "<div class='pp-container'><span title='" + note + "'>" + arg + "</span></div>";
       } else {
         comment = arg.COMMENT;
         arg = this.call_pp_no_comment(arg);
       }
+
       if (arg.indexOf("<br>") == -1 && arg.indexOf("<div") == -1 && !comment) {
         ret += arg+" /* "+note+" */\n";
       } else {
@@ -7427,8 +7429,8 @@ class TrDoEffectAlwaysXClass extends TRANSITION {
     super("Do effect", arguments);
     this.add_arg("TRANSITION","TRANSITION", "Wrapped transition");
     this.add_arg("EFFECT", "EFFECT", "Effect to trigger.");
-    this.add_arg("WAVNUM", "FUNCTION", "Select wave number.");
-    this.add_arg("LOCATION", "FUNCTION", "Effect location.");
+    this.add_arg("WAVNUM", "FUNCTION", "Select wave number.", Int(-1));
+    this.add_arg("LOCATION", "FUNCTION", "Effect location.", Int(-1));
     this.begin_ = false;
   }
   begin() {
@@ -11165,17 +11167,23 @@ var wavlenInput = FIND("WAVLEN_VALUE");
 var myWavLen = new WavLenClass();
 
 /* Settings buttons saved as local storage */
+// function getSavedState(buttonState, defaultValue) {
+//   var value = localStorage.getItem(buttonState);
+//   console.log("Retrieved SavedState for " + buttonState + ": " + value);
+
+//   if (value === null) {
+//     return defaultValue;
+//   }
+//   if (buttonState === "wavlenSave"){
+//     return value;
+//   }
+//   return value !== "false";
+// }
+
 function getSavedState(buttonState, defaultValue) {
   var value = localStorage.getItem(buttonState);
   console.log("Retrieved SavedState for " + buttonState + ": " + value);
-
-  if (value === null) {
-    return defaultValue;
-  }
-  if (buttonState === "wavlenSave"){
-    return value;
-  }
-  return value !== "false";
+  return (value === null ? defaultValue : value);
 }
 
 function saveState(buttonState, settingIsOn) {
@@ -11205,11 +11213,18 @@ class SavedStateBool extends SavedState {
     const checkbox = FIND(name.toUpperCase() + "_BUTTON");
     state_by_checkbox.set(checkbox, this);
   }
+  // set(value) {
+  //   this.value = value;
+  //   FIND(this.name.toUpperCase() + "_BUTTON").checked = value ? true : false;
+  //   saveState(this.name + "Save", value);
+  //   this.update_function(value);
+  // }
   set(value) {
-    this.value = value;
-    FIND(this.name.toUpperCase() + "_BUTTON").checked = value ? true : false;
-    saveState(this.name + "Save", value);
-    this.update_function(value);
+    const boolValue = (value === true || value === "true");
+    this.value = boolValue;
+    FIND(this.name.toUpperCase() + "_BUTTON").checked = boolValue;
+    saveState(this.name + "Save", boolValue);
+    this.update_function(boolValue);
   }
 }
 
