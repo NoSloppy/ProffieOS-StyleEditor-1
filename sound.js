@@ -5,6 +5,7 @@ const fontSoundBuffers = {};
 let fontSoundDurations = {};
 const fontSoundFilenames = {};
 let fontSounds = {};
+
 // If wanted, a "loading" overlay could show until load done,
 //  but annoying, esp if not doing sound
 // let fontIsLoaded  = false;
@@ -247,7 +248,56 @@ if (!soundOn) return;
   console.log("▶ [Fallback] fontSounds before default:", arr);
   if (!arr || arr.length === 0) arr = defaultFontSounds[effectName];
   console.log("▶ [Fallback] fontSounds after default:", arr);
-  if (!arr || arr.length === 0) return;
+  if (!arr || arr.length === 0) {
+    // Special case: If effectName is "slash", play swing as fallback and warn
+    if (effectName === "slash") {
+      const msg = `[Warning] No slash.wav available for EFFECT_ACCENT_SLASH – playing swing sound instead.`;
+      console.warn(msg);
+      const errorDiv = FIND("error_message");
+      if (errorDiv) {
+        errorDiv.innerHTML = msg;
+        errorDiv.style.color = "orange";
+        if (window.errorMessageTimeout) {
+          clearTimeout(window.errorMessageTimeout);
+        }
+        const lastMsg = msg;
+        window.errorMessageTimeout = setTimeout(() => {
+          if (errorDiv.innerHTML === lastMsg) {
+            errorDiv.innerHTML = "";
+          }
+          window.errorMessageTimeout = null;
+        }, 3000);
+      }
+      playRandomEffect("swing");
+      return;
+    }
+
+    // For other missing sounds, warn as usual
+    const effectStr = effectName.toUpperCase();
+    const effectKey = Object.keys(window)
+      .find(k => window[k] === effectName || k.replace(/^EFFECT_/, '').toLowerCase() === effectName.toLowerCase());
+    const effectId  = effectKey ? ` (${effectKey})` : "";
+    const msg = `[Warning] No sound available for effect: "${effectName}"${effectId}.`;
+    console.error(msg);
+
+    // Show in the error_message area as well (with timeout reset)
+    const errorDiv = FIND("error_message");
+    if (errorDiv) {
+      errorDiv.innerHTML = msg;
+      errorDiv.style.color = "orange";
+      if (window.errorMessageTimeout) {
+        clearTimeout(window.errorMessageTimeout);
+      }
+      const lastMsg = msg;
+      window.errorMessageTimeout = setTimeout(() => {
+        if (errorDiv.innerHTML === lastMsg) {
+          errorDiv.innerHTML = "";
+        }
+        window.errorMessageTimeout = null;
+      }, 3000);
+    }
+    return;
+  }
 
   const last = lastPlayedSoundIndex[effectName];
   const idx  = noRepeatRandom(arr.length, last);
