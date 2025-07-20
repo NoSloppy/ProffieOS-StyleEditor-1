@@ -278,7 +278,7 @@ body {
 .page-left-top {
   display: flex;
   flex-direction: column;
-  height: 100%;
+/*  height: 100%;*/
 }
 
 #page_left_top:fullscreen,
@@ -294,13 +294,6 @@ body {
   height: 100vh;
 }
 
-#canvas-container {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  justify-content: stretch;
-  min-height: 0;
-}
 
 #page_left_top:fullscreen #canvas-container,
 #page_left_top:-webkit-full-screen #canvas-container {
@@ -329,9 +322,9 @@ body {
   left: 10px;
   display: flex;
   flex-wrap: wrap;
-  align-items: center;    /* <-- added */
+  align-items: center;
   gap: 0.5em;
-  padding: 0.2em;         /* <-- added */
+  padding: 0.2em;
   z-index: 1000;
 }
 
@@ -341,18 +334,6 @@ body {
   margin-bottom: 0 !important;
 }
 
-/* tighten up the dropdown height */
-#page_left_top:fullscreen #control-buttons select {
-  padding: 0.2em;
-  height: auto;
-  min-height: 0;
-  font-size: 0.9em;
-}
-
-/* keep the “More Effects” group on one line */
-#page_left_top:fullscreen .more-menu-container {
-  white-space: nowrap;
-}
 /* tighten up the dropdown height to match buttons */
 #page_left_top:fullscreen #control-buttons select {
   padding: 3px 6px;
@@ -363,7 +344,7 @@ body {
   margin: 0;
 }
 /*  .controls on the right  */
-#page_left_top:fullscreen .controls,
+/*#page_left_top:fullscreen .controls,
 #page_left_top:-webkit-full-screen .controls {
   position: absolute;
   top: 10px;
@@ -373,6 +354,7 @@ body {
   gap: 0.5em;
   z-index: 1000;
 }
+*/
 
 /* Push the canvas down so it doesn’t sit under the new toolbar */
 #page_left_top:fullscreen #canvas-container,
@@ -383,35 +365,81 @@ body {
 #page_left_top:-webkit-full-screen #ENLARGE_BUTTON {
   display: none;
 }
+#page_left_top:fullscreen .controls-row,
+#page_left_top:-webkit-full-screen .controls-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  width: 100%;
+  gap: 1em;
+  position: static;
+  margin-top: 1em; /* adjust as needed */
+}
 
+#page_left_top:fullscreen #control-buttons,
+#page_left_top:-webkit-full-screen #control-buttons,
+#page_left_top:fullscreen .controls,
+#page_left_top:-webkit-full-screen .controls {
+  position: static;
+  margin: 0;
+}
+#page_left_top:fullscreen .controls-row,
+#page_left_top:-webkit-full-screen .controls-row {
+  order: -1;               /* move the row above the canvas */
+}
 
+/* ensure canvas-container sits below our toolbar */
+#page_left_top:fullscreen #canvas-container,
+#page_left_top:-webkit-full-screen #canvas-container {
+  order: 0;                /* reset canvas back to normal position */
+}
+#page_left_top:fullscreen .sound-ribbon-container,
+#page_left_top:-webkit-full-screen .sound-ribbon-container {
+  margin-left: 1em;
+}
 .canvas-container,
 #canvas-container {
   position: relative;
+  width: 100%;
+  height: 100%;
 }
-
+#canvas-container {
+/*  flex: 1 1 auto;*/
+  display: flex;
+  flex-direction: column;
+  justify-content: stretch;
+  overflow: hidden;
+/*  min-height: 3em;*/
+}
 /* Base canvas styling */
 canvas#canvas_id,
 #canvas-container canvas {
   display: block;
-  max-width: 100%;
+/*  max-width: 100%;
   width: 100%;
-  height: 100%;
+  height: 100%;*/
   box-sizing: border-box;
 }
 
 /* Fullscreen toggle button */
-#canvas-container #FULLSCREEN {
+/*#canvas-container #FULLSCREEN_BUTTON {
   position: absolute;
   top: 10px;
   right: 10px;
   z-index: 10;
+}*/
+/* Show the Fullscreen/Exit button at top-right in FS mode */
+#page_left_top:fullscreen   #FULLSCREEN_BUTTON,
+#page_left_top:-webkit-full-screen #FULLSCREEN_BUTTON {
+  position: fixed;    /* escape the relative container */
+  top: 10px;          /* same as your other toolbar items */
+  right: 10px;
+  z-index: 1001;
 }
-
 /* Enlarge/reduce button */
 #ENLARGE_BUTTON {
   position: absolute;
-  bottom: 10px;
+  bottom: 40px;
   right: 20px;
   z-index: 10;
 }
@@ -469,7 +497,7 @@ need to be here to not override Other Buttons below */
 .settings-panel button.close-settings {
   position: absolute;
   top: 0px;
-  left: 340px;
+  right: 5px;
   padding: 0px 4px;
   font-weight: bold;
   background-color: Red;
@@ -587,7 +615,7 @@ input.nofocus:focus {
   align-items: center;
   font-size: 15px;
   max-width: fit-content;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
 }
 
 .sound-ribbon-label {
@@ -1858,103 +1886,105 @@ void main() {
             id="FULLSCREEN_BUTTON"
             title="Click to view full screen.">Fullscreen</button>
         </div> <!-- canvas-container -->
-        <div id="control-buttons">
-          <button
-            id="POWER_BUTTON"
-            title="Turn the blade On and Off. Simulates ignition and retraction events on the blade."
-            onclick="ClickPower()">Power</button>
-          <button
-            title="Simulates an impact hit on the blade. Triggers style code using EFFECT_CLASH."
-            onclick="AddClash()">Clash</button>
-          <button
-            title="Simulates an impact hit on the tip of the blade. Triggers style code using EFFECT_STAB."
-            onclick="AddStab()">Stab</button>
-          <button
-            title="Simulates a blaster bolt deflection impact hit on the blade. Triggers style code using EFFECT_BLAST."
-            onclick="AddBlast()">Blast</button>
-          <button
-            title="Triggers style code using EFFECT_FORCE."
-            onclick="AddForce()">Force</button>
-          <button
-            title="Simulates Accent Swings."
-            onclick="AddSwing()">Swing</button>
-          <select id="LOCKUP" name="lockup" title="Choose Lockup dropdown menu." onchange="OnLockupChange()"></select>
-          <span class="more-menu-container">
-            <select
-              id="more_effects_menu"
-              title="This menu contains all of the additional EFFECTS. Select one, then use the &quot;Do Selected Effect&quot; button to trigger the effect." >
-            <option value="">Select More Effects</option>
-            </select>
-            <input
-              type="button" id="do_selected" value="Do Selected Effect"
-              title="Press this to trigger the EFFECT selected in the More Effects menu.">
-          </span> <!-- more-menu-container -->
-        </div> <!-- control-buttons -->
-        <div class="controls">
-          <span class="variant-alt-container">
-            <span class="variant-alt-controls">
-              <span class="variant-label">Variant:</span>
+        <div class="controls-row">
+          <div id="control-buttons">
+            <button
+              id="POWER_BUTTON"
+              title="Turn the blade On and Off. Simulates ignition and retraction events on the blade."
+              onclick="ClickPower()">Power</button>
+            <button
+              title="Simulates an impact hit on the blade. Triggers style code using EFFECT_CLASH."
+              onclick="AddClash()">Clash</button>
+            <button
+              title="Simulates an impact hit on the tip of the blade. Triggers style code using EFFECT_STAB."
+              onclick="AddStab()">Stab</button>
+            <button
+              title="Simulates a blaster bolt deflection impact hit on the blade. Triggers style code using EFFECT_BLAST."
+              onclick="AddBlast()">Blast</button>
+            <button
+              title="Triggers style code using EFFECT_FORCE."
+              onclick="AddForce()">Force</button>
+            <button
+              title="Simulates Accent Swings."
+              onclick="AddSwing()">Swing</button>
+            <select id="LOCKUP" name="lockup" title="Choose Lockup dropdown menu." onchange="OnLockupChange()"></select>
+            <span class="more-menu-container">
+              <select
+                id="more_effects_menu"
+                title="This menu contains all of the additional EFFECTS. Select one, then use the &quot;Do Selected Effect&quot; button to trigger the effect." >
+              <option value="">Select More Effects</option>
+              </select>
               <input
-                id="VARIANT_SLIDER" name="varslider" type="range" class="variant-slider"
-                title="Slide to adjust the Variant value."
-                min="0" max="32768" step="1" value="0"
-                oninput="updateVariantValue(this.value)" >
-              <input
-                id="VARIANT_MINUS" name="varminus" type="button" value="<"
-                title="Decreases the Variant value. Hold to increase speed of the changing value."
-                onmousedown="startAdjustingValue(-1, 'VARIANT_SLIDER')"
-                onmouseup="stopAdjustingValue()"
-                onmouseleave="stopAdjustingValue()" >
-              <input
-                id="VARIANT_VALUE" name="varvalue" type="text" size="6" value="0" class="nofocus"
-                title="The current Variant value. You can also type in this field for direct entry of a value."
-                oninput="updateVariantValue(this.value)"
-                onfocusout="ValidateInput(event)" >
-              <input
-                id="VARIANT_PLUS" name="varplus" type="button" value=">"
-                title="Increases the Variant value. Hold to increase speed of the changing value."
-                onmousedown="startAdjustingValue(1, 'VARIANT_SLIDER')"
-                onmouseup="stopAdjustingValue()"
-                onmouseleave="stopAdjustingValue()" >
-              <span class="alt-label">Alt:</span>
-              <input
-                id="ALT_MINUS" name="altminus" type="button" value="<"
-                title="Decreases the Alt value."
-                onclick="IncreaseAlt(-1)" >
-              <input
-                id="ALT_VALUE" name="alt" type="text" size="6" value="0" class="nofocus"
-                title="The current Alt value. You can also type in this field for direct entry of a value."
-                oninput="updateAltValue(this.value)"
-                onfocusout="ValidateInput(event)" >
-              <input
-                id="ALT_PLUS" name="altplus" type="button" value=">"
-                title="Increases the Alt value."
-                onclick="IncreaseAlt(1)" >
-            </span>
-          </span> <!-- variant-alt-container -->
-          <span class="sound-ribbon-container">
-            <label class="sound-ribbon-label" title="Enable or disable sound.">
-              <input type="checkbox" id="SOUND_BUTTON" name="usesounds" onclick="handleSettings(this)">
-              <span id="sound-toggle-icon-wrap" style="display:inline-block; width: 1.5em; text-align:center;">
-                <i id="sound-toggle-icon" class="fa-solid fa-volume-high"></i>
-            </span></i><span>Sound</span>
-            </label>
-            <label class="sound-ribbon-label" title="Set playback volume.">
-              <span>Volume:</span>
-                <input type="range" id="VOLUME_SLIDER" class="variant-slider" min="0" max="100" value="80">
-              <span id="VOLUME_VALUE" style="display: inline-block; min-width: 28px; text-align: right;">80</span>
-            </label>
-            <label class="sound-ribbon-label" title="Choose saber font.">
-              <span>Choose Font:</span>
-              <button type="button" class="sound-ribbon-btn" id="choose_local_font">
-                <span id="choose_local_font_label">Liquid Static</span>
-              </button>
-              <input
-                type="file" id="files" name="files" webkitdirectory directory multiple style="display:none;">
-              <span id="local_font_name" style="margin-left:5px;"></span>
-            </label>
-          </span> <!-- sound-ribbon-container -->
-        </div> <!-- controls -->
+                type="button" id="do_selected" value="Do Selected Effect"
+                title="Press this to trigger the EFFECT selected in the More Effects menu.">
+            </span> <!-- more-menu-container -->
+          </div> <!-- control-buttons -->
+          <div class="controls">
+            <span class="variant-alt-container">
+              <span class="variant-alt-controls">
+                <span class="variant-label">Variant:</span>
+                <input
+                  id="VARIANT_SLIDER" name="varslider" type="range" class="variant-slider"
+                  title="Slide to adjust the Variant value."
+                  min="0" max="32768" step="1" value="0"
+                  oninput="updateVariantValue(this.value)" >
+                <input
+                  id="VARIANT_MINUS" name="varminus" type="button" value="<"
+                  title="Decreases the Variant value. Hold to increase speed of the changing value."
+                  onmousedown="startAdjustingValue(-1, 'VARIANT_SLIDER')"
+                  onmouseup="stopAdjustingValue()"
+                  onmouseleave="stopAdjustingValue()" >
+                <input
+                  id="VARIANT_VALUE" name="varvalue" type="text" size="6" value="0" class="nofocus"
+                  title="The current Variant value. You can also type in this field for direct entry of a value."
+                  oninput="updateVariantValue(this.value)"
+                  onfocusout="ValidateInput(event)" >
+                <input
+                  id="VARIANT_PLUS" name="varplus" type="button" value=">"
+                  title="Increases the Variant value. Hold to increase speed of the changing value."
+                  onmousedown="startAdjustingValue(1, 'VARIANT_SLIDER')"
+                  onmouseup="stopAdjustingValue()"
+                  onmouseleave="stopAdjustingValue()" >
+                <span class="alt-label">Alt:</span>
+                <input
+                  id="ALT_MINUS" name="altminus" type="button" value="<"
+                  title="Decreases the Alt value."
+                  onclick="IncreaseAlt(-1)" >
+                <input
+                  id="ALT_VALUE" name="alt" type="text" size="6" value="0" class="nofocus"
+                  title="The current Alt value. You can also type in this field for direct entry of a value."
+                  oninput="updateAltValue(this.value)"
+                  onfocusout="ValidateInput(event)" >
+                <input
+                  id="ALT_PLUS" name="altplus" type="button" value=">"
+                  title="Increases the Alt value."
+                  onclick="IncreaseAlt(1)" >
+              </span>
+            </span> <!-- variant-alt-container -->
+            <span class="sound-ribbon-container">
+              <label class="sound-ribbon-label" title="Enable or disable sound.">
+                <input type="checkbox" id="SOUND_BUTTON" name="usesounds" onclick="handleSettings(this)">
+                <span id="sound-toggle-icon-wrap" style="display:inline-block; width: 1.5em; text-align:center;">
+                  <i id="sound-toggle-icon" class="fa-solid fa-volume-high"></i>
+              </span></i><span>Sound</span>
+              </label>
+              <label class="sound-ribbon-label" title="Set playback volume.">
+                <span>Volume:</span>
+                  <input type="range" id="VOLUME_SLIDER" class="variant-slider" min="0" max="100" value="80">
+                <span id="VOLUME_VALUE" style="display: inline-block; min-width: 28px; text-align: right;">80</span>
+              </label>
+              <label class="sound-ribbon-label" title="Choose saber font.">
+                <span>Choose Font:</span>
+                <button type="button" class="sound-ribbon-btn" id="choose_local_font">
+                  <span id="choose_local_font_label">Liquid Static</span>
+                </button>
+                <input
+                  type="file" id="files" name="files" webkitdirectory directory multiple style="display:none;">
+                <span id="local_font_name" style="margin-left:5px;"></span>
+              </label>
+            </span> <!-- sound-ribbon-container -->
+          </div> <!-- controls -->
+        </div>  <!-- controls-row -->
       </div>  <!-- page-left-top -->
 
 

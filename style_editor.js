@@ -5,7 +5,6 @@ var t = 0.0;
 var width;
 var height;
 var dpr = window.devicePixelRatio || 1;
-// at top of style_editor.js
 const canvas = document.getElementById("canvas_id"); 
 
 function FIND(id) {
@@ -159,6 +158,16 @@ let smoothswingIdle = false;
 const updateSmoothSwingGains = (() => {
   let lastGainL, lastGainH, lastSpeed;
   return function() {
+    if (!STATE_ON) {
+      if (!smoothswingIdle) {
+        fadeAndStop('smoothLoopL', 200);
+        fadeAndStop('smoothLoopH', 200);
+        console.log('[SmoothSwing] POWER OFF → stopping loops');
+        smoothswingIdle = true;
+      }
+      requestAnimationFrame(updateSmoothSwingGains);
+      return;
+    }
     swingSpeed = lastSwingSpeed;
     if (Date.now() - lastSwingUpdate > 50) swingSpeed = 0;
 
@@ -1377,9 +1386,22 @@ class RgbClass extends STYLE {
     }
   }
   run(blade) {}
-  getColor(led) {
+  // getColor(led) {
+  //   return this;
+  // }
+  // getColor now accepts an optional `out` object to reuse.
+  // If you pass `out`, we copy into it and return it, else return `this`.
+  getColor(led, out) {
+    if (out) {
+      out.r = this.r;
+      out.g = this.g;
+      out.b = this.b;
+      out.a = this.a;
+      return out;
+    }
     return this;
   }
+
   pp() {
     if (this.name) return this.PPshort(this.name,"Color");
     return this.PPshort("Rgb",  "RGB Color",
@@ -1445,6 +1467,9 @@ class RgbClass extends STYLE {
     }
   }
 };
+
+// Scratch Rgb instance to reduce per-pixel allocations:
+const scratchColor = new RgbClass(0, 0, 0);
 
 function f(n, C, MAX) {
   var k = n % 6;
@@ -8443,7 +8468,8 @@ function drawScene() {
     numTick = 0;
     S.run(blade);
     for (var i = 0; i < num_leds; i++) {
-        var c = S.getColor(i);
+        // var c = S.getColor(i);
+        var c = S.getColor(i, scratchColor);
         pixels[i*4 + 0] = Math.round(c.r * 255);
         pixels[i*4 + 1] = Math.round(c.g * 255);
         pixels[i*4 + 2] = Math.round(c.b * 255);
@@ -8456,7 +8482,8 @@ function drawScene() {
       S.run(blade);
     }
     for (var i = 0; i < num_leds; i++) {
-        var c = S.getColor(i);
+        // var c = S.getColor(i);
+        var c = S.getColor(i, scratchColor);
         pixels[i*4 + 0 + num_leds * 4] = Math.round(c.r * 255);
         pixels[i*4 + 1 + num_leds * 4] = Math.round(c.g * 255);
         pixels[i*4 + 2 + num_leds * 4] = Math.round(c.b * 255);
@@ -8482,7 +8509,8 @@ function drawScene() {
 
   // Draw these textures to the screen, offset by 1 pixel increments
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gl.viewport(0, 0, width * dpr, height * dpr);
+  // gl.viewport(0, 0, width * dpr, height * dpr);
+  gl.viewport(0, 0, canvas.width, canvas.height);
   gl.clearColor(0.0, 1.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -8504,8 +8532,9 @@ function drawScene() {
   }
   gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_time"),
                (new Date().getTime() - start) / 1000.0);
-  gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_width"),  canvas.width );
-  gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_height"), canvas.height);
+    gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_width"),  canvas.clientWidth  );
+  gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_height"), canvas.clientHeight );
+
 
   gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "u_move_matrix"), false, rotation.values);
   gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "u_old_move_matrix"), false, OLD_MOVE_MATRIX.values);
@@ -8515,10 +8544,37 @@ function drawScene() {
   t += 1;
 }
 
-function tick() {
-  window.requestAnimationFrame(tick);
+// function tick() {
+//   window.requestAnimationFrame(tick);
+//   drawScene();
+// }
+
+let rafId = null;
+
+function loop() {
   drawScene();
+  rafId = requestAnimationFrame(loop);
 }
+
+function startLoop() {
+  if (!rafId) rafId = requestAnimationFrame(loop);
+}
+
+function stopLoop() {
+  if (rafId) {
+    cancelAnimationFrame(rafId);
+    rafId = null;
+  }
+}
+
+// pause when the tab is hidden, resume when it comes back
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    stopLoop();
+  } else {
+    startLoop();
+  }
+});
 var overall_string;
 
 function ReplaceCurrentFocus(str) {
@@ -9703,11 +9759,6 @@ var soundOnState = new SavedStateBool("sound", true, (on) => {
     icon.classList.add("fa-volume-off");
   }
 
-  // if (!on) {
-  //   stopAllLoops();
-  // } else {
-  //   resumeLoops();
-  // }
   if (!on) {
     console.log('Sound turned OFF → stopping all loops');
     stopAllLoops();
@@ -9718,7 +9769,6 @@ var soundOnState = new SavedStateBool("sound", true, (on) => {
 });
 var useFontWavLenState = new SavedStateBool("use_font_wavlen", true, (on) => { handleWavLenControls(); });
 
-//////////// BC ///////////
 var origD;
 // Create n textures of about 1MB each.
 function initGL() {
@@ -9767,8 +9817,6 @@ function initGL() {
   var container = FIND("page_left_top");
   var enlargeCanvas = false;
 
-  width = window.innerWidth;
-  height = window.innerHeight;
   canvas_id.setAttribute("title", "Blade Preview.\nMove mouse to swing. Click to Clash\nor to Do Selected Effect (and to dismiss this Tooltip.)\nGoto settings to change hilt model or toggle Mouse Swings mode (swinging with mouse moves.)");
 
   if(window.devicePixelRatio !== undefined) {
@@ -9777,16 +9825,14 @@ function initGL() {
     dpr = 1;
   }
 
-
-  width = width * 2 / 3;
-  height /= 3;
+  width = window.innerWidth * 2 / 3;
+  height = window.innerHeight / 3;
   window.normalWidth = width;
   window.normalHeight = height;
   canvas.width = width * dpr;
   canvas.height = height * dpr;
-  canvas.style.width = width + 'px';
-  canvas.style.height = height + 'px';
   origD = Math.min(width, height);
+
 
   FIND('ENLARGE_BUTTON').onclick = function() {
     enlargeCanvas = !enlargeCanvas;
@@ -9796,12 +9842,10 @@ function initGL() {
     } else {
       height = window.innerHeight / 3;
     }
-    
+    width = height * (window.normalWidth / window.normalHeight);
     // Update the canvas dimensions
     canvas.width = width * dpr;
     canvas.height = height * dpr;
-    canvas.style.width = width + 'px';
-    canvas.style.height = height + 'px';
   }
 
   FIND('FULLSCREEN_BUTTON').onclick = function() {
@@ -9809,53 +9853,28 @@ function initGL() {
       FIND('page_left_top').requestFullscreen();
     } else {
       document.exitFullscreen();
-      enlargeCanvas = false;
     }
   };
 
   document.addEventListener("fullscreenchange", function() {
-    var fullscreenButton = FIND("FULLSCREEN_BUTTON");
-    // toggle button text
+    const fullscreenButton = FIND("FULLSCREEN_BUTTON");
     fullscreenButton.innerText = document.fullscreenElement
       ? "Exit Fullscreen"
       : "Fullscreen";
 
+    let cssW, cssH;
     if (document.fullscreenElement === container) {
-      // **ENTERING** fullscreen → size canvas to its parent (#canvas-container),
-      // which your CSS already makes 100vw×100vh.
-      var parent = FIND("canvas-container");
-      var rect = parent.getBoundingClientRect();
-      canvas.width  = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      canvas.style.width  = rect.width + "px";
-      canvas.style.height = rect.height + "px";
-      origD = Math.min(canvas.width, canvas.height);
+      const rect = FIND("canvas-container").getBoundingClientRect();
+      cssW = rect.width;  cssH = rect.height;
     } else {
-      // **EXITING** fullscreen → restore original 2/3×1/3 size (use stored values)
-      width = window.normalWidth;
-      height = window.normalHeight;
-      canvas.width  = width * dpr;
-      canvas.height = height * dpr;
-      canvas.style.width  = width + "px";
-      canvas.style.height = height + "px";
-      origD = Math.min(width, height);
+      cssW = window.normalWidth;  cssH = window.normalHeight;
     }
+
+    canvas.width  = cssW * dpr;
+    canvas.height = cssH * dpr;
+    origD = Math.min(canvas.width, canvas.height);
   });
 
-  window.addEventListener("resize", function() {
-    // if still in fullscreen, re-measure the container
-    if (document.fullscreenElement === container) {
-      var parent = FIND("canvas-container");
-      var rect = parent.getBoundingClientRect();
-      canvas.width  = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      canvas.style.width  = rect.width + "px";
-      canvas.style.height = rect.height + "px";
-      origD = Math.min(canvas.width, canvas.height);
-    }
-  });
-
-  // exit fullscreen on Esc
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape' && document.fullscreenElement) {
       document.exitFullscreen();
@@ -9877,13 +9896,6 @@ function initGL() {
   Run();
   DoLayerize();
 
-  //FIND("color_links").innerHTML = qlinks;
-  //FIND("effect_links").innerHTML = effect_links;
-  //FIND("effect_type_links").innerHTML = effect_type_links;
-  //FIND("template_links").innerHTML = template_links;
-  //FIND("function_links").innerHTML = function_links;
-  //FIND("transition_links").innerHTML = transition_links;
-
   // Bind a vertex buffer with a single triangle
   var buffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -9897,11 +9909,22 @@ function initGL() {
   gl.bindTexture(gl.TEXTURE_2D, texture);
 
   // Start the event loop.
-  tick();
+  // ==== 15 FPS rAF loop, auto-pauses on tab hide ====
+  const targetFps = 15;
+  const frameInterval = 1000 / targetFps;
+  let lastTime = performance.now();
+
+  (function loop(now) {
+    requestAnimationFrame(loop);
+    if (document.hidden) return;            // don’t render when tab isn’t visible
+
+    const delta = now - lastTime;
+    if (delta < frameInterval) return;       // not enough time elapsed
+
+    lastTime = now - (delta % frameInterval);
+    drawScene();
+  })();
 }
-
-
-//////////// BC ///////////
 
 function onPageLoad() {
   initGL();
