@@ -1,25 +1,52 @@
-////////////// Add Sound PR ///////////
 // Preload defaultFontSounds + buffers + durations
 let defaultFontSounds = {};
-const fontSoundBuffers = {};
-let fontSoundDurations = {};
-const fontSoundFilenames = {};
-let fontSounds = {};
-
-// If wanted, a "loading" overlay could show until load done,
-//  but annoying, esp if not doing sound
-// let fontIsLoaded  = false;
-// let waitingForFont = false;
-// let fontPromises   = null;
+const defaultFontSoundBuffers   = {};
+const defaultFontSoundDurations = {};
+const defaultFontSoundFilenames = {};
+const customFontSoundBuffers = {};
+let customFontSoundDurations = {};
+const customFontSoundFilenames = {};
+let customFontSounds = {};
+let currentFontName = "Default";
+let useDefaultFontFallback = false;
 
 // Track which index was played for each effect (noRepeatRandom() use)
 const lastPlayedSoundIndex = {};
 let soundOn = true;
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+const volumeSlider = document.getElementById('VOLUME_SLIDER');
+const volumeValue = document.getElementById('VOLUME_VALUE');
+let globalVolume = Number(volumeSlider.value) / 100;
+
+// master gain for global volume
+const masterGain = audioCtx.createGain();
+masterGain.gain.value = globalVolume;
+masterGain.connect(audioCtx.destination);
+
+let lockupGainNode = null;
+let lockupLoopSrc  = null;
+let lockupEndBuffer = null;
+
 let activeOneShots = [];
+
+
+// SmoothSwing and swing sounds
+let swingSpeed = 0;
+window.swingMotionPeak = 0;
+window.swingMotionActive = false;
+window.swingLastEffect = 0;
+const swingThreshold = 150;
+const slashThreshold = 230;
+const effectCooldown = 250; // ms
+
+let lastSwingUpdate = 0;
+let lastSwingSpeed = 0;
 let lastSmoothGainL = 0;
 let lastSmoothGainH = 0;
+let smoothswingIdle = false;
 
+// Load default font.
 fetch('default_font_urls.txt')
   .then(r => r.text())
   .then(text => {
@@ -36,22 +63,24 @@ fetch('default_font_urls.txt')
 
     // For each effect, create buffer + duration slots
     for (const [effect, urlList] of Object.entries(defaultFontSounds)) {
-      fontSoundBuffers[effect]   = [];
-      fontSoundDurations[effect] = [];
+      defaultFontSoundBuffers[effect]   = [];
+      defaultFontSoundDurations[effect] = [];
+      defaultFontSoundFilenames[effect]  = [];
 
       urlList.forEach((url, idx) => {
         fetch(url)
           .then(r => r.arrayBuffer())
           .then(data => audioCtx.decodeAudioData(data))
           .then(buffer => {
-            // store decoded AudioBuffer
-            fontSoundBuffers[effect][idx] = buffer;
-            // store duration for WavLen & timing
-            fontSoundDurations[effect][idx] = Math.round(buffer.duration * 1000);
-            // Track filenames for each buffer index - really just for logging.
-            fontSoundFilenames[effect] ||= [];
-            fontSoundFilenames[effect][idx] = url.split('/').pop();
-            console.log(`Default font: ${fontSoundFilenames[effect][idx]} - duration ${fontSoundDurations[effect][idx]} ms`);
+            // store decoded AudioBuffer into default maps
+            defaultFontSoundBuffers[effect][idx]   = buffer;
+            // store duration
+            const dur = Math.round(buffer.duration * 1000);
+            defaultFontSoundDurations[effect][idx] = dur;
+            // track filename
+            defaultFontSoundFilenames[effect][idx] = url.split('/').pop();
+
+            console.log(`Default font: ${defaultFontSoundFilenames[effect][idx]} - duration ${dur} ms`);
           })
           .catch(err => console.error(`Error loading default sound ${url}:`, err));
       });
@@ -59,34 +88,18 @@ fetch('default_font_urls.txt')
   })
   .catch(err => console.error("Could not load default_font_urls.txt:", err));
 
-const volumeSlider = document.getElementById('VOLUME_SLIDER');
-const volumeValue = document.getElementById('VOLUME_VALUE');
-let globalVolume = Number(volumeSlider.value) / 100;
-
 volumeSlider.addEventListener('input', function() {
   volumeValue.textContent = this.value;
   globalVolume = Number(this.value) / 100;
 
-  // Update gain for hum and lockup
-  if (window.humAudio && window.humAudio.gainNode)
-    window.humAudio.gainNode.gain.value = globalVolume;
+// Update master volume
+masterGain.gain.value = globalVolume;
 
-  if (window.lockupGainNode)
-    window.lockupGainNode.gain.value = globalVolume;
-
-  // Update smoothswing volumes relative to global
-  if (window.smoothLoopL && window.smoothLoopL.gainNode)
-    window.smoothLoopL.gainNode.gain.value = lastSmoothGainL * globalVolume;
-  if (window.smoothLoopH && window.smoothLoopH.gainNode)
-    window.smoothLoopH.gainNode.gain.value = lastSmoothGainH * globalVolume;
-
-  // Update any currently active HTMLAudio one-shots (for effect sounds)
-  if (window.activeOneShots && Array.isArray(window.activeOneShots)) {
-    window.activeOneShots.forEach(obj => {
-      if (obj.gainNode) obj.gainNode.gain.value = globalVolume;
-      if (obj.audio)    obj.audio.volume         = globalVolume;
-    });
-  }
+// Update smoothswing volumes relative to global
+if (window.smoothLoopL && window.smoothLoopL.gainNode)
+  window.smoothLoopL.gainNode.gain.value = lastSmoothGainL * globalVolume;
+if (window.smoothLoopH && window.smoothLoopH.gainNode)
+  window.smoothLoopH.gainNode.gain.value = lastSmoothGainH * globalVolume;
 });
 
 function showLoadingOverlay() {
@@ -119,13 +132,11 @@ const fileInput          = document.getElementById('files');
 const localFontName      = document.getElementById('local_font_name');
 
 chooseLocalFontBtn.addEventListener('click', () => {
-  stopAllLoops();
-  stopAllOneShots();
-
   fileInput.value = '';
   fileInput.click();
 });
 
+// Load custom font.
 fileInput.addEventListener('change', (e) => {
   const files = e.target.files;
   if (!files || files.length === 0) {
@@ -142,10 +153,14 @@ fileInput.addEventListener('change', (e) => {
 
   // Set the button's label to the folder name
   document.getElementById('choose_local_font_label').textContent = folderName;
+  currentFontName = folderName;
+  // Reset to defaults (so fallback is always there)
+  customFontSounds = {};
+  // Wipe out any old custom mappings
+  Object.keys(customFontSoundBuffers).forEach(e => delete customFontSoundBuffers[e]);
+  Object.keys(customFontSoundDurations).forEach(e => delete customFontSoundDurations[e]);
+  Object.keys(customFontSoundFilenames).forEach(e => delete customFontSoundFilenames[e]);
 
-  fontSounds = {};
-  fontSoundDurations = {};
-  for (let k in fontSoundBuffers) delete fontSoundBuffers[k];
   const promises = [];
 
   for (const file of selectedFiles) {
@@ -153,23 +168,23 @@ fileInput.addEventListener('change', (e) => {
     if (!m) continue;
     const effect = m[1].toLowerCase();
 
-    fontSounds[effect] ||= [];
-    fontSoundDurations[effect] = fontSoundDurations[effect] || [];
-    const idx = fontSounds[effect].length;
-    fontSounds[effect].push(file);
-    fontSoundDurations[effect][idx] = null;
-    fontSoundFilenames[effect] ||= [];
-    fontSoundFilenames[effect][idx] = file.name;
-    if (!fontSoundBuffers[effect]) fontSoundBuffers[effect] = [];
-    fontSoundBuffers[effect][idx] = null;
+    customFontSounds[effect] ||= [];
+    customFontSoundDurations[effect] = customFontSoundDurations[effect] || [];
+    const idx = customFontSounds[effect].length;
+    customFontSounds[effect].push(file);
+    customFontSoundDurations[effect][idx] = null;
+    customFontSoundFilenames[effect] ||= [];
+    customFontSoundFilenames[effect][idx] = file.name;
+    if (!customFontSoundBuffers[effect]) customFontSoundBuffers[effect] = [];
+    customFontSoundBuffers[effect][idx] = null;
 
     const reader = new FileReader();
     reader.onload = ev => {
       audioCtx.decodeAudioData(ev.target.result)
         .then(buffer => {
-          fontSoundBuffers[effect][idx] = buffer;
+          customFontSoundBuffers[effect][idx] = buffer;
           const dur = Math.round(buffer.duration * 1000);
-          fontSoundDurations[effect][idx] = dur;
+          customFontSoundDurations[effect][idx] = dur;
           console.log(`Custom font: ${folderName} ${file.name} - duration ${dur} ms`);
         })
         .catch(err => console.error("Decode error:", err));
@@ -178,7 +193,7 @@ fileInput.addEventListener('change', (e) => {
 
     promises.push(
       getAudioFileDuration(file).then(ms => {
-        fontSoundDurations[effect][idx] = ms;
+        customFontSoundDurations[effect][idx] = ms;
       })
     );
   }
@@ -187,6 +202,78 @@ fileInput.addEventListener('change', (e) => {
     .catch(err => console.error("Error loading durations:", err))
     .then(() => hideLoadingOverlay && hideLoadingOverlay());
 });
+
+const updateSmoothSwingGains = (() => {
+  let lastGainL, lastGainH, lastSpeed;
+  return function() {
+    if (!STATE_ON) {
+      if (!smoothswingIdle) {
+        fadeAndStop('smoothLoopL', 200);
+        fadeAndStop('smoothLoopH', 200);
+        console.log('[SmoothSwing] POWER OFF → stopping loops');
+        smoothswingIdle = true;
+      }
+      requestAnimationFrame(updateSmoothSwingGains);
+      return;
+    }
+    swingSpeed = lastSwingSpeed;
+    if (Date.now() - lastSwingUpdate > 50) swingSpeed = 0;
+
+    if (STATE_ON) {
+      if (swingSpeed === 0) {
+        if (!smoothswingIdle) {
+          fadeAndStop('smoothLoopL', 200);
+          fadeAndStop('smoothLoopH', 200);
+          console.log(`[SmoothSwing] --- STOPPING LOOPS`);
+          smoothswingIdle = true;
+        }
+      } else {
+        if (smoothswingIdle) {
+          startAudioLoop('swingl', 'smoothLoopL', 0, true);
+          startAudioLoop('swingh', 'smoothLoopH', 0, true);
+          console.log(`[SmoothSwing] +++ STARTING LOOPS`);
+        }
+        smoothswingIdle = false;
+      }
+    }
+
+    if (window.smoothLoopL && window.smoothLoopH) {
+      const SwingStrengthThreshold    = 5.0;
+      const AccentSwingSpeedThreshold = 150.0;
+      let gainL = 0, gainH = 0;
+      if (swingSpeed > SwingStrengthThreshold) {
+        let t = (swingSpeed - SwingStrengthThreshold) / (AccentSwingSpeedThreshold - SwingStrengthThreshold);
+        t = Math.max(0, Math.min(1, t));
+        gainL = t;
+        gainH = t * t;
+      }
+      const now = audioCtx.currentTime;
+      let ramp = 0.2;
+      let gL = window.smoothLoopL.gainNode.gain;
+      let gH = window.smoothLoopH.gainNode.gain;
+      gL.cancelScheduledValues(now);
+      gL.setValueAtTime(gL.value, now);
+      gL.linearRampToValueAtTime(gainL, now + ramp);
+      gH.cancelScheduledValues(now);
+      gH.setValueAtTime(gH.value, now);
+      gH.linearRampToValueAtTime(gainH, now + ramp);
+
+      // Remember raw gains so volume slider can reapply them later
+      lastSmoothGainL = gainL;
+      lastSmoothGainH = gainH;
+
+      // Log on change.
+      if (gainL !== lastGainL || gainH !== lastGainH || swingSpeed !== lastSpeed) {
+        console.log(`[SmoothSwing] speed=${swingSpeed.toFixed(1)} gainL=${gainL.toFixed(2)} gainH=${gainH.toFixed(2)}`);
+        lastGainL = gainL;
+        lastGainH = gainH;
+        lastSpeed = swingSpeed;
+      }
+    }
+    requestAnimationFrame(updateSmoothSwingGains);
+  }
+})();
+
 
 // Get duration (ms) from a File
 function getAudioFileDuration(file) {
@@ -201,131 +288,31 @@ function getAudioFileDuration(file) {
   });
 }
 
-function playRandomEffect(effectName) {
-if (!soundOn) return;
-  // console.log(`playRandomEffect() called for '${effectName}'`);
-  // console.log("  fontSoundBuffers:", fontSoundBuffers[effectName]);
-  // console.log("  fontSoundDurations:", fontSoundDurations[effectName]);
-  // console.log("  lastPlayedSoundIndex:", lastPlayedSoundIndex[effectName]);
-
-  // Resume AudioContext if necessary (iOS/Safari)
-  if (audioCtx.state === 'suspended') audioCtx.resume();
-
-  // Try WebAudio buffers first
-  const buffers = fontSoundBuffers[effectName] || [];
-  const useBuffers = buffers.length > 0 && buffers.every(b => b instanceof AudioBuffer);
-
-  if (useBuffers) {
-    const last = lastPlayedSoundIndex[effectName] ?? -1;
-    const idx  = noRepeatRandom(buffers.length, last);
-    lastPlayedSoundIndex[effectName] = idx;
-
-    const fname = fontSoundFilenames?.[effectName]?.[idx] || "(unknown)";
-    console.log(
-      `▶ [WebAudio] playing: ${fname} - duration=${fontSoundDurations[effectName]?.[idx]} ms`
-    );
-
-    const src = audioCtx.createBufferSource();
-    src.buffer = buffers[idx];
-    const gainNode = audioCtx.createGain();
-    gainNode.gain.value = globalVolume;
-    src.connect(gainNode).connect(audioCtx.destination);
-    src.start(0);
-    // Track the one-shot
-    activeOneShots.push({src, gainNode});
-
-    // Remove from activeOneShots when done
-    src.onended = () => {
-      // Remove only this entry
-      activeOneShots = activeOneShots.filter(e => e.src !== src);
-      gainNode.disconnect();
-    };
-    return;
+function pickLoopBuffers(key) {
+  const custom = (customFontSoundBuffers[key] || []).filter(b => b instanceof AudioBuffer);
+  if (custom.length > 0 && currentFontName !== "Default") {
+    return custom;
   }
-
-  // Fallback to files/URLs
-  let arr = fontSounds[effectName];
-  console.log("▶ [Fallback] fontSounds before default:", arr);
-  if (!arr || arr.length === 0) arr = defaultFontSounds[effectName];
-  console.log("▶ [Fallback] fontSounds after default:", arr);
-  if (!arr || arr.length === 0) {
-    // Special case: If effectName is "slash", play swing as fallback and warn
-    if (effectName === "slash") {
-      const msg = `[Warning] No slash.wav available for EFFECT_ACCENT_SLASH – playing swing sound instead.`;
-      console.warn(msg);
-      const errorDiv = FIND("error_message");
-      if (errorDiv) {
-        errorDiv.innerHTML = msg;
-        errorDiv.style.color = "orange";
-        if (window.errorMessageTimeout) {
-          clearTimeout(window.errorMessageTimeout);
-        }
-        const lastMsg = msg;
-        window.errorMessageTimeout = setTimeout(() => {
-          if (errorDiv.innerHTML === lastMsg) {
-            errorDiv.innerHTML = "";
-          }
-          window.errorMessageTimeout = null;
-        }, 3000);
-      }
-      playRandomEffect("swing");
-      return;
-    }
-
-    // For other missing sounds, warn as usual
-    const effectStr = effectName.toUpperCase();
-    const effectKey = Object.keys(window)
-      .find(k => window[k] === effectName || k.replace(/^EFFECT_/, '').toLowerCase() === effectName.toLowerCase());
-    const effectId  = effectKey ? ` (${effectKey})` : "";
-    const msg = `[Warning] No sound available for effect: "${effectName}"${effectId}.`;
-    console.error(msg);
-
-    // Show in the error_message area as well (with timeout reset)
-    const errorDiv = FIND("error_message");
-    if (errorDiv) {
-      errorDiv.innerHTML = msg;
-      errorDiv.style.color = "orange";
-      if (window.errorMessageTimeout) {
-        clearTimeout(window.errorMessageTimeout);
-      }
-      const lastMsg = msg;
-      window.errorMessageTimeout = setTimeout(() => {
-        if (errorDiv.innerHTML === lastMsg) {
-          errorDiv.innerHTML = "";
-        }
-        window.errorMessageTimeout = null;
-      }, 3000);
-    }
-    return;
+  // either Default font, or custom empty + fallback enabled
+  if (currentFontName === "Default" || useDefaultFontFallback) {
+    return defaultFontSoundBuffers[key] || [];
   }
+  return [];
+}
 
-  const last = lastPlayedSoundIndex[effectName];
-  const idx  = noRepeatRandom(arr.length, last);
-  lastPlayedSoundIndex[effectName] = idx;
+function playBuffer(buffer, when = 0, loop = false, gain = 1, destination = masterGain) {
+  const src = audioCtx.createBufferSource();
+  src.buffer = buffer;
+  src.loop   = loop;
 
-  const fname = fontSoundFilenames?.[effectName]?.[idx] || '(unknown)';
-  console.log(
-    `▶ [Fallback] playing: ${fname} - duration=${fontSoundDurations[effectName]?.[idx]} ms`
-  );
+  const g = audioCtx.createGain();
+  g.gain.value = gain;
+  g.connect(destination);
 
-  const fileOrUrl = arr[idx];
-  if (fileOrUrl instanceof File) {
-    console.log(`** Playing file: ${fileOrUrl.name}`);
-    const audio = new Audio(URL.createObjectURL(fileOrUrl));
-    audio.volume = globalVolume;
-    audio.play();
-    // Track and clean up
-    activeOneShots.push({audio});
-    audio.onended = () => {
-      activeOneShots = activeOneShots.filter(e => e.audio !== audio);
-    };
-  } else if (typeof fileOrUrl === "string") {
-    const name = fileOrUrl.split('/').pop().split('?')[0].split('#')[0];
-    console.log(`** Playing URL: ${name}`);
-    const audio = new Audio(fileOrUrl);
-    audio.volume = globalVolume;
-    audio.play();
-  }
+  src.connect(g);
+  src.start(audioCtx.currentTime + when);
+
+  return { src, gainNode: g };
 }
 
 function noRepeatRandom(n, lastIndex) {
@@ -341,6 +328,82 @@ function playEffectByType(effectType) {
   const effectName = EFFECT_SOUND_MAP[effectType];
   if (!effectName) return;
   playRandomEffect(effectName);
+}
+
+function playRandomEffect(effectName) {
+  if (!soundOn) return;
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  const fontLabel = currentFontName === "Default"
+    ? "Default Font"
+    : currentFontName;
+
+  // Try custom sound.
+  const customBufs = (customFontSoundBuffers[effectName] || [])
+    .filter(b => b instanceof AudioBuffer);
+  if (customBufs.length > 0) {
+    const effectIdx = noRepeatRandom(customBufs.length, lastPlayedSoundIndex[effectName]);
+    lastPlayedSoundIndex[effectName] = effectIdx;
+    const buf   = customBufs[effectIdx];
+    const fname = customFontSoundFilenames[effectName]?.[effectIdx] || "(unknown)";
+    console.log(`▶ ${fontLabel}: ** playing ${fname} – ${customFontSoundDurations[effectName][effectIdx]}ms`);
+
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    const g = audioCtx.createGain();
+    g.gain.value = globalVolume;
+    src.connect(g).connect(masterGain);
+    src.start();
+    activeOneShots.push({ src, gainNode: g });
+    src.onended = () => {
+      activeOneShots = activeOneShots.filter(e => e.src !== src);
+      g.disconnect();
+    };
+    return;
+  }
+
+  // If we're on Default font OR fallback is enabled, try default buffers.
+  if (currentFontName === "Default" || useDefaultFontFallback) {
+    const defaultBufs = defaultFontSoundBuffers[effectName] || [];
+    if (defaultBufs.length > 0) {
+      const effectIdx = noRepeatRandom(defaultBufs.length, lastPlayedSoundIndex[effectName]);
+      lastPlayedSoundIndex[effectName] = effectIdx;
+      const buf   = defaultBufs[effectIdx];
+      const fname = defaultFontSoundFilenames[effectName]?.[effectIdx] || "(unknown)";
+      console.log(`▶ Default Font: ** playing ${fname} – ${defaultFontSoundDurations[effectName][effectIdx]}ms`);
+
+      const src = audioCtx.createBufferSource();
+      src.buffer = buf;
+      const g = audioCtx.createGain();
+      g.gain.value = globalVolume;
+      src.connect(g).connect(masterGain);
+      src.start();
+      activeOneShots.push({ src, gainNode: g });
+      src.onended = () => {
+        activeOneShots = activeOneShots.filter(e => e.src !== src);
+        g.disconnect();
+      };
+      return;
+    }
+  }
+
+  // No sound available, show orange message.
+  const effectKey = Object.keys(window).find(
+    k => window[k] === effectName ||
+         k.replace(/^EFFECT_/, '').toLowerCase() === effectName.toLowerCase()
+  );
+  const effectId = effectKey ? ` (${effectKey})` : "";
+  const msg = `No sound available for effect: "${effectName}"${effectId}.`;
+  console.error(msg);
+  const errorDiv = FIND("error_message");
+  if (errorDiv) {
+    errorDiv.innerHTML = msg;
+    errorDiv.style.color = "orange";
+    clearTimeout(window.errorMessageTimeout);
+    window.errorMessageTimeout = setTimeout(() => {
+      if (errorDiv.innerHTML === msg) errorDiv.innerHTML = "";
+    }, 3000);
+  }
 }
 
 function stopLoop(refName) {
@@ -380,10 +443,9 @@ function fadeAndStop(loopRefName, fadeTime = 200) {
   }
 }
 
-function stopAllLoops(fadeTime = 200) {
+function stopAllLoops(fadeTime = 200, clearLockup = true, context = '') {
   // first stop any lockup
-  endLockupLoop(false);
-
+  endLockupLoop(undefined, undefined, clearLockup);  // Power off: clear lockup state
   // then fade out hum + smooth swings
   ['humAudio','smoothLoopL','smoothLoopH'].forEach(ref => {
     if (window[ref]) fadeAndStop(ref, fadeTime);
@@ -427,88 +489,69 @@ function stopAllOneShots(fadeTime = 150) {
 function startAudioLoop(bufferKey, loopRefName, initialGain = 0, shouldLoop = true) {
   stopLoop(loopRefName);
 
-  const bufs = fontSoundBuffers[bufferKey] || [];
-  if (!bufs.length) return;
+  const startBuffers = pickLoopBuffers(bufferKey);
+  if (!startBuffers.length) return;
 
-  const idx = Math.floor(Math.random()*bufs.length);
-  lastPlayedSoundIndex[bufferKey] = idx;
+  const startIdx = noRepeatRandom(startBuffers.length, lastPlayedSoundIndex[bufferKey]);
+  lastPlayedSoundIndex[bufferKey] = startIdx;
 
-  const gainNode = audioCtx.createGain();
-  gainNode.gain.value = initialGain;
-  gainNode.connect(audioCtx.destination);
-
-  const src = audioCtx.createBufferSource();
-  src.buffer = bufs[idx];
-  src.loop   = shouldLoop;
-  src.connect(gainNode);
-  src.start();
-
+  const { src, gainNode } = playBuffer(startBuffers[startIdx], 0, shouldLoop, initialGain, masterGain);
   window[loopRefName] = { src, gainNode };
 }
 
 function ToggleHum() {
-  if (!soundOn) {
-    stopAllLoops();
-    return;
-  }
-  if (!fontSoundBuffers['hum']?.length) return;
+  if (!soundOn) return;
+  if (window.humAudio) fadeAndStop('humAudio', 0);
 
-  if (STATE_ON) {
-    startAudioLoop('hum',    'humAudio',    globalVolume, true);
-    startAudioLoop('swingl', 'smoothLoopL', 0,           true);
-    startAudioLoop('swingh', 'smoothLoopH', 0,           true);
-  } else {
-    stopAllLoops();
-  }
+  startAudioLoop('hum',    'humAudio',    globalVolume, true);
+  startAudioLoop('swingl', 'smoothLoopL', 0,           true);
+  startAudioLoop('swingh', 'smoothLoopH', 0,           true);
 }
 
-let lockupGainNode = null, lockupLoopSrc = null, lockupEndBuffer = null;
+function startLockupLoop(lockupType, skipBgn = false) {
+  const mapEntry = ({
+    [EFFECT_LOCKUP_BEGIN]: { b: 'bgnlock', l: 'lock', e: 'endlock' },
+    [EFFECT_DRAG_BEGIN]:   { b: 'bgndrag', l: 'drag', e: 'enddrag' },
+    [EFFECT_MELT_BEGIN]:   { b: 'bgnmelt', l: 'melt', e: 'endmelt' },
+    [EFFECT_LB_BEGIN]:     { b: 'bgnlb',   l: 'lb',   e: 'endlb' },
+  })[lockupType];
+  if (!mapEntry) return;
+  const { b, l, e } = mapEntry;
 
-function startLockupLoop(lockupType, skipBegin = false) {
   window.currentLockupType = lockupType;
   if (!soundOn) return;
-  const m = {
-    [EFFECT_LOCKUP_BEGIN]: {b:'bgnlock', l:'lock', e:'endlock'},
-    [EFFECT_DRAG_BEGIN]:   {b:'bgndrag', l:'drag', e:'enddrag'},
-    [EFFECT_MELT_BEGIN]:   {b:'bgnmelt', l:'melt', e:'endmelt'},
-    [EFFECT_LB_BEGIN]:     {b:'bgnlb',   l:'lb',   e:'endlb'},
-  }[lockupType];
-  if (!m) return;
 
-  const B = fontSoundBuffers[m.b]||[], L = fontSoundBuffers[m.l]||[];
-  if (!B.length||!L.length) return;
-  lockupEndBuffer = (fontSoundBuffers[m.e]||[])[0]||null;
+  const beginBuffers = pickLoopBuffers(b) || [];
+  const loopBuffers  = pickLoopBuffers(l) || [];
+if (!beginBuffers.length || !loopBuffers.length) {
+  return;
+}
+  lockupEndBuffer = (pickLoopBuffers(e) || [])[0] || null;
 
-  lockupGainNode = audioCtx.createGain();
-  lockupGainNode.gain.value = globalVolume;
-  lockupGainNode.connect(audioCtx.destination);
+  const gainNode = audioCtx.createGain();
+  gainNode.gain.value = globalVolume;
+  gainNode.connect(masterGain);
 
   const now = audioCtx.currentTime;
-  if (!skipBegin) {
-    const bsrc = audioCtx.createBufferSource();
-    bsrc.buffer = B[Math.floor(Math.random()*B.length)];
-    bsrc.connect(lockupGainNode);
-    bsrc.start(now);
+  let startOffset = 0;
 
-    lockupLoopSrc = audioCtx.createBufferSource();
-    lockupLoopSrc.buffer = L[Math.floor(Math.random()*L.length)];
-    lockupLoopSrc.loop = true;
-    lockupLoopSrc.connect(lockupGainNode);
-    lockupLoopSrc.start(now + bsrc.buffer.duration);
-  } else {
-    lockupLoopSrc = audioCtx.createBufferSource();
-    lockupLoopSrc.buffer = L[Math.floor(Math.random()*L.length)];
-    lockupLoopSrc.loop = true;
-    lockupLoopSrc.connect(lockupGainNode);
-    lockupLoopSrc.start(now);
+  // Play the "begin" sound first, if we're not skipping it
+  if (!skipBgn) {
+    const bgnIdx = noRepeatRandom(beginBuffers.length, lastPlayedSoundIndex[b]);
+    lastPlayedSoundIndex[b] = bgnIdx;
+    const { src: bgnSrc } = playBuffer(beginBuffers[bgnIdx], 0, false, globalVolume, gainNode);
+    startOffset = bgnSrc.buffer.duration;
   }
 
-  window.lockupLoopSrc  = lockupLoopSrc;
-  window.lockupGainNode = lockupGainNode;
+  // Play lockup loop
+  const loopIdx = noRepeatRandom(loopBuffers.length, lastPlayedSoundIndex[l]);
+  lastPlayedSoundIndex[l] = loopIdx;
+  const { src: loopSrc } = playBuffer(loopBuffers[loopIdx], startOffset, true, globalVolume, gainNode);
+  window.lockupLoopSrc  = loopSrc;
+  window.lockupGainNode = gainNode;
 }
 
-function endLockupLoop(effectType, endEffectName) {
-  // Stop the looping
+function endLockupLoop(effectType, endEffectName, shouldClear) {
   if (window.lockupLoopSrc) {
     try {
       window.lockupLoopSrc.stop();
@@ -516,49 +559,43 @@ function endLockupLoop(effectType, endEffectName) {
     } catch(_) {}
     window.lockupLoopSrc = null;
   }
-
-  // Play endlock if exists
+  // Play endlock if exists, with optional fallback
   if (endEffectName) {
-    const buffers = fontSoundBuffers[endEffectName] || [];
-    if (buffers.length) {
-      const idx = Math.floor(Math.random() * buffers.length);
-      const buf = buffers[idx];
-
-      // create a fresh gain for this one-shot
-      const g = audioCtx.createGain();
-      g.gain.value = globalVolume;
-      g.connect(audioCtx.destination);
-
-      const s = audioCtx.createBufferSource();
-      s.buffer = buf;
-      s.connect(g);
-      s.start();
-
-      // when it’s done, clean up that gain
-      s.onended = () => {
-        try { g.disconnect(); } catch(_) {}
-      };
+    let endBuffers = customFontSoundBuffers[endEffectName] || [];
+    if ((!endBuffers.length) && useDefaultFontFallback) {
+      endBuffers = defaultFontSoundBuffers[endEffectName] || [];
     }
-  }
+    if (!endBuffers.length) return;
 
+    const endIdx = noRepeatRandom(endBuffers.length, lastPlayedSoundIndex[endEffectName]);
+    lastPlayedSoundIndex[endEffectName] = endIdx;
+    // just logging the playback of the sound
+    const fname =
+      (customFontSoundFilenames[endEffectName]?.[endIdx] ||
+       defaultFontSoundFilenames[endEffectName]?.[endIdx] ||
+       "(unknown)");
+    const fontLabel = (customFontSoundBuffers[endEffectName]?.length)
+      ? (currentFontName || "Custom Font")
+      : "Default Font";
+    const dur = endBuffers[endIdx]?.duration ? Math.round(endBuffers[endIdx].duration * 1000) : "???";
+    console.log(`▶ ${fontLabel}: ** playing ${fname} – ${dur}ms`);
+    playBuffer(endBuffers[endIdx], 0, false, globalVolume, masterGain);
+   }
   // Now drop the old lockup gain node itself
   if (window.lockupGainNode) {
     try { window.lockupGainNode.disconnect(); } catch(_) {}
     window.lockupGainNode = null;
   }
-
-  // Clear the type so resumeLoops() won’t auto-replay it
-  // Only clear if this was a real user action (lockup ended)
-  if (effectType && effectType !== false) {
-    // e.g. called from AddEffect for END event
-    window.currentLockupType = null;
-  }
+  // Only clear on true END event (user ends lockup or power actually turns off)
+  if (shouldClear) window.currentLockupType = null;
 }
-
 
 function resumeLoops() {
   if (STATE_ON) ToggleHum();
   if (window.currentLockupType && !window.lockupLoopSrc)
     startLockupLoop(window.currentLockupType, true);
 }
-window.addEventListener('focus', () => { if (soundOn) resumeLoops(); });
+
+window.addEventListener('focus', () => { 
+  if (soundOn) resumeLoops(); 
+});

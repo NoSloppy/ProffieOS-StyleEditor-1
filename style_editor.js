@@ -141,91 +141,6 @@ function mouse_speed(t1, t2) {
   return Math.sqrt(dx * dx + dy * dy) / Math.abs(dt);
 }
 
-//////////// BC ///////////
-// SmoothSwing and swing sounds
-let swingSpeed = 0;
-window.swingMotionPeak = 0;
-window.swingMotionActive = false;
-window.swingLastEffect = 0;
-const swingThreshold = 150;
-const slashThreshold = 230;
-const effectCooldown = 250; // ms
-
-let lastSwingUpdate = 0;
-let lastSwingSpeed = 0;
-let smoothswingIdle = false;
-
-const updateSmoothSwingGains = (() => {
-  let lastGainL, lastGainH, lastSpeed;
-  return function() {
-    if (!STATE_ON) {
-      if (!smoothswingIdle) {
-        fadeAndStop('smoothLoopL', 200);
-        fadeAndStop('smoothLoopH', 200);
-        console.log('[SmoothSwing] POWER OFF → stopping loops');
-        smoothswingIdle = true;
-      }
-      requestAnimationFrame(updateSmoothSwingGains);
-      return;
-    }
-    swingSpeed = lastSwingSpeed;
-    if (Date.now() - lastSwingUpdate > 50) swingSpeed = 0;
-
-    if (STATE_ON) {
-      if (swingSpeed === 0) {
-        if (!smoothswingIdle) {
-          fadeAndStop('smoothLoopL', 200);
-          fadeAndStop('smoothLoopH', 200);
-          console.log(`[SmoothSwing] --- STOPPING LOOPS`);
-          smoothswingIdle = true;
-        }
-      } else {
-        if (smoothswingIdle) {
-          startAudioLoop('swingl', 'smoothLoopL', 0, true);
-          startAudioLoop('swingh', 'smoothLoopH', 0, true);
-          console.log(`[SmoothSwing] +++ STARTING LOOPS`);
-        }
-        smoothswingIdle = false;
-      }
-    }
-
-    if (window.smoothLoopL && window.smoothLoopH) {
-      const SwingStrengthThreshold    = 5.0;
-      const AccentSwingSpeedThreshold = 150.0;
-      let gainL = 0, gainH = 0;
-      if (swingSpeed > SwingStrengthThreshold) {
-        let t = (swingSpeed - SwingStrengthThreshold) / (AccentSwingSpeedThreshold - SwingStrengthThreshold);
-        t = Math.max(0, Math.min(1, t));
-        gainL = t;
-        gainH = t * t;
-      }
-      const now = audioCtx.currentTime;
-      let ramp = 0.2;
-      let gL = window.smoothLoopL.gainNode.gain;
-      let gH = window.smoothLoopH.gainNode.gain;
-      gL.cancelScheduledValues(now);
-      gL.setValueAtTime(gL.value, now);
-      gL.linearRampToValueAtTime(gainL * globalVolume, now + ramp);
-      gH.cancelScheduledValues(now);
-      gH.setValueAtTime(gH.value, now);
-      gH.linearRampToValueAtTime(gainH * globalVolume, now + ramp);
-
-      // Remember raw gains so volume slider can reapply them later
-      lastSmoothGainL = gainL;
-      lastSmoothGainH = gainH;
-
-      // Log on change.
-      if (gainL !== lastGainL || gainH !== lastGainH || swingSpeed !== lastSpeed) {
-        console.log(`[SmoothSwing] speed=${swingSpeed.toFixed(1)} gainL=${gainL.toFixed(2)} gainH=${gainH.toFixed(2)}`);
-        lastGainL = gainL;
-        lastGainH = gainH;
-        lastSpeed = swingSpeed;
-      }
-    }
-    requestAnimationFrame(updateSmoothSwingGains);
-  }
-})();
-
 function mouse_move(e) {
   if (mouseswingsState.get()) return;
   IN_FRAME = true;
@@ -1409,30 +1324,56 @@ class RgbClass extends STYLE {
                         Math.round(this.g*255), "Green component",
                         Math.round(this.b*255), "Blue component");
   }
-  mix(other, blend) {
-    var ret = new RgbClass(0,0,0);
-    ret.r = other.r * blend + this.r * (1.0 - blend);
-    ret.g = other.g * blend + this.g * (1.0 - blend);
-    ret.b = other.b * blend + this.b * (1.0 - blend);
-    ret.a = other.a * blend + this.a * (1.0 - blend);
-    return ret;
-  }
-  multiply(v) {
-    var ret = new RgbClass(0,0,0);
-    ret.r = this.r * v;
-    ret.g = this.g * v;
-    ret.b = this.b * v;
-    ret.a = this.a * v;
-    return ret;
-  }
-  paintOver(other) {
-    var ret = new RgbClass(0,0,0);
-    ret.r = this.r * (1.0 - other.a) + other.r;
-    ret.g = this.g * (1.0 - other.a) + other.g;
-    ret.b = this.b * (1.0 - other.a) + other.b;
-    ret.a = this.a * (1.0 - other.a) + other.a;
-    return ret;
-  }
+  // mix(other, blend) {
+  //   var ret = new RgbClass(0,0,0);
+  //   ret.r = other.r * blend + this.r * (1.0 - blend);
+  //   ret.g = other.g * blend + this.g * (1.0 - blend);
+  //   ret.b = other.b * blend + this.b * (1.0 - blend);
+  //   ret.a = other.a * blend + this.a * (1.0 - blend);
+  //   return ret;
+  // }
+  // multiply(v) {
+  //   var ret = new RgbClass(0,0,0);
+  //   ret.r = this.r * v;
+  //   ret.g = this.g * v;
+  //   ret.b = this.b * v;
+  //   ret.a = this.a * v;
+  //   return ret;
+  // }
+  // paintOver(other) {
+  //   var ret = new RgbClass(0,0,0);
+  //   ret.r = this.r * (1.0 - other.a) + other.r;
+  //   ret.g = this.g * (1.0 - other.a) + other.g;
+  //   ret.b = this.b * (1.0 - other.a) + other.b;
+  //   ret.a = this.a * (1.0 - other.a) + other.a;
+  //   return ret;
+  // }
+/*  • This will eliminate thousands(?) of new object allocations per frame and dramatically reduce CPU (and GC) overhead.
+  • Only downside: if we ever store the result (rather than using it immediately), 
+  it’ll get overwritten—but this is how Fredrik does it in ProffieOS(?) and 
+  it’s fine for rendering since each color result is just immediately used?.*/
+mix(other, blend) {
+  scratchColor.r = other.r * blend + this.r * (1.0 - blend);
+  scratchColor.g = other.g * blend + this.g * (1.0 - blend);
+  scratchColor.b = other.b * blend + this.b * (1.0 - blend);
+  scratchColor.a = other.a * blend + this.a * (1.0 - blend);
+  return scratchColor;
+}
+multiply(v) {
+  scratchColor.r = this.r * v;
+  scratchColor.g = this.g * v;
+  scratchColor.b = this.b * v;
+  scratchColor.a = this.a * v;
+  return scratchColor;
+}
+paintOver(other) {
+  scratchColor.r = this.r * (1.0 - other.a) + other.r;
+  scratchColor.g = this.g * (1.0 - other.a) + other.g;
+  scratchColor.b = this.b * (1.0 - other.a) + other.b;
+  scratchColor.a = this.a * (1.0 - other.a) + other.a;
+  return scratchColor;
+}
+
 
   // angle = 0 - 98304 (32768 * 3) (non-inclusive)
   rotate(angle) {
@@ -1454,7 +1395,12 @@ class RgbClass extends STYLE {
       H = (this.r - this.g) / C + 4;
     }
     H += angle / 16384.0;
-    return new RgbClass(f(5+H, C, MAX), f(3+H, C, MAX), f(1+H, C, MAX));
+    // return new RgbClass(f(5+H, C, MAX), f(3+H, C, MAX), f(1+H, C, MAX));
+    scratchColor.r = f(5+H, C, MAX) / 255.0;
+    scratchColor.g = f(3+H, C, MAX) / 255.0;
+    scratchColor.b = f(1+H, C, MAX) / 255.0;
+    scratchColor.a = this.a;
+    return scratchColor;
   }
 
   argify(state) {
@@ -1470,6 +1416,7 @@ class RgbClass extends STYLE {
 
 // Scratch Rgb instance to reduce per-pixel allocations:
 const scratchColor = new RgbClass(0, 0, 0);
+const scratchColor2 = new RgbClass(0,0,0);
 
 function f(n, C, MAX) {
   var k = n % 6;
@@ -1622,12 +1569,21 @@ class LayersClass extends STYLE {
     for (var i = 1; i < this.LAYERS.length + 1; i++)
       this.add_arg("LAYER" + i, "COLOR", "Layer " + i);
   }
-  getColor(led) {
-    var ret = this.BASE.getColor(led);
+  // getColor(led) {
+  //   var ret = this.BASE.getColor(led);
+  //   for (var i = 0; i < this.LAYERS.length; i++) {
+  //     ret = ret.paintOver(this.LAYERS[i].getColor(led));
+  //   }
+  //   return ret;
+  // }
+  getColor(led, out) {
+    // Always start with base color in 'out'
+    this.BASE.getColor(led, out);
     for (var i = 0; i < this.LAYERS.length; i++) {
-      ret = ret.paintOver(this.LAYERS[i].getColor(led));
+      // Mutate 'out' in-place using each layer's color (to minimize allocations)
+      out = out.paintOver(this.LAYERS[i].getColor(led, scratchColor2));
     }
-    return ret;
+    return out;
   }
   argify(state) {
     this.BASE = this.BASE.argify(state);
@@ -4045,7 +4001,7 @@ Blade.prototype.addEffect = function(type, location, manual = false) {
       // give the destruct sound time to play
       setTimeout(() => {
         const idx = lastPlayedSoundIndex['destruct'];
-        const rawDur = fontSoundDurations['destruct']?.[idx];
+        const rawDur = customFontSoundDurations['destruct']?.[idx];
         const dur = (typeof rawDur === 'number' && rawDur > 50) ? rawDur : 500;
         setTimeout(() => {
           this.addEffect(EFFECT_BOOM, location);
@@ -4089,7 +4045,7 @@ if (BEGIN_EFFECT_MAP[type]) {
   };
   if (END_EFFECT_MAP[type]) {
     // Stop loop and play end buffer with WebAudio API
-    endLockupLoop(type, allowed.has(type) ? END_EFFECT_MAP[type] : null);
+    endLockupLoop(type, allowed.has(type) ? END_EFFECT_MAP[type] : null, true);
     return;
   }
 
@@ -6578,23 +6534,15 @@ class WavLenClass extends FUNCTION {
     const useFont    = useFontWavLenState.get();
     const effectName = EFFECT_SOUND_MAP[effectArg];
     const idx        = lastPlayedSoundIndex[effectName];
-    const durations  = fontSoundDurations[effectName];
-
-    // console.group(`WavLen.getInteger for effect ${effectName} (${effectArg})`);
-    // console.log(' useFontWavLen:', useFont);
-    // console.log(' lastPlayedSoundIndex:', idx);
-    // console.log(' fontSoundDurations:', durations);
+    const durations  = pickLoopBuffers(effectName).map(b => b?.duration ? Math.round(b.duration * 1000) : null);
 
     let result;
     if (useFont && effectName && Array.isArray(durations) && idx != null && durations[idx] != null) {
       result = durations[idx];
-      // console.log(' → returning loaded duration:', result);
     } else {
       result = myWavLen.wavlenValue;
-      // console.log(' → returning global wavlenValue:', result);
     }
 
-    console.groupEnd();
     return result;
   }
 };
@@ -8966,20 +8914,12 @@ function ClickPower() {
   }
   ClickPower._debounced = true;
   setTimeout(() => { ClickPower._debounced = false; }, 400);  
-  stopAllLoops();
+  stopAllLoops(200, true);  // Power button used: clear lockup state
   STATE_ON = !STATE_ON; STATE_LOCKUP=0;
   updateLockupDropdown();
   var power_button = FIND("POWER_BUTTON");
   power_button.classList.toggle("button-latched", STATE_ON ? true : false);
   console.log("POWER");
-
-  function styleHasPreonOrPostoff(style, effectType) {
-    return style.LAYERS && style.LAYERS.some(l =>
-      l.constructor && l.constructor.name === 'TransitionEffectLClass' &&
-      l.EFFECT && l.EFFECT.getInteger &&
-      l.EFFECT.getInteger(0) === effectType
-    );
-  }
 
   // Recursively sum transition durations
   function getDur(n) {
@@ -9002,31 +8942,21 @@ function ClickPower() {
     setTimeout(ToggleHum, 200);
   }
 
-  // If turning ON and the style has PREON, trigger it and delay ignition until it finishes.
+  // Use preon.wav length for ignition delay.
   if (STATE_ON) {
-    if (styleHasPreonOrPostoff(current_style, EFFECT_PREON)) {
-      blade.addEffect(EFFECT_PREON, 0.0);
-
-      // Find max PREON duration among all PREON layers:
-      let preonDelay = 0;
-      current_style.LAYERS.forEach(l => {
-        if (
-          l.constructor?.name === 'TransitionEffectLClass' &&
-          l.EFFECT?.getInteger?.(0) === EFFECT_PREON
-        ) {
-          const dur = getDur(l.TRANSITION);
-          // console.log("*** PREON layer duration:", dur, "ms");
-          if (dur > preonDelay) preonDelay = dur;
-        }
-      });
-      // console.log("*** Final PREON ignition delay:", preonDelay, "ms");
+    blade.addEffect(EFFECT_PREON, 0.0);
+    const buffers = pickLoopBuffers('preon');
+    if (buffers.length) {
+      const preonDelay = Math.round(buffers[0].duration * 1000);
+      console.log(`Delaying ignition by ${preonDelay} ms (preon.wav length)`);
       setTimeout(igniteAndStartHum, preonDelay);
     } else {
+      // no preon sound → ignite immediately
       igniteAndStartHum();
     }
   } else {
     blade.addEffect(EFFECT_RETRACTION, Math.random() * 0.7 + 0.2);
-    stopAllLoops();
+    stopAllLoops(200, true);  // Power button used: clear lockup state
     let inoutLayer = null;
     if (Array.isArray(current_style.LAYERS)) {
       inoutLayer = current_style.LAYERS.find(
@@ -9046,13 +8976,15 @@ function ClickPower() {
     // console.log(">>> Computed totalDelay (getEffectDelay)   =", totalDelay, "ms");
 
     console.log(`Scheduling POSTOFF in ${totalDelay} ms`);
-    setTimeout(() => {
-      console.log("**** Triggering POSTOFF now");
-      blade.addEffect(EFFECT_POSTOFF, 0.0);
-    }, totalDelay);
+    // only fire POSTOFF if the style actually contains a POSTOFF layer
+    if (current_style.LAYERS?.some(l =>
+         l.constructor?.name === 'TransitionEffectLClass' &&
+         l.EFFECT?.getInteger?.(0) === EFFECT_POSTOFF
+       )) {
+      setTimeout(() => { blade.addEffect(EFFECT_POSTOFF, 0.0); }, totalDelay);
+    }
   }
 }
-//////////// Add preon-postof linking PR ///////////////
 
 var lockups_to_event = {};
 lockups_to_event[LOCKUP_NORMAL]          = [ EFFECT_LOCKUP_BEGIN, EFFECT_LOCKUP_END ];
@@ -9583,8 +9515,8 @@ function AddClickedEffect() {
   const effectName = EFFECT_SOUND_MAP[type] || raw;
 
   // console.log("🖱️ Manual trigger:", { type, effectName });
-  // console.log("   fontSounds:", fontSounds[effectName]);
-  // console.log("   fontSoundDurations:", fontSoundDurations[effectName]);
+  // console.log("   customFontSounds:", customFontSounds[effectName]);
+  // console.log("   customFontSoundDurations:", customFontSoundDurations[effectName]);
   // console.log("   lastPlayedSoundIndex:", lastPlayedSoundIndex[effectName]);
   // Update recents
   if (type && !recentEffects.includes(type)) {
@@ -9761,12 +9693,15 @@ var soundOnState = new SavedStateBool("sound", true, (on) => {
 
   if (!on) {
     console.log('Sound turned OFF → stopping all loops');
-    stopAllLoops();
+    stopAllLoops(200, false);  // Sound off button used: do NOT clear lockup state
   } else {
     console.log('Sound turned ON → resuming loops');
     resumeLoops();
   }
 });
+
+var fontfallbackState = new SavedStateBool("font_fallback",false, (on) => { useDefaultFontFallback = on; });
+
 var useFontWavLenState = new SavedStateBool("use_font_wavlen", true, (on) => { handleWavLenControls(); });
 
 var origD;

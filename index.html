@@ -6,7 +6,7 @@
   <meta charset="UTF-8">
   <!-- This should show up in search engine results. -->
   <meta name="description" content="ProffieOS Style Editor: Customize your Proffieboard saber blade animations with this browser based tool.">
-  <link rel="shortcut icon" type="image/png" href="SE_Favicon_BC.png">
+  <link rel="shortcut icon" type="image/png" href="./assets/SE_Favicon_BC-C5gxpSYq.png">
   <title>ProffieOS Style Editor</title>
 <style>
 /*
@@ -2081,35 +2081,38 @@ It is only an active button when applicable."
 
           <section class="settings-section">
             <h4 class="settings-section-label" title="These settings apply Sound settings..">Sound Settings:</h4>
-              <section class="wavlen-controls">
-                <section class="wavlen-row">
-                  <label for="USE_FONT_WAVLEN_BUTTON">
-                    <input
-                      type="checkbox" id="USE_FONT_WAVLEN_BUTTON" class="use-font-wavlen" onclick="handleSettings(this)">
-                    <span title="Use loaded font to set WavLen for each EFFECT.">
-                      Use loaded font for WavLen&lt;&gt;
-                    </span>
-                  </label>
-                  <span
-                    class="info-icon" tabindex="0" onclick="toggleInfoPopup(event)"
-                      onkeydown="if (event.key==='Enter') toggleInfoPopup(event)">
-                    <i class="fa-solid fa-info-circle"></i>
-                    <section class="info-popup">
-                      If you want the blade style to use WavLen&lt;&gt; from the files in the loaded sound font, turn this option ON.<br>
-                      Using the loaded sound font will provide discrete WavLen values per EFFECT,
-                      just like ProffieOS does.<br>
-                      <strong>Note:</strong> Turning this option ON will disable the Global WavLen time below.
-                    </section>
-                  </span>
-                </section>
-                <br>
-                <label
-                  id="wavlen-global-label" class="wavlen-global-label" title="Set a global WavLen duration in milliseconds.">
-                    Global WavLen time:
-                  <input
-                    type="text" id="WAVLEN_VALUE" class="wavlen-value nofocus" size="6" value="500">
-                </label>
-              </section>
+            <label title="Toggle fallback to default font sounds when custom sounds are missing.">
+              <input type="checkbox" id="FONT_FALLBACK_BUTTON" name="fontfallback" onclick="handleSettings(this)">
+              <span>Fallback font sounds</span>
+            </label>
+             <section class="wavlen-controls">
+               <section class="wavlen-row">
+                 <label for="USE_FONT_WAVLEN_BUTTON">
+                   <input type="checkbox" id="USE_FONT_WAVLEN_BUTTON" class="use-font-wavlen" onclick="handleSettings(this)">
+                   <span title="Use loaded font to set WavLen for each EFFECT.">
+                     Use loaded font for WavLen&lt;&gt;
+                   </span>
+                 </label>
+                 <span
+                   class="info-icon" tabindex="0" onclick="toggleInfoPopup(event)"
+                     onkeydown="if (event.key==='Enter') toggleInfoPopup(event)">
+                   <i class="fa-solid fa-info-circle"></i>
+                   <section class="info-popup">
+                     If you want the blade style to use WavLen&lt;&gt; from the files in the loaded sound font, turn this option ON.<br>
+                     Using the loaded sound font will provide discrete WavLen values per EFFECT,
+                     just like ProffieOS does.<br>
+                     <strong>Note:</strong> Turning this option ON will disable the Global WavLen time below.
+                   </section>
+                 </span>
+               </section>
+               <br>
+               <label
+                 id="wavlen-global-label" class="wavlen-global-label" title="Set a global WavLen duration in milliseconds.">
+                   Global WavLen time:
+                 <input
+                   type="text" id="WAVLEN_VALUE" class="wavlen-value nofocus" size="6" value="500">
+               </label>
+             </section>
           </section> <!-- settings-section Sound Settings -->
 
           <div class="settings-section">
