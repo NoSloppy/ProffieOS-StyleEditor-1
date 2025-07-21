@@ -9768,20 +9768,17 @@ function initGL() {
   canvas.height = height * dpr;
   origD = Math.min(width, height);
 
-
   FIND('ENLARGE_BUTTON').onclick = function() {
     enlargeCanvas = !enlargeCanvas;
     this.innerText = enlargeCanvas ? 'Reduce' : 'Enlarge';
     if (enlargeCanvas) {
-      height = window.innerHeight / 2.2;
+      height = window.innerHeight / 2;
     } else {
       height = window.innerHeight / 3;
     }
-    width = height * (window.normalWidth / window.normalHeight);
-    // Update the canvas dimensions
-    canvas.width = width * dpr;
     canvas.height = height * dpr;
-  }
+    canvas.style.height = height + 'px';
+  };
 
   FIND('FULLSCREEN_BUTTON').onclick = function() {
     if (!document.fullscreenElement) {

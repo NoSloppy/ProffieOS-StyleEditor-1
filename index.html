@@ -6,7 +6,7 @@
   <meta charset="UTF-8">
   <!-- This should show up in search engine results. -->
   <meta name="description" content="ProffieOS Style Editor: Customize your Proffieboard saber blade animations with this browser based tool.">
-  <link rel="shortcut icon" type="image/png" href="./assets/SE_Favicon_BC-C5gxpSYq.png">
+  <link rel="shortcut icon" type="image/png" href="SE_Favicon_BC.png">
   <title>ProffieOS Style Editor</title>
 <style>
 /*
@@ -343,23 +343,11 @@ body {
   height: auto;
   margin: 0;
 }
-/*  .controls on the right  */
-/*#page_left_top:fullscreen .controls,
-#page_left_top:-webkit-full-screen .controls {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5em;
-  z-index: 1000;
-}
-*/
 
-/* Push the canvas down so it doesn’t sit under the new toolbar */
+/* Push the canvas down so it doesn’t sit behind the new toolbar */
 #page_left_top:fullscreen #canvas-container,
 #page_left_top:-webkit-full-screen #canvas-container {
-  margin-top: 3em;  /* adjust this to match your toolbar’s height */
+  margin-top: 3em;
 }
 #page_left_top:fullscreen #ENLARGE_BUTTON,
 #page_left_top:-webkit-full-screen #ENLARGE_BUTTON {
@@ -373,7 +361,7 @@ body {
   width: 100%;
   gap: 1em;
   position: static;
-  margin-top: 1em; /* adjust as needed */
+  margin-top: 1em;
 }
 
 #page_left_top:fullscreen #control-buttons,
@@ -385,13 +373,13 @@ body {
 }
 #page_left_top:fullscreen .controls-row,
 #page_left_top:-webkit-full-screen .controls-row {
-  order: -1;               /* move the row above the canvas */
+  order: -1;
 }
 
 /* ensure canvas-container sits below our toolbar */
 #page_left_top:fullscreen #canvas-container,
 #page_left_top:-webkit-full-screen #canvas-container {
-  order: 0;                /* reset canvas back to normal position */
+  order: 0;
 }
 #page_left_top:fullscreen .sound-ribbon-container,
 #page_left_top:-webkit-full-screen .sound-ribbon-container {
@@ -404,35 +392,23 @@ body {
   height: 100%;
 }
 #canvas-container {
-/*  flex: 1 1 auto;*/
   display: flex;
   flex-direction: column;
   justify-content: stretch;
   overflow: hidden;
-/*  min-height: 3em;*/
 }
 /* Base canvas styling */
 canvas#canvas_id,
 #canvas-container canvas {
   display: block;
-/*  max-width: 100%;
-  width: 100%;
-  height: 100%;*/
   box-sizing: border-box;
 }
 
-/* Fullscreen toggle button */
-/*#canvas-container #FULLSCREEN_BUTTON {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 10;
-}*/
 /* Show the Fullscreen/Exit button at top-right in FS mode */
 #page_left_top:fullscreen   #FULLSCREEN_BUTTON,
 #page_left_top:-webkit-full-screen #FULLSCREEN_BUTTON {
-  position: fixed;    /* escape the relative container */
-  top: 10px;          /* same as your other toolbar items */
+  position: fixed;
+  top: 10px;
   right: 10px;
   z-index: 1001;
 }
