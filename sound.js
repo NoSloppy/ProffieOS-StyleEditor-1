@@ -9,7 +9,6 @@ const customFontSoundFilenames = {};
 let customFontSounds = {};
 let currentFontName = "Default";
 let useDefaultFontFallback = false;
-
 // Track which index was played for each effect (noRepeatRandom() use)
 const lastPlayedSoundIndex = {};
 let soundOn = true;
@@ -29,23 +28,7 @@ let lockupLoopSrc  = null;
 let lockupEndBuffer = null;
 
 let activeOneShots = [];
-
-
-// SmoothSwing and swing sounds
-let swingSpeed = 0;
-window.swingMotionPeak = 0;
-window.swingMotionActive = false;
-window.swingLastEffect = 0;
-const swingThreshold = 150;
-const slashThreshold = 230;
-const effectCooldown = 250; // ms
-
-let lastSwingUpdate = 0;
-let lastSwingSpeed = 0;
-let lastSmoothGainL = 0;
-let lastSmoothGainH = 0;
-let smoothswingIdle = false;
-
+let focusAllowsHum = true;
 // Load default font.
 fetch('default_font_urls.txt')
   .then(r => r.text())
@@ -92,14 +75,14 @@ volumeSlider.addEventListener('input', function() {
   volumeValue.textContent = this.value;
   globalVolume = Number(this.value) / 100;
 
-// Update master volume
-masterGain.gain.value = globalVolume;
+  // Update master volume
+  masterGain.gain.value = globalVolume;
 
-// Update smoothswing volumes relative to global
-if (window.smoothLoopL && window.smoothLoopL.gainNode)
-  window.smoothLoopL.gainNode.gain.value = lastSmoothGainL * globalVolume;
-if (window.smoothLoopH && window.smoothLoopH.gainNode)
-  window.smoothLoopH.gainNode.gain.value = lastSmoothGainH * globalVolume;
+  // Update smoothswing volumes relative to global
+  if (window.smoothLoopL && window.smoothLoopL.gainNode)
+    window.smoothLoopL.gainNode.gain.value = lastSmoothGainL * globalVolume;
+  if (window.smoothLoopH && window.smoothLoopH.gainNode)
+    window.smoothLoopH.gainNode.gain.value = lastSmoothGainH * globalVolume;
 });
 
 function showLoadingOverlay() {
@@ -124,6 +107,10 @@ function showLoadingOverlay() {
 function hideLoadingOverlay() {
   const overlay = document.getElementById('loadingOverlay');
   if (overlay) document.body.removeChild(overlay);
+  if (window.lockupLoopSrc) {
+    endLockupLoop(window.currentLockupType, null, false);
+  } else {
+  }
   resumeLoops();
 }
 
@@ -203,75 +190,178 @@ fileInput.addEventListener('change', (e) => {
     .then(() => hideLoadingOverlay && hideLoadingOverlay());
 });
 
-const updateSmoothSwingGains = (() => {
-  let lastGainL, lastGainH, lastSpeed;
-  return function() {
-    if (!STATE_ON) {
-      if (!smoothswingIdle) {
-        fadeAndStop('smoothLoopL', 200);
-        fadeAndStop('smoothLoopH', 200);
-        console.log('[SmoothSwing] POWER OFF → stopping loops');
-        smoothswingIdle = true;
+//   Promise.all(promises)
+//     .catch(err => console.error("Error loading durations:", err))
+//     .then(() => {
+//       hideLoadingOverlay && hideLoadingOverlay();
+//       const fullStyleFocused =
+//         !current_focus ||
+//         current_focus_url === '$' ||
+//         (current_focus && current_focus.constructor.name === 'LayersClass');
+//       if (STATE_ON && fullStyleFocused) {
+//         focusAllowsHum = true;
+//         console.log('[FontLoad] resuming hum & smooth-swings');
+//         resumeLoops();
+//       }
+//     });
+// });
+
+// SmoothSwing and swing sounds
+let swingSpeed = 0;
+window.swingMotionPeak = 0;
+window.swingMotionActive = false;
+window.swingLastEffect = 0;
+
+const swingThreshold = 280;
+const slashThreshold = 5000;
+const effectCooldown = 250; // ms
+const swingLowerThreshold = swingThreshold * 0.5;
+
+let lastSwingUpdate = 0;
+let lastSwingSpeed = 0;
+
+let lastSmoothGainL = 0;
+let lastSmoothGainH = 0;
+let smoothswingIdle = false;
+
+// Accel/slash state
+let lastAccelSpeed = 0;
+let lastAccelTime  = performance.now();
+let swingTriggered = false;
+
+// SmoothSwing V2 rotating‐buffer files
+const swinglFiles = defaultFontSoundBuffers['swingl'] || [];
+const swinghFiles = defaultFontSoundBuffers['swingh'] || [];
+let currentFileIdx = 0;
+
+// SmoothSwing V2 rotating‐buffer state
+let swingMidpoint     = 0;
+const swingWidth      = 60;    // degrees of full crossfade window
+const swingSeparation = 180;   // degrees offset on each swap
+let lastMidTime       = performance.now();
+
+
+
+
+
+
+// Accent‐swing vs slash
+// Accent‐swing vs slash (acceleration‐based, with lower‐reset)
+function triggerAccentEvent(speed) {
+  // only the swing check is scaled for fullscreen; slash accel is constant
+  const dynSwingThreshold = document.fullscreenElement
+    ? swingThreshold * 0.7
+    : swingThreshold;
+  const dynSlashAccelThr  = slashThreshold;
+
+  // compute accel (Δspeed / Δtime)
+  const nowMs = performance.now();
+  const dt    = (nowMs - lastAccelTime) / 1000;    // seconds
+  const accel = dt > 0
+    ? (speed - lastAccelSpeed) / dt
+    : 0;
+  lastAccelTime  = nowMs;
+  lastAccelSpeed = speed;
+
+  // console.log(`[triggerAccentEvent] speed=${speed.toFixed(1)}, accel=${accel.toFixed(1)}, swingThr=${dynSwingThreshold}, slashAccelThr=${dynSlashAccelThr}`);
+
+  if (speed > dynSwingThreshold) {
+    if (!swingTriggered) {
+      // high‐accel -> slash, else swing
+      if (accel > dynSlashAccelThr) {
+        blade.addEffect(EFFECT_ACCENT_SLASH, 0);
+      } else {
+        blade.addEffect(EFFECT_ACCENT_SWING, 0);
       }
-      requestAnimationFrame(updateSmoothSwingGains);
-      return;
+      swingTriggered = true;
     }
+  }
+  // only reset once we slow down past the lower threshold:
+  else if (speed <= swingLowerThreshold) {
+    swingTriggered = false;
+  }
+}
+
+const updateSmoothSwingGains = (() => {  // runs constantly with requestAnimation
+  // Thresholds and windows
+  const loopStartThreshold  = 10.0;   // speed needed to start loops (ProffieOSSwingSpeedThreshold)
+  const SwingMin            = 15.0;   // crossfade floor (ProffieOSSwingLowerThreshold)
+  const SwingLPeak          = 50.0;   // swingL peaks here
+  const SwingMax            = 100.0;  // both done by here
+  const rampTime            = 0.3;    // seconds for each ramp
+
+  // const loopStartThreshold = 20.0;   // higher speed needed to start loops
+  // const SwingMin           = 15.0;   // crossfade floor moved up
+  // const SwingLPeak         = 75.0;   // swingL peaks later
+  // const SwingMax           =125.0;   // crossfade ends later
+  // const rampTime           = 0.2;    // faster ramp
+
+
+  // const SwingLPeak         = 50.0;   // now peaks earlier at 50
+  // const SwingMax           = 90.0;   // now ends at 90 (crossover ~70)
+  // const rampTime           = 0.3;    // unchanged
+
+  return function() {
     swingSpeed = lastSwingSpeed;
     if (Date.now() - lastSwingUpdate > 50) swingSpeed = 0;
 
-    if (STATE_ON) {
-      if (swingSpeed === 0) {
-        if (!smoothswingIdle) {
-          fadeAndStop('smoothLoopL', 200);
-          fadeAndStop('smoothLoopH', 200);
-          console.log(`[SmoothSwing] --- STOPPING LOOPS`);
-          smoothswingIdle = true;
-        }
-      } else {
-        if (smoothswingIdle) {
-          startAudioLoop('swingl', 'smoothLoopL', 0, true);
-          startAudioLoop('swingh', 'smoothLoopH', 0, true);
-          console.log(`[SmoothSwing] +++ STARTING LOOPS`);
-        }
-        smoothswingIdle = false;
+    // Start/stop loops with a real threshold
+    if (!STATE_ON || !soundOn || swingSpeed <= loopStartThreshold) {
+      if (!smoothswingIdle) {
+        fadeAndStop('smoothLoopL', 200);
+        fadeAndStop('smoothLoopH', 200);
+        console.log(`[SmoothSwing] !smoothswingIdle _____________________ STOPPING LOOPS`);
+        smoothswingIdle = true;
       }
+    } else {
+      if (smoothswingIdle) {
+        startAudioLoop('swingl', 'smoothLoopL', 0, true);
+        startAudioLoop('swingh', 'smoothLoopH', 0, true);
+        console.log(`[SmoothSwing] smoothswingIdle $%^($^%(*$^%($^%)($^%($^%$^)^%$)^)(^*(STARTING LOOPS`);
+      }
+      smoothswingIdle = false;
     }
 
-    if (window.smoothLoopL && window.smoothLoopH) {
-      const SwingStrengthThreshold    = 5.0;
-      const AccentSwingSpeedThreshold = 150.0;
+    // Crossfade only when loops are running
+    if (!smoothswingIdle && window.smoothLoopL && window.smoothLoopH) {
+      // compute L/H gains from a simple triangular window
       let gainL = 0, gainH = 0;
-      if (swingSpeed > SwingStrengthThreshold) {
-        let t = (swingSpeed - SwingStrengthThreshold) / (AccentSwingSpeedThreshold - SwingStrengthThreshold);
-        t = Math.max(0, Math.min(1, t));
-        gainL = t;
-        gainH = t * t;
+      if (swingSpeed > SwingMin) {
+        if (swingSpeed < SwingLPeak) {
+          gainL = (swingSpeed - SwingMin) / (SwingLPeak - SwingMin);
+        } else if (swingSpeed < SwingMax) {
+          gainL = (SwingMax - swingSpeed) / (SwingMax - SwingLPeak);
+        }
+        gainH = swingSpeed < SwingLPeak
+          ? 0
+          : swingSpeed < SwingMax
+            ? (swingSpeed - SwingLPeak) / (SwingMax - SwingLPeak)
+            : 1;
       }
+
+      // apply globalVolume
+      gainL *= globalVolume;
+      gainH *= globalVolume;
+
+      // ramp gains smoothly
       const now = audioCtx.currentTime;
-      let ramp = 0.2;
-      let gL = window.smoothLoopL.gainNode.gain;
-      let gH = window.smoothLoopH.gainNode.gain;
+      const gL  = window.smoothLoopL.gainNode.gain;
+      const gH  = window.smoothLoopH.gainNode.gain;
+
       gL.cancelScheduledValues(now);
       gL.setValueAtTime(gL.value, now);
-      gL.linearRampToValueAtTime(gainL, now + ramp);
+      gL.linearRampToValueAtTime(gainL, now + rampTime);
+
       gH.cancelScheduledValues(now);
       gH.setValueAtTime(gH.value, now);
-      gH.linearRampToValueAtTime(gainH, now + ramp);
+      gH.linearRampToValueAtTime(gainH, now + rampTime);
 
-      // Remember raw gains so volume slider can reapply them later
-      lastSmoothGainL = gainL;
-      lastSmoothGainH = gainH;
-
-      // Log on change.
-      if (gainL !== lastGainL || gainH !== lastGainH || swingSpeed !== lastSpeed) {
-        console.log(`[SmoothSwing] speed=${swingSpeed.toFixed(1)} gainL=${gainL.toFixed(2)} gainH=${gainH.toFixed(2)}`);
-        lastGainL = gainL;
-        lastGainH = gainH;
-        lastSpeed = swingSpeed;
-      }
+      // console.log( `[SmoothSwing] XFade @${swingSpeed.toFixed(1)} - ` + `L=${gainL.toFixed(2)} H=${gainH.toFixed(2)}`);
     }
-    requestAnimationFrame(updateSmoothSwingGains);
-  }
+
+    // queue up next frame
+    if (STATE_ON) requestAnimationFrame(updateSmoothSwingGains);
+  };
 })();
 
 
@@ -327,83 +417,82 @@ function noRepeatRandom(n, lastIndex) {
 function playEffectByType(effectType) {
   const effectName = EFFECT_SOUND_MAP[effectType];
   if (!effectName) return;
-  playRandomEffect(effectName);
+  playRandomEffect(effectName, true);
 }
 
-function playRandomEffect(effectName) {
+function playRandomEffect(effectName, isAllowed = true) {
   if (!soundOn) return;
   if (audioCtx.state === 'suspended') audioCtx.resume();
 
-  const fontLabel = currentFontName === "Default"
-    ? "Default Font"
-    : currentFontName;
-
-  // Try custom sound.
   const customBufs = (customFontSoundBuffers[effectName] || [])
     .filter(b => b instanceof AudioBuffer);
-  if (customBufs.length > 0) {
-    const effectIdx = noRepeatRandom(customBufs.length, lastPlayedSoundIndex[effectName]);
-    lastPlayedSoundIndex[effectName] = effectIdx;
-    const buf   = customBufs[effectIdx];
-    const fname = customFontSoundFilenames[effectName]?.[effectIdx] || "(unknown)";
-    console.log(`▶ ${fontLabel}: ** playing ${fname} – ${customFontSoundDurations[effectName][effectIdx]}ms`);
 
-    const src = audioCtx.createBufferSource();
-    src.buffer = buf;
-    const g = audioCtx.createGain();
-    g.gain.value = globalVolume;
-    src.connect(g).connect(masterGain);
-    src.start();
-    activeOneShots.push({ src, gainNode: g });
-    src.onended = () => {
-      activeOneShots = activeOneShots.filter(e => e.src !== src);
-      g.disconnect();
-    };
+  // 2) default fallback only when allowed
+  const defaultBufs = (currentFontName === "Default" || useDefaultFontFallback)
+    ? (defaultFontSoundBuffers[effectName] || [])
+    : [];
+
+  const total = customBufs.length + defaultBufs.length;
+
+  // No sound file exists, show orange message
+  if (total === 0) {
+    const key = Object.keys(window).find(
+      k => window[k] === effectName ||
+           k.replace(/^EFFECT_/, '').toLowerCase() === effectName.toLowerCase()
+    );
+    const id  = key ? ` (${key})` : "";
+    const msg = `No sound available for effect: "${effectName}"${id}.`;
+    console.error(msg);
+    const err = FIND("error_message");
+    if (err) {
+      err.innerHTML = msg;
+      err.style.color = "orange";
+      clearTimeout(window.errorMessageTimeout);
+      window.errorMessageTimeout = setTimeout(() => {
+        if (err.innerHTML === msg) err.innerHTML = "";
+      }, 3000);
+    }
     return;
   }
 
-  // If we're on Default font OR fallback is enabled, try default buffers.
-  if (currentFontName === "Default" || useDefaultFontFallback) {
-    const defaultBufs = defaultFontSoundBuffers[effectName] || [];
-    if (defaultBufs.length > 0) {
-      const effectIdx = noRepeatRandom(defaultBufs.length, lastPlayedSoundIndex[effectName]);
-      lastPlayedSoundIndex[effectName] = effectIdx;
-      const buf   = defaultBufs[effectIdx];
-      const fname = defaultFontSoundFilenames[effectName]?.[effectIdx] || "(unknown)";
-      console.log(`▶ Default Font: ** playing ${fname} – ${defaultFontSoundDurations[effectName][effectIdx]}ms`);
-
-      const src = audioCtx.createBufferSource();
-      src.buffer = buf;
-      const g = audioCtx.createGain();
-      g.gain.value = globalVolume;
-      src.connect(g).connect(masterGain);
-      src.start();
-      activeOneShots.push({ src, gainNode: g });
-      src.onended = () => {
-        activeOneShots = activeOneShots.filter(e => e.src !== src);
-        g.disconnect();
-      };
-      return;
-    }
+  // Suppressed by focus, just log it.
+  if (!isAllowed) {
+    console.log(`Suppressed sound '${effectName}'. Not in current focus.`);
+    return;
   }
 
-  // No sound available, show orange message.
-  const effectKey = Object.keys(window).find(
-    k => window[k] === effectName ||
-         k.replace(/^EFFECT_/, '').toLowerCase() === effectName.toLowerCase()
-  );
-  const effectId = effectKey ? ` (${effectKey})` : "";
-  const msg = `No sound available for effect: "${effectName}"${effectId}.`;
-  console.error(msg);
-  const errorDiv = FIND("error_message");
-  if (errorDiv) {
-    errorDiv.innerHTML = msg;
-    errorDiv.style.color = "orange";
-    clearTimeout(window.errorMessageTimeout);
-    window.errorMessageTimeout = setTimeout(() => {
-      if (errorDiv.innerHTML === msg) errorDiv.innerHTML = "";
-    }, 3000);
+  // C) pick & play
+  const fontLabel = currentFontName === "Default" ? "Default Font" : currentFontName;
+  const pickIndex = arr => {
+    const i = noRepeatRandom(arr.length, lastPlayedSoundIndex[effectName]);
+    lastPlayedSoundIndex[effectName] = i;
+    return i;
+  };
+
+  let buf, fname, dur;
+  if (customBufs.length > 0) {
+    const i = pickIndex(customBufs);
+    buf   = customBufs[i];
+    fname = customFontSoundFilenames[effectName]?.[i] || "(unknown)";
+    dur   = customFontSoundDurations   [effectName]?.[i] || 0;
+  } else {
+    const i = pickIndex(defaultBufs);
+    buf   = defaultBufs[i];
+    fname = defaultFontSoundFilenames[effectName]?.[i] || "(unknown)";
+    dur   = defaultFontSoundDurations   [effectName]?.[i] || 0;
   }
+
+  console.log(`▶ ${fontLabel}: ** playing ${fname} – ${dur}ms`);
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf;
+  const g = audioCtx.createGain(); g.gain.value = globalVolume;
+  src.connect(g).connect(masterGain);
+  src.start();
+  activeOneShots.push({ src, gainNode: g });
+  src.onended = () => {
+    activeOneShots = activeOneShots.filter(e => e.src !== src);
+    g.disconnect();
+  };
 }
 
 function stopLoop(refName) {
@@ -448,6 +537,7 @@ function stopAllLoops(fadeTime = 200, clearLockup = true, context = '') {
   endLockupLoop(undefined, undefined, clearLockup);  // Power off: clear lockup state
   // then fade out hum + smooth swings
   ['humAudio','smoothLoopL','smoothLoopH'].forEach(ref => {
+        console.log(`[stopAllLoops] STOPPING Loops`);
     if (window[ref]) fadeAndStop(ref, fadeTime);
   });
 
@@ -499,13 +589,13 @@ function startAudioLoop(bufferKey, loopRefName, initialGain = 0, shouldLoop = tr
   window[loopRefName] = { src, gainNode };
 }
 
-function ToggleHum() {
+function startHum() {
   if (!soundOn) return;
+  // kill any zombie loops.
   if (window.humAudio) fadeAndStop('humAudio', 0);
-
+        console.log(`[startHum] STOPPING and STARTING LOOPS`);
   startAudioLoop('hum',    'humAudio',    globalVolume, true);
-  startAudioLoop('swingl', 'smoothLoopL', 0,           true);
-  startAudioLoop('swingh', 'smoothLoopH', 0,           true);
+
 }
 
 function startLockupLoop(lockupType, skipBgn = false) {
@@ -516,16 +606,16 @@ function startLockupLoop(lockupType, skipBgn = false) {
     [EFFECT_LB_BEGIN]:     { b: 'bgnlb',   l: 'lb',   e: 'endlb' },
   })[lockupType];
   if (!mapEntry) return;
+
   const { b, l, e } = mapEntry;
 
   window.currentLockupType = lockupType;
   if (!soundOn) return;
 
+
   const beginBuffers = pickLoopBuffers(b) || [];
   const loopBuffers  = pickLoopBuffers(l) || [];
-if (!beginBuffers.length || !loopBuffers.length) {
-  return;
-}
+  if (!beginBuffers.length || !loopBuffers.length) return;
   lockupEndBuffer = (pickLoopBuffers(e) || [])[0] || null;
 
   const gainNode = audioCtx.createGain();
@@ -552,10 +642,14 @@ if (!beginBuffers.length || !loopBuffers.length) {
 }
 
 function endLockupLoop(effectType, endEffectName, shouldClear) {
-  console.log("[endLockupLoop] effectType:", effectType, "endEffectName:", endEffectName, "shouldClear:", shouldClear);
-  console.log("customFontSoundBuffers[endEffectName]:", customFontSoundBuffers[endEffectName]);
-  console.log("defaultFontSoundBuffers[endEffectName]:", defaultFontSoundBuffers[endEffectName]);
-  if (window.lockupLoopSrc) {
+  // console.log("[Lockup] ▶ endLockupLoop called;", {
+  //   effectType,
+  //   endEffectName,
+  //   shouldClear,
+  //   isLoopRunning: !!window.lockupLoopSrc
+  // });
+
+    if (window.lockupLoopSrc) {
     try {
       window.lockupLoopSrc.stop();
       window.lockupLoopSrc.disconnect();
@@ -606,7 +700,6 @@ function endLockupLoop(effectType, endEffectName, shouldClear) {
       }
     }
   }
-  // Now drop the old lockup gain node itself
   if (window.lockupGainNode) {
     try { window.lockupGainNode.disconnect(); } catch(_) {}
     window.lockupGainNode = null;
@@ -616,11 +709,6 @@ function endLockupLoop(effectType, endEffectName, shouldClear) {
 }
 
 function resumeLoops() {
-  if (STATE_ON) ToggleHum();
-  if (window.currentLockupType && !window.lockupLoopSrc)
-    startLockupLoop(window.currentLockupType, true);
+  if (STATE_ON) startHum();
+  if (window.currentLockupType && !window.lockupLoopSrc) startLockupLoop(window.currentLockupType, true);
 }
-
-window.addEventListener('focus', () => { 
-  if (soundOn) resumeLoops(); 
-});

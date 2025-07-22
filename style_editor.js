@@ -6,6 +6,7 @@ var width;
 var height;
 var dpr = window.devicePixelRatio || 1;
 const canvas = document.getElementById("canvas_id"); 
+var enlargeCanvas = false;
 
 function FIND(id) {
   var ret = document.getElementById(id);
@@ -144,23 +145,26 @@ function mouse_speed(t1, t2) {
 function mouse_move(e) {
   if (mouseswingsState.get()) return;
   IN_FRAME = true;
-  if (!window.smoothLoopL || !window.smoothLoopH) {
-    if (STATE_ON && soundOn) {
-      startAudioLoop('swingl', 'smoothLoopL', 0, true);
-      startAudioLoop('swingh', 'smoothLoopH', 0, true);
-    }
-  }
-  //––– Blade preview math (unchanged) –––
+
   const canvas = FIND("canvas_id");
   const rect   = canvas.getBoundingClientRect();
   const w      = rect.right - rect.left;
   const h      = rect.bottom - rect.top;
-  const d      = Math.min(h, w);
-  const scale = (document.fullscreenElement === FIND("canvas-container")) ? (d / origD) : 1;
-  const x = (e.clientX - (rect.left + rect.right) / 2) / d * scale;
-  const y = (e.clientY - (rect.top  + rect.bottom) / 2) / d * (scale * 1.5);
-  // var x = (e.clientX - (rect.left + rect.right)/2.0) / d;
-  // var y = (e.clientY - (rect.top + rect.bottom)/2.0) / d;
+  const d = Math.min(h, w);
+
+  let x;
+  if (document.fullscreenElement === FIND("page_left_top") || enlargeCanvas) {
+    x = (e.clientX - (rect.left + rect.right) / 2) / d * 2.2;  // Fullscreen/Enlarge 
+  } else {
+    x = (e.clientX - (rect.left + rect.right) / 2) / d * 1.8;  // Normal
+  }
+
+  let y;
+  if (document.fullscreenElement === FIND("page_left_top")) {
+    y = (e.clientY - (rect.top + rect.bottom) / 2) / d * 0.75; // Fullscreen, slightly less.
+  } else {  // y already accounted for for enlarge.
+    y = (e.clientY - (rect.top + rect.bottom) / 2) / d;
+  }
 
   const now    = actual_millis();
   MOUSE_POSITIONS = MOUSE_POSITIONS.concat([x* 10000, y * 10000, now])
@@ -188,24 +192,7 @@ function mouse_move(e) {
   // SmoothSwing updates
   lastSwingSpeed = get_swing_speed();
   lastSwingUpdate = Date.now();
-
-  // Include sensitivity boost for accent swing/ slash fullscreen
-  if (swingSpeed > (document.fullscreenElement ? swingThreshold * 0.7 : swingThreshold)) {
-    window.swingMotionActive = true;
-    window.swingMotionPeak = Math.max(window.swingMotionPeak, swingSpeed);
-  } else {
-    if (window.swingMotionActive &&
-        now - window.swingLastEffect > effectCooldown) {
-      if (window.swingMotionPeak > (document.fullscreenElement ? slashThreshold * 0.7 : slashThreshold)) {
-        blade.addEffect(EFFECT_ACCENT_SLASH, 0);
-      } else {
-        blade.addEffect(EFFECT_ACCENT_SWING, 0);
-      }
-      window.swingLastEffect = now;
-    }
-    window.swingMotionActive = false;
-    window.swingMotionPeak  = 0;
-  }
+  triggerAccentEvent(lastSwingSpeed);
 }
 //////////// BC ///////////
 
@@ -243,8 +230,9 @@ function mouse_leave(e) {
   MOVE_MATRIX = default_move_matrix();
   MOUSE_POSITIONS = [];
   IN_FRAME = false;
-  fadeAndStop('smoothLoopL', 500);
-  fadeAndStop('smoothLoopH', 500);
+  // fadeAndStop('smoothLoopL', 300);
+  // fadeAndStop('smoothLoopH', 300);
+  //   console.log(`[mouse_leave] STOPPING smoothswings..`);
 }
 
 function compile() {
@@ -1170,9 +1158,51 @@ function getAllowedEffectsFromStyleText() {
       }
     }
   }
+  // Also include lockup begin/end events for any literal LOCKUP_* in the style
+  getAllowedLockupsFromStyleText().forEach(lockupType => {
+    const evts = lockups_to_event[lockupType];
+    if (evts) {
+      evts.forEach(evt => allowed.add(evt));
+    }
+  });
 
   return allowed;
 }
+
+function getAllowedLockupsFromStyleText() {
+  const sty = FIND("style");
+  let text = sty?.value || "";
+  // Strip block comments: /* … */
+  text = text.replace(/\/\*[\s\S]*?\*\//g, "");
+  // Strip line comments: //
+  text = text.replace(/\/\/.*$/gm, "");
+
+  const allowed = new Set();
+
+  // Direct matches: LOCKUP_NORMAL, LOCKUP_MELT, etc.
+  const lockups = text.match(/\bLOCKUP_[A-Z_]+\b/g) || [];
+  for (const c of new Set(lockups)) {
+    if (window[c] !== undefined) {
+      allowed.add(window[c]);
+    }
+  }
+
+  // Macro usage detection
+  const macroLockupMap = {
+    ResponsiveLockupL: LOCKUP_NORMAL,
+    ResponsiveDragL: LOCKUP_DRAG,
+    ResponsiveMeltL: LOCKUP_MELT,
+    ResponsiveLightningBlockL: LOCKUP_LIGHTNING_BLOCK
+  };
+
+  for (let macro in macroLockupMap) {
+    if (text.includes(macro + "<")) {
+      allowed.add(macroLockupMap[macro]);
+    }
+  }
+  return allowed;
+}
+
 //////////// BC ///////////
 
 class FUNCTION  extends STYLE {
@@ -3998,7 +4028,6 @@ Blade.prototype.addEffect = function(type, location, manual = false) {
 
     // Auto-follow DESTRUCT → BOOM
     if (type === EFFECT_DESTRUCT) {
-      // give the destruct sound time to play
       setTimeout(() => {
         const idx = lastPlayedSoundIndex['destruct'];
         const rawDur = customFontSoundDurations['destruct']?.[idx];
@@ -4009,10 +4038,10 @@ Blade.prototype.addEffect = function(type, location, manual = false) {
       }, 10);
     }
 
-  // Recompute allowed set and log it
-  const allowed = getAllowedEffectsFromStyleText();
+ // Recompute allowed set and log it
+  const allowedByStyle = getAllowedEffectsFromStyleText();
   // console.log("Allowed effects parsed from textarea:",
-  //   Array.from(allowed).map(
+  //   Array.from(allowedByStyle).map(
   //     v => (EFFECT_ENUM_BUILDER.value_to_name[v] || v).replace(/^EFFECT_/, '')
   //   )
   // );
@@ -4024,16 +4053,12 @@ Blade.prototype.addEffect = function(type, location, manual = false) {
     [EFFECT_LB_BEGIN]:     "bgnlb"
   };
 if (BEGIN_EFFECT_MAP[type]) {
-  if (allowed.has(type)) {
+  if (allowedByStyle.has(type)) {
     // Do Selected Effect triggered
-    if (manual || window.lockupLoopSrc) {
-      playRandomEffect(BEGIN_EFFECT_MAP[type]);
-    }
+    if (manual || window.lockupLoopSrc) playRandomEffect(BEGIN_EFFECT_MAP[type], true);
   }
   // Lockup chooser triggered
-  if (!manual && !window.lockupLoopSrc && allowed.has(type)) {
-    startLockupLoop(type);
-  }
+  if (!manual && !window.lockupLoopSrc && allowedByStyle.has(type)) startLockupLoop(type);
   return;
 }
 
@@ -4043,21 +4068,22 @@ if (BEGIN_EFFECT_MAP[type]) {
     [EFFECT_MELT_END]:   "endmelt",
     [EFFECT_LB_END]:     "endlb"
   };
-  if (END_EFFECT_MAP[type]) {
-    // Stop loop and play end buffer with WebAudio API
-    endLockupLoop(type, allowed.has(type) ? END_EFFECT_MAP[type] : null, true);
-    return;
-  }
+if (END_EFFECT_MAP[type]) {
+  // If being called because we are forcibly clearing a lockup (i.e. not allowedByStyle anymore),
+  // always end the lockup loop (even if sound is denied by style)
+  const forceEnd = !allowedByStyle.has(type) && window.lockupLoopSrc;
+  endLockupLoop(type, (allowedByStyle.has(type) || forceEnd) ? END_EFFECT_MAP[type] : null, true);
+  return;
+}
+
+  const allowedByFocus = (!current_focus || current_focus.constructor.name === 'LayersClass');
 
   // Else, only play sound if it's in the textarea.
   const effectName = EFFECT_SOUND_MAP[type];
   if (effectName) {
-    if (allowed.has(type)) {
-      // console.log(`Allowed sound '${effectName}' for effect ${type}`);
-      playRandomEffect(effectName);
-    } else {
-      console.log(`Denied sound '${effectName}' for effect ${type}`);
-    }
+  // if either focus or text-declared, pass true; else pass false
+  const isAllowed = allowedByFocus || allowedByStyle.has(type);
+  playRandomEffect(effectName, isAllowed);
   }
 };
 //////////// BC ///////////
@@ -8872,26 +8898,40 @@ function SetToAndFormat(str, event) {
 }
 
 function FocusOnLow(id) {
-  console.log("FOCUSON: " + id);
-  var style = style_ids[id];
-  console.log(id);
-  console.log(style);
+  console.log("FOCUSON:", id);
+  const style = style_ids[id];
+  console.log("style_ids[" + id + "] =", style);
   current_focus = style;
-  var container = FIND("X"+id);
-  console.log(container);
-  container.style.backgroundColor = 'lightblue';
+
+  // Update the editor to show this style
   pp_is_url++;
-  var url = style.pp();
+  const url = style.pp();
   pp_is_url--;
-  console.log(url);
+  console.log("pp URL =", url);
   current_focus_url = url;
   SetTo(url);
+  FocusCheck();
   return true;
 }
 
 function FocusOn(id, event) {
   event.stopPropagation();
   FocusOnLow(id);
+}
+
+function FocusCheck() {
+  // Detect whether this is the top-level in structured view.
+const outerMostBracket = (!current_focus || (current_focus.constructor.name === "LayersClass"));
+    console.log('[FocusCheck] outerMostBracket = ' + outerMostBracket);
+  if (outerMostBracket && STATE_ON) {
+    console.log("[FocusCheck] resumeLoops()");
+    resumeLoops();
+    focusAllowsHum = true;
+  } else {
+    console.log("[FocusCheck] stopAllLoops()");
+    stopAllLoops(200, false);
+    focusAllowsHum = false;
+  }
 }
 
 function ClickRotate() {
@@ -8938,8 +8978,17 @@ function ClickPower() {
   }
 
   function igniteAndStartHum() {
+    requestAnimationFrame(updateSmoothSwingGains)
     blade.addEffect(EFFECT_IGNITION, Math.random() * 0.7 + 0.2);
-    setTimeout(ToggleHum, 200);
+    setTimeout(() => {
+      // Only start hum if still powered on!
+      FocusCheck();
+      if (STATE_ON && focusAllowsHum) {
+        startHum();
+      } else {
+        console.log('[STATE_WAIT_FOR_ON] Power turned off before ignition; or Not focused full. not starting hum.');
+      }
+    }, 200);  // pseudo ProffieOSHumDelay hardcoded
   }
 
   // Use preon.wav length for ignition delay.
@@ -8976,13 +9025,7 @@ function ClickPower() {
     // console.log(">>> Computed totalDelay (getEffectDelay)   =", totalDelay, "ms");
 
     console.log(`Scheduling POSTOFF in ${totalDelay} ms`);
-    // only fire POSTOFF if the style actually contains a POSTOFF layer
-    if (current_style.LAYERS?.some(l =>
-         l.constructor?.name === 'TransitionEffectLClass' &&
-         l.EFFECT?.getInteger?.(0) === EFFECT_POSTOFF
-       )) {
-      setTimeout(() => { blade.addEffect(EFFECT_POSTOFF, 0.0); }, totalDelay);
-    }
+    setTimeout(() => { blade.addEffect(EFFECT_POSTOFF, 0.0); }, totalDelay);
   }
 }
 
@@ -9007,18 +9050,82 @@ function OnLockupChange() {
 }
 
 function updateLockupDropdown() {
+  // console.log("[LockupDropdown] ▶ update called; STATE_LOCKUP =", STATE_LOCKUP);
   const lockupSelect = FIND("LOCKUP");
-  // Clear all options
   lockupSelect.innerHTML = "";
 
+  // Get allowed lockup types from style code
+  const allowedLockups = getAllowedLockupsFromStyleText();
+  // console.log("[LockupDropdown]    allowedLockups =", Array.from(allowedLockups));
+
+// THIS WORKS if we want to play the endlock when refocusing off a selected lockup layer.
+// but maybe it should just stop playing instead ?
+// // Auto‐end any running lockup if its layer is no longer allowed
+// const prevBeginEvt = window.currentLockupType;
+// console.log(
+//   "[LockupDropdown] ▶ prevBeginEvt=", prevBeginEvt,
+//   "allowedLockups=", Array.from(allowedLockups)
+// );
+// // figure out which lockup enum originally drove that begin‐event
+// let prevEnum, endEvt;
+// for (const [lk, [b,e]] of Object.entries(lockups_to_event)) {
+//   if (b === prevBeginEvt) {
+//     prevEnum = Number(lk);
+//     endEvt   = e;
+//     break;
+//   }
+// }
+// if (prevEnum != null && !allowedLockups.has(prevEnum)) {
+//   console.log("[LockupDropdown] ⚡ auto‐ending lockup enum", prevEnum);
+//   const END_EFFECT_MAP = {
+//     [EFFECT_LOCKUP_END]:   "endlock",
+//     [EFFECT_DRAG_END]:     "enddrag",
+//     [EFFECT_MELT_END]:     "endmelt",
+//     [EFFECT_LB_END]:       "endlb"
+//   };
+//   // directly kill the loop and play its end‐sound
+//   endLockupLoop(prevBeginEvt, END_EFFECT_MAP[endEvt], true);
+//   // clear both state vars so dropdown & audio agree
+//   STATE_LOCKUP = LOCKUP_NONE;
+//   window.currentLockupType = null;
+// }
+
+// Silently stop loop if no lockup is selected
+if ((!STATE_LOCKUP || STATE_LOCKUP === LOCKUP_NONE) && window.lockupLoopSrc) {
+  try { window.lockupLoopSrc.stop(); window.lockupLoopSrc.disconnect(); } catch (_) {}
+  window.lockupLoopSrc = null;
+  if (window.lockupGainNode) {
+    try { window.lockupGainNode.disconnect(); } catch (_) {}
+    window.lockupGainNode = null;
+  }
+  window.currentLockupType = null;
+}
+  // Map value to display label
+  const lockupLabels = {
+    [LOCKUP_NORMAL]: "Lockup",
+    [LOCKUP_DRAG]: "Drag",
+    [LOCKUP_MELT]: "Melt",
+    [LOCKUP_LIGHTNING_BLOCK]: "LB"
+    // Add more here if needed
+  };
+
   if (!STATE_LOCKUP || STATE_LOCKUP === LOCKUP_NONE) {
-    // Not in lockup: show all lockup types \u00A0\u00A0\u00A0
     lockupSelect.appendChild(new Option("Choose Lockup", "LOCKUP_NONE"));
-    lockupSelect.appendChild(new Option("Lockup", "LOCKUP_NORMAL"));
-    lockupSelect.appendChild(new Option("Drag", "LOCKUP_DRAG"));
-    lockupSelect.appendChild(new Option("Melt", "LOCKUP_MELT"));
-    lockupSelect.appendChild(new Option("LB", "LOCKUP_LIGHTNING_BLOCK"));
-    // lockupSelect.appendChild(new Option("Autofire", "LOCKUP_AUTOFIRE"));  // future add
+    const lockupTypeNames = {
+      [LOCKUP_NORMAL]: "LOCKUP_NORMAL",
+      [LOCKUP_DRAG]: "LOCKUP_DRAG",
+      [LOCKUP_MELT]: "LOCKUP_MELT",
+      [LOCKUP_LIGHTNING_BLOCK]: "LOCKUP_LIGHTNING_BLOCK"
+    };
+
+    for (const lockupType of [LOCKUP_NORMAL, LOCKUP_DRAG, LOCKUP_MELT, LOCKUP_LIGHTNING_BLOCK]) {
+      if (allowedLockups.has(lockupType)) {
+        lockupSelect.appendChild(new Option(
+          lockupLabels[lockupType],
+          lockupTypeNames[lockupType]
+        ));
+      }
+    }
     lockupSelect.value = "LOCKUP_NONE";
   } else {
     const stopOption = new Option("Stop", "LOCKUP_NONE");
@@ -9329,12 +9436,12 @@ function ActivateTab(tab) {
   FIND(tab + "_tabcontent").style.display = "block";
   FIND(tab + "_tab").classList.add("active");
 
-  // Find the outer-most bracket element using simplified XPath
-  var outerMostBracket = FIND('structured_view');
+  // // Find the outer-most bracket element using simplified XPath
+  // var outerMostBracket = FIND('structured_view');
 
-  outerMostBracket.addEventListener("click", function (event) {
-    enableTabs();
-  });
+  // outerMostBracket.addEventListener("click", function (event) {
+  //   enableTabs();
+  // });
 
   // Deactivate tabs that are not compatible with the current tab
   var incompatibleTabs = getIncompatibleTabs(tab);
@@ -9748,10 +9855,7 @@ function initGL() {
   A += "</table\n";
   AddTabContent("arg_string", A);
 
-
   var container = FIND("page_left_top");
-  var enlargeCanvas = false;
-
   canvas_id.setAttribute("title", "Blade Preview.\nMove mouse to swing. Click to Clash\nor to Do Selected Effect (and to dismiss this Tooltip.)\nGoto settings to change hilt model or toggle Mouse Swings mode (swinging with mouse moves.)");
 
   if(window.devicePixelRatio !== undefined) {
@@ -9860,7 +9964,7 @@ function initGL() {
 
 function onPageLoad() {
   initGL();
-  requestAnimationFrame(updateSmoothSwingGains);
+  // requestAnimationFrame(updateSmoothSwingGains);
   updateLockupDropdown();
   rebuildMoreEffectsMenu();
   structuredView = FIND("structured_view");
