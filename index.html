@@ -295,7 +295,7 @@ body {
 }
 
 
-#page_left_top:fullscreen #canvas-container,
+/*#page_left_top:fullscreen #canvas-container,
 #page_left_top:-webkit-full-screen #canvas-container {
   flex: 1 1 auto;
   display: flex;
@@ -303,7 +303,7 @@ body {
   min-height: 0;
   min-width: 0;
   background: #000;
-}
+}*/
 
 /* When fullscreen, force canvas to fill container height above controls */
 #page_left_top:fullscreen canvas,
@@ -344,11 +344,6 @@ body {
   margin: 0;
 }
 
-/* Push the canvas down so it doesn’t sit behind the new toolbar */
-#page_left_top:fullscreen #canvas-container,
-#page_left_top:-webkit-full-screen #canvas-container {
-  margin-top: 3em;
-}
 #page_left_top:fullscreen #ENLARGE_BUTTON,
 #page_left_top:-webkit-full-screen #ENLARGE_BUTTON {
   display: none;
@@ -376,11 +371,7 @@ body {
   order: -1;
 }
 
-/* ensure canvas-container sits below our toolbar */
-#page_left_top:fullscreen #canvas-container,
-#page_left_top:-webkit-full-screen #canvas-container {
-  order: 0;
-}
+
 #page_left_top:fullscreen .sound-ribbon-container,
 #page_left_top:-webkit-full-screen .sound-ribbon-container {
   margin-left: 1em;
@@ -405,12 +396,24 @@ canvas#canvas_id,
 }
 
 /* Show the Fullscreen/Exit button at top-right in FS mode */
-#page_left_top:fullscreen   #FULLSCREEN_BUTTON,
+#page_left_top:fullscreen #FULLSCREEN_BUTTON,
 #page_left_top:-webkit-full-screen #FULLSCREEN_BUTTON {
   position: fixed;
   top: 10px;
   right: 10px;
   z-index: 1001;
+}
+/* Push the canvas down so it doesn’t sit behind the new toolbar */
+#page_left_top:fullscreen #canvas-container,
+#page_left_top:-webkit-full-screen #canvas-container {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  background: #000;
+  order: 0;
+/*  margin-top: 3em;*/
 }
 /* Enlarge/reduce button */
 #ENLARGE_BUTTON {
@@ -1043,7 +1046,18 @@ Add, Delete, Move Up, Move Down */
 .overlay.show {
   display: block;
 }
-
+#page_left_top:fullscreen #canvas-container,
+#page_left_top:-webkit-full-screen #canvas-container {
+  height: 100vh !important;
+  width: 100vw !important;
+  background: #000 !important;
+}
+#page_left_top:fullscreen canvas,
+#page_left_top:-webkit-full-screen canvas {
+  height: 100% !important;
+  width: 100% !important;
+  background: #000 !important;
+}
 </style>
 
 
