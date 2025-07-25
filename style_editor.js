@@ -192,7 +192,11 @@ function mouse_move(e) {
   // SmoothSwing updates
   lastSwingSpeed = get_swing_speed();
   lastSwingUpdate = Date.now();
-  triggerAccentEvent(lastSwingSpeed);
+  // console.debug(
+  //   `[SwingDebug][mouse_move] lastSwingSpeed=${lastSwingSpeed.toFixed(1)}, ` +
+  //   `lastSwingUpdate=${lastSwingUpdate}`
+  // );
+    triggerAccentEvent(lastSwingSpeed);
 }
 //////////// BC ///////////
 
@@ -1331,22 +1335,9 @@ class RgbClass extends STYLE {
     }
   }
   run(blade) {}
-  // getColor(led) {
-  //   return this;
-  // }
-  // getColor now accepts an optional `out` object to reuse.
-  // If you pass `out`, we copy into it and return it, else return `this`.
-  getColor(led, out) {
-    if (out) {
-      out.r = this.r;
-      out.g = this.g;
-      out.b = this.b;
-      out.a = this.a;
-      return out;
-    }
+  getColor(led) {
     return this;
   }
-
   pp() {
     if (this.name) return this.PPshort(this.name,"Color");
     return this.PPshort("Rgb",  "RGB Color",
@@ -1354,56 +1345,30 @@ class RgbClass extends STYLE {
                         Math.round(this.g*255), "Green component",
                         Math.round(this.b*255), "Blue component");
   }
-  // mix(other, blend) {
-  //   var ret = new RgbClass(0,0,0);
-  //   ret.r = other.r * blend + this.r * (1.0 - blend);
-  //   ret.g = other.g * blend + this.g * (1.0 - blend);
-  //   ret.b = other.b * blend + this.b * (1.0 - blend);
-  //   ret.a = other.a * blend + this.a * (1.0 - blend);
-  //   return ret;
-  // }
-  // multiply(v) {
-  //   var ret = new RgbClass(0,0,0);
-  //   ret.r = this.r * v;
-  //   ret.g = this.g * v;
-  //   ret.b = this.b * v;
-  //   ret.a = this.a * v;
-  //   return ret;
-  // }
-  // paintOver(other) {
-  //   var ret = new RgbClass(0,0,0);
-  //   ret.r = this.r * (1.0 - other.a) + other.r;
-  //   ret.g = this.g * (1.0 - other.a) + other.g;
-  //   ret.b = this.b * (1.0 - other.a) + other.b;
-  //   ret.a = this.a * (1.0 - other.a) + other.a;
-  //   return ret;
-  // }
-/*  • This will eliminate thousands(?) of new object allocations per frame and dramatically reduce CPU (and GC) overhead.
-  • Only downside: if we ever store the result (rather than using it immediately), 
-  it’ll get overwritten—but this is how Fredrik does it in ProffieOS(?) and 
-  it’s fine for rendering since each color result is just immediately used?.*/
-mix(other, blend) {
-  scratchColor.r = other.r * blend + this.r * (1.0 - blend);
-  scratchColor.g = other.g * blend + this.g * (1.0 - blend);
-  scratchColor.b = other.b * blend + this.b * (1.0 - blend);
-  scratchColor.a = other.a * blend + this.a * (1.0 - blend);
-  return scratchColor;
-}
-multiply(v) {
-  scratchColor.r = this.r * v;
-  scratchColor.g = this.g * v;
-  scratchColor.b = this.b * v;
-  scratchColor.a = this.a * v;
-  return scratchColor;
-}
-paintOver(other) {
-  scratchColor.r = this.r * (1.0 - other.a) + other.r;
-  scratchColor.g = this.g * (1.0 - other.a) + other.g;
-  scratchColor.b = this.b * (1.0 - other.a) + other.b;
-  scratchColor.a = this.a * (1.0 - other.a) + other.a;
-  return scratchColor;
-}
-
+  mix(other, blend) {
+    var ret = new RgbClass(0,0,0);
+    ret.r = other.r * blend + this.r * (1.0 - blend);
+    ret.g = other.g * blend + this.g * (1.0 - blend);
+    ret.b = other.b * blend + this.b * (1.0 - blend);
+    ret.a = other.a * blend + this.a * (1.0 - blend);
+    return ret;
+  }
+  multiply(v) {
+    var ret = new RgbClass(0,0,0);
+    ret.r = this.r * v;
+    ret.g = this.g * v;
+    ret.b = this.b * v;
+    ret.a = this.a * v;
+    return ret;
+  }
+  paintOver(other) {
+    var ret = new RgbClass(0,0,0);
+    ret.r = this.r * (1.0 - other.a) + other.r;
+    ret.g = this.g * (1.0 - other.a) + other.g;
+    ret.b = this.b * (1.0 - other.a) + other.b;
+    ret.a = this.a * (1.0 - other.a) + other.a;
+    return ret;
+  }
 
   // angle = 0 - 98304 (32768 * 3) (non-inclusive)
   rotate(angle) {
@@ -1425,12 +1390,7 @@ paintOver(other) {
       H = (this.r - this.g) / C + 4;
     }
     H += angle / 16384.0;
-    // return new RgbClass(f(5+H, C, MAX), f(3+H, C, MAX), f(1+H, C, MAX));
-    scratchColor.r = f(5+H, C, MAX) / 255.0;
-    scratchColor.g = f(3+H, C, MAX) / 255.0;
-    scratchColor.b = f(1+H, C, MAX) / 255.0;
-    scratchColor.a = this.a;
-    return scratchColor;
+    return new RgbClass(f(5+H, C, MAX), f(3+H, C, MAX), f(1+H, C, MAX));
   }
 
   argify(state) {
@@ -1444,9 +1404,142 @@ paintOver(other) {
   }
 };
 
-// Scratch Rgb instance to reduce per-pixel allocations:
-const scratchColor = new RgbClass(0, 0, 0);
-const scratchColor2 = new RgbClass(0,0,0);
+// class RgbClass extends STYLE {
+//   constructor(r,g,b,a) {
+//     super();
+//     this.r = IntArg(r)/255.0;
+//     this.g = IntArg(g)/255.0;
+//     this.b = IntArg(b)/255.0;
+//     if (this.r < 0) throw "Red is negative";
+//     if (this.g < 0) throw "Blue is negative";
+//     if (this.b < 0) throw "Green is negative";
+//     if (this.r > 1.0) throw "Red too big.";
+//     if (this.g > 1.0) throw "Green too big.";
+//     if (this.b > 1.0) throw "Blue too big.";
+//     if (a == undefined) {
+//       this.a = 1.0;
+//       this.name = colorNames[r+","+g+","+b]
+//     } else {
+//       this.a = a;
+//     }
+//   }
+//   run(blade) {}
+//   // getColor(led) {
+//   //   return this;
+//   // }
+//   // getColor now accepts an optional `out` object to reuse.
+//   // If you pass `out`, we copy into it and return it, else return `this`.
+//   getColor(led, out) {
+//     if (out) {
+//       out.r = this.r;
+//       out.g = this.g;
+//       out.b = this.b;
+//       out.a = this.a;
+//       return out;
+//     }
+//     return this;
+//   }
+
+//   pp() {
+//     if (this.name) return this.PPshort(this.name,"Color");
+//     return this.PPshort("Rgb",  "RGB Color",
+//                         Math.round(this.r*255), "Red component",
+//                         Math.round(this.g*255), "Green component",
+//                         Math.round(this.b*255), "Blue component");
+//   }
+//   // mix(other, blend) {
+//   //   var ret = new RgbClass(0,0,0);
+//   //   ret.r = other.r * blend + this.r * (1.0 - blend);
+//   //   ret.g = other.g * blend + this.g * (1.0 - blend);
+//   //   ret.b = other.b * blend + this.b * (1.0 - blend);
+//   //   ret.a = other.a * blend + this.a * (1.0 - blend);
+//   //   return ret;
+//   // }
+//   // multiply(v) {
+//   //   var ret = new RgbClass(0,0,0);
+//   //   ret.r = this.r * v;
+//   //   ret.g = this.g * v;
+//   //   ret.b = this.b * v;
+//   //   ret.a = this.a * v;
+//   //   return ret;
+//   // }
+//   // paintOver(other) {
+//   //   var ret = new RgbClass(0,0,0);
+//   //   ret.r = this.r * (1.0 - other.a) + other.r;
+//   //   ret.g = this.g * (1.0 - other.a) + other.g;
+//   //   ret.b = this.b * (1.0 - other.a) + other.b;
+//   //   ret.a = this.a * (1.0 - other.a) + other.a;
+//   //   return ret;
+//   // }
+// /*  • This will eliminate thousands(?) of new object allocations per frame and dramatically reduce CPU (and GC) overhead.
+//   • Only downside: if we ever store the result (rather than using it immediately), 
+//   it’ll get overwritten—but this is how Fredrik does it in ProffieOS(?) and 
+//   it’s fine for rendering since each color result is just immediately used?.*/
+// mix(other, blend) {
+//   scratchColor.r = other.r * blend + this.r * (1.0 - blend);
+//   scratchColor.g = other.g * blend + this.g * (1.0 - blend);
+//   scratchColor.b = other.b * blend + this.b * (1.0 - blend);
+//   scratchColor.a = other.a * blend + this.a * (1.0 - blend);
+//   return scratchColor;
+// }
+// multiply(v) {
+//   scratchColor.r = this.r * v;
+//   scratchColor.g = this.g * v;
+//   scratchColor.b = this.b * v;
+//   scratchColor.a = this.a * v;
+//   return scratchColor;
+// }
+// paintOver(other) {
+//   scratchColor.r = this.r * (1.0 - other.a) + other.r;
+//   scratchColor.g = this.g * (1.0 - other.a) + other.g;
+//   scratchColor.b = this.b * (1.0 - other.a) + other.b;
+//   scratchColor.a = this.a * (1.0 - other.a) + other.a;
+//   return scratchColor;
+// }
+
+
+//   // angle = 0 - 98304 (32768 * 3) (non-inclusive)
+//   rotate(angle) {
+//     var H;
+//     if (angle == 0) return this;
+//     var MAX = max(this.r, this.g, this.b);
+//     var MIN = min(this.r, this.g, this.b);
+//     var C = MAX - MIN;
+//     if (C == 0) return this;  // Can't rotate something without color.
+//     // Note 16384 = 60 degrees.
+//     if (this.r == MAX) {
+//       // r is biggest
+//       H = (this.g - this.b) / C;
+//     } else if (this.g == MAX) {
+//       // g is biggest
+//       H = (this.b - this.r) / C + 2;
+//     } else {
+//       // b is biggest
+//       H = (this.r - this.g) / C + 4;
+//     }
+//     H += angle / 16384.0;
+//     // return new RgbClass(f(5+H, C, MAX), f(3+H, C, MAX), f(1+H, C, MAX));
+//     scratchColor.r = f(5+H, C, MAX) / 255.0;
+//     scratchColor.g = f(3+H, C, MAX) / 255.0;
+//     scratchColor.b = f(1+H, C, MAX) / 255.0;
+//     scratchColor.a = this.a;
+//     return scratchColor;
+//   }
+
+//   argify(state) {
+//     if (state.color_argument) {
+//       ret = RgbArg_(ArgumentName(state.color_argument), this);
+//       state.color_argument = false;
+//       return ret;
+//     } else {
+//       return this;
+//     }
+//   }
+// };
+
+// // Scratch Rgb instance to reduce per-pixel allocations:
+// const scratchColor = new RgbClass(0, 0, 0);
+// const scratchColor2 = new RgbClass(0,0,0);
 
 function f(n, C, MAX) {
   var k = n % 6;
@@ -1599,22 +1692,22 @@ class LayersClass extends STYLE {
     for (var i = 1; i < this.LAYERS.length + 1; i++)
       this.add_arg("LAYER" + i, "COLOR", "Layer " + i);
   }
-  // getColor(led) {
-  //   var ret = this.BASE.getColor(led);
-  //   for (var i = 0; i < this.LAYERS.length; i++) {
-  //     ret = ret.paintOver(this.LAYERS[i].getColor(led));
-  //   }
-  //   return ret;
-  // }
-  getColor(led, out) {
-    // Always start with base color in 'out'
-    this.BASE.getColor(led, out);
+  getColor(led) {
+    var ret = this.BASE.getColor(led);
     for (var i = 0; i < this.LAYERS.length; i++) {
-      // Mutate 'out' in-place using each layer's color (to minimize allocations)
-      out = out.paintOver(this.LAYERS[i].getColor(led, scratchColor2));
+      ret = ret.paintOver(this.LAYERS[i].getColor(led));
     }
-    return out;
+    return ret;
   }
+  // getColor(led, out) {
+  //   // Always start with base color in 'out'
+  //   this.BASE.getColor(led, out);
+  //   for (var i = 0; i < this.LAYERS.length; i++) {
+  //     // Mutate 'out' in-place using each layer's color (to minimize allocations)
+  //     out = out.paintOver(this.LAYERS[i].getColor(led, scratchColor2));
+  //   }
+  //   return out;
+  // }
   argify(state) {
     this.BASE = this.BASE.argify(state);
     state.color_argument = false;
@@ -2079,6 +2172,7 @@ function Rainbow() {
 }
 
 var STATE_ON = 0;
+var STATE_WAIT_FOR_ON = 0;
 // 1 = lockup
 // 2 = drag
 // 3 = lb
@@ -4722,28 +4816,39 @@ class InOutTrLClass extends STYLE {
     this.on_ = false;
     this.out_active_ = false;
     this.in_active_ = false;
-    this.ignitionDetector = new OneshotEffectDetector(EFFECT_IGNITION);
+    // this.ignitionDetector = new OneshotEffectDetector(EFFECT_IGNITION);
   }
   run(blade) {
     this.OFF.run(blade);
 
+    // if (this.on_ != blade.is_on()) {
+    //   if (!blade.is_on()) {
+    //     this.on_ = false;
+    //     this.ignitionDetector.last_detected_ = micros();
+    //     this.out_active_ = false;
+    //     this.IN_TR.begin();
+    //     this.in_active_ = true;
+    //   } else {
+    //     this.on_ = true;
+    //     this.in_active_ = false;
+    //   }
+    // }
+    // // Ignition only on EFFECT_IGNITION
+    // if (blade.is_on()) {
+    //   if (this.ignitionDetector.Detect(blade)) {
+    //     this.OUT_TR.begin();
+    //     this.out_active_ = true;
+    //   }
+    // }
+
     if (this.on_ != blade.is_on()) {
-      if (!blade.is_on()) {
-        this.on_ = false;
-        this.ignitionDetector.last_detected_ = micros();
-        this.out_active_ = false;
-        this.IN_TR.begin();
-        this.in_active_ = true;
-      } else {
-        this.on_ = true;
-        this.in_active_ = false;
-      }
-    }
-    // Ignition only on EFFECT_IGNITION
-    if (blade.is_on()) {
-      if (this.ignitionDetector.Detect(blade)) {
+      this.on_ = blade.is_on();
+      if (this.on_) {
         this.OUT_TR.begin();
         this.out_active_ = true;
+      } else {
+        this.IN_TR.begin();
+        this.in_active_ = true;
       }
     }
 
@@ -6557,13 +6662,12 @@ class WavLenClass extends FUNCTION {
   }
   getInteger(led) {
     const effectArg  = this.EFFECT?.value;
-    const useFont    = useFontWavLenState.get();
     const effectName = EFFECT_SOUND_MAP[effectArg];
     const idx        = lastPlayedSoundIndex[effectName];
     const durations  = pickLoopBuffers(effectName).map(b => b?.duration ? Math.round(b.duration * 1000) : null);
 
     let result;
-    if (useFont && effectName && Array.isArray(durations) && idx != null && durations[idx] != null) {
+    if (useFontWavLenState.get() && effectName && Array.isArray(durations) && idx != null && durations[idx] != null) {
       result = durations[idx];
     } else {
       result = myWavLen.wavlenValue;
@@ -8378,7 +8482,7 @@ var good_fps = 0;
 var pixels;
 var AA = 1;
 var AA_STEP_SIZE = 1;
-  
+
 function drawScene() {
   var now_actual_millis = actual_millis();
   var delta_actual_millis = now_actual_millis - last_actual_millis;
@@ -8417,7 +8521,7 @@ function drawScene() {
       graflexState.set(false);
     }
   }
-  var num_leds = blade.num_leds()
+  num_leds = blade.num_leds()
   if (!pixels || pixels.length < num_leds * 4 * 2) {
      pixels = new Uint8Array(num_leds * 4 * 2);
   }
@@ -8442,8 +8546,7 @@ function drawScene() {
     numTick = 0;
     S.run(blade);
     for (var i = 0; i < num_leds; i++) {
-        // var c = S.getColor(i);
-        var c = S.getColor(i, scratchColor);
+        c = S.getColor(i);
         pixels[i*4 + 0] = Math.round(c.r * 255);
         pixels[i*4 + 1] = Math.round(c.g * 255);
         pixels[i*4 + 2] = Math.round(c.b * 255);
@@ -8456,8 +8559,7 @@ function drawScene() {
       S.run(blade);
     }
     for (var i = 0; i < num_leds; i++) {
-        // var c = S.getColor(i);
-        var c = S.getColor(i, scratchColor);
+        c = S.getColor(i);
         pixels[i*4 + 0 + num_leds * 4] = Math.round(c.r * 255);
         pixels[i*4 + 1 + num_leds * 4] = Math.round(c.g * 255);
         pixels[i*4 + 2 + num_leds * 4] = Math.round(c.b * 255);
@@ -8483,7 +8585,6 @@ function drawScene() {
 
   // Draw these textures to the screen, offset by 1 pixel increments
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  // gl.viewport(0, 0, width * dpr, height * dpr);
   gl.viewport(0, 0, canvas.width, canvas.height);
   gl.clearColor(0.0, 1.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
@@ -8506,9 +8607,8 @@ function drawScene() {
   }
   gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_time"),
                (new Date().getTime() - start) / 1000.0);
-    gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_width"),  canvas.clientWidth  );
-  gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_height"), canvas.clientHeight );
-
+  gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_width"), width);
+  gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_height"), height);
 
   gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "u_move_matrix"), false, rotation.values);
   gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "u_old_move_matrix"), false, OLD_MOVE_MATRIX.values);
@@ -8518,37 +8618,181 @@ function drawScene() {
   t += 1;
 }
 
-// function tick() {
-//   window.requestAnimationFrame(tick);
-//   drawScene();
+function tick() {
+  window.requestAnimationFrame(tick);
+  drawScene();
+}
+
+// function drawScene() {
+//   var now_actual_millis = actual_millis();
+//   var delta_actual_millis = now_actual_millis - last_actual_millis;
+//   last_actual_millis = now_actual_millis;
+  
+//   var delta_us = delta_actual_millis * time_factor
+//   last_micros = current_micros;
+//   current_micros_internal += delta_us;
+//   current_micros = current_micros_internal
+//   if (current_micros - last_micros > 1000000/45) {
+//      bad_fps ++;
+//      if (good_fps) good_fps--;
+//   } else {
+//      if (bad_fps) bad_fps --;
+//      good_fps++;
+//   }
+//   if (benchmarkState.get()) {
+//      if (bad_fps > 20) {
+//         if (AA_STEP_SIZE < 0) AA_STEP_SIZE-=1; else AA_STEP_SIZE=-1;
+//         AA+=AA_STEP_SIZE;
+//         if (AA < 1) AA = 1;
+//         compile();
+//         bad_fps = 0;
+//         FIND("error_message").innerHTML = "AA="+AA;
+//      }
+//      if (good_fps > 20) {
+//         if (AA_STEP_SIZE > 0) AA_STEP_SIZE+=1; else AA_STEP_SIZE=1;
+//         AA+=AA_STEP_SIZE;
+//         compile();
+//         good_fps = 0;
+//         FIND("error_message").innerHTML = "AA="+AA;
+//      }
+//   } else {
+//     if (bad_fps > 10 && graflexState.get()) {
+//       showPopupMessage("Struggling to render hilt model.<br>Switching to simpler design.<br>To re-enable Graflex model, go to Settings.", "graflexPopup");
+//       graflexState.set(false);
+//     }
+//   }
+//   var num_leds = blade.num_leds()
+//   if (!pixels || pixels.length < num_leds * 4 * 2) {
+//      pixels = new Uint8Array(num_leds * 4 * 2);
+//   }
+//   var S = current_style;
+//   if (S != last_style) {
+//     last_style = S;
+//     if (S.getType) {
+//       S.set_right_side(current_focus || style_tree)
+//       if (S.getType() == "TRANSITION") {
+//         S = TransitionLoop(Rgb(0,0,0), TrConcat(TrDelay(500), Rgb(255,0,0), S, Rgb(0,0,255), TrInstant()));
+//       }
+//       if (S.getType() == "FUNCTION") {
+//         S = Mix(S, Rgb(0,0,0), Rgb(255,255,255));
+//       }
+//     }
+//     show_style = S;
+//   } else {
+//     S = show_style;
+//   }
+//   numTick++;
+//   if (S.getColor && S.getType && S.getType() == "COLOR" && numTick > framesPerUpdate) {
+//     numTick = 0;
+//     S.run(blade);
+//     for (var i = 0; i < num_leds; i++) {
+//         // var c = S.getColor(i);
+//         var c = S.getColor(i, scratchColor);
+//         pixels[i*4 + 0] = Math.round(c.r * 255);
+//         pixels[i*4 + 1] = Math.round(c.g * 255);
+//         pixels[i*4 + 2] = Math.round(c.b * 255);
+//         pixels[i*4 + 3] = 255;
+//     }
+//     if (last_micros != 0) {
+//       current_micros += delta_us / 2;
+//     }
+//     if (framesPerUpdate == 0) {
+//       S.run(blade);
+//     }
+//     for (var i = 0; i < num_leds; i++) {
+//         // var c = S.getColor(i);
+//         var c = S.getColor(i, scratchColor);
+//         pixels[i*4 + 0 + num_leds * 4] = Math.round(c.r * 255);
+//         pixels[i*4 + 1 + num_leds * 4] = Math.round(c.g * 255);
+//         pixels[i*4 + 2 + num_leds * 4] = Math.round(c.b * 255);
+//        pixels[i*4 + 3 + num_leds * 4] = 255;
+//     }
+//     S.update_displays();
+//   }
+//   // TODO: Generate mipmaps, then adjust level based on distance from blade
+//   gl.texImage2D(
+//       gl.TEXTURE_2D,
+//       0,        // level
+//       gl.RGBA,  // internalFormat
+//       num_leds, 2,   // width, height
+//       0,        // border
+//       gl.RGBA,   // source format
+//       gl.UNSIGNED_BYTE, // source type
+//       pixels);
+
+//   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+//   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+//   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+//   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+//   // Draw these textures to the screen, offset by 1 pixel increments
+//   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+//   // gl.viewport(0, 0, width * dpr, height * dpr);
+//   gl.viewport(0, 0, canvas.width, canvas.height);
+//   gl.clearColor(0.0, 1.0, 0.0, 1.0);
+//   gl.clear(gl.COLOR_BUFFER_BIT);
+
+//   gl.viewport(0, 0, canvas.width,  canvas.height);
+//   var rotation = MOVE_MATRIX;
+//   if (STATE_ROTATE) {
+//     var u_value = (new Date().getTime() - rotate_start) / 3000.0;
+//     var rotation = default_move_matrix();
+//     rotation = rotation.mult(Matrix.mkyrot(u_value));
+//     rotation = rotation.mult(Matrix.mkzrot(u_value / 7.777));
+
+//   } else {
+//     if (0) {
+//       OLD_MOVE_MATRIX = default_move_matrix();
+//       rotation = default_move_matrix();
+//       rotation = rotation.mult(Matrix.mkzrot(0.2));
+//     }
+//     rotate_start = new Date().getTime();
+//   }
+//   gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_time"),
+//                (new Date().getTime() - start) / 1000.0);
+//     gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_width"),  canvas.clientWidth  );
+//   gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_height"), canvas.clientHeight );
+
+
+//   gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "u_move_matrix"), false, rotation.values);
+//   gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "u_old_move_matrix"), false, OLD_MOVE_MATRIX.values);
+//   OLD_MOVE_MATRIX = rotation;
+//   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+//   t += 1;
 // }
 
-let rafId = null;
+// // function tick() {
+// //   window.requestAnimationFrame(tick);
+// //   drawScene();
+// // }
 
-function loop() {
-  drawScene();
-  rafId = requestAnimationFrame(loop);
-}
+// let rafId = null;
 
-function startLoop() {
-  if (!rafId) rafId = requestAnimationFrame(loop);
-}
+// function loop() {
+//   drawScene();
+//   rafId = requestAnimationFrame(loop);
+// }
 
-function stopLoop() {
-  if (rafId) {
-    cancelAnimationFrame(rafId);
-    rafId = null;
-  }
-}
+// function startLoop() {
+//   if (!rafId) rafId = requestAnimationFrame(loop);
+// }
 
-// pause when the tab is hidden, resume when it comes back
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden) {
-    stopLoop();
-  } else {
-    startLoop();
-  }
-});
+// function stopLoop() {
+//   if (rafId) {
+//     cancelAnimationFrame(rafId);
+//     rafId = null;
+//   }
+// }
+
+// // pause when the tab is hidden, resume when it comes back
+// document.addEventListener("visibilitychange", () => {
+//   if (document.hidden) {
+//     stopLoop();
+//   } else {
+//     startLoop();
+//   }
+// });
 var overall_string;
 
 function ReplaceCurrentFocus(str) {
@@ -8898,12 +9142,12 @@ function SetToAndFormat(str, event) {
 }
 
 function FocusOnLow(id) {
-  console.log("FOCUSON:", id);
+  console.log("FOCUSON: " + id);
   const style = style_ids[id];
   console.log("style_ids[" + id + "] =", style);
   current_focus = style;
-
-  // Update the editor to show this style
+  var container = FIND("X"+id);
+  console.log(container);
   pp_is_url++;
   const url = style.pp();
   pp_is_url--;
@@ -8921,12 +9165,14 @@ function FocusOn(id, event) {
 
 function FocusCheck() {
   // Detect whether this is the top-level in structured view.
-const outerMostBracket = (!current_focus || (current_focus.constructor.name === "LayersClass"));
+const outerMostBracket = (!current_focus|| (current_focus.constructor.name === "LayersClass"));
     console.log('[FocusCheck] outerMostBracket = ' + outerMostBracket);
-  if (outerMostBracket && STATE_ON) {
-    console.log("[FocusCheck] resumeLoops()");
-    resumeLoops();
+  if (outerMostBracket) {
     focusAllowsHum = true;
+    if (STATE_ON) {
+      console.log("[FocusCheck] resumeLoops()");
+      resumeLoops();
+    }
   } else {
     console.log("[FocusCheck] stopAllLoops()");
     stopAllLoops(200, false);
@@ -8942,10 +9188,12 @@ function ClickRotate() {
 }
 
 //////////// BC ///////////
+
+var power_button = FIND("POWER_BUTTON");
 /*
 Compute delay for triggering ignition/postoff.
-For ignition delay, check any/all EFFECT_PREON layers.
-For POSTOFF delay, check IN_TR.
+For ignition delay, use preon sound duration.
+For POSTOFF delay, use IN_TR total time.
 */
 function ClickPower() {
   // Debounce
@@ -8953,37 +9201,20 @@ function ClickPower() {
     return;
   }
   ClickPower._debounced = true;
-  setTimeout(() => { ClickPower._debounced = false; }, 400);  
+  setTimeout(() => { ClickPower._debounced = false; }, 400);
   stopAllLoops(200, true);  // Power button used: clear lockup state
-  STATE_ON = !STATE_ON; STATE_LOCKUP=0;
-  updateLockupDropdown();
-  var power_button = FIND("POWER_BUTTON");
-  power_button.classList.toggle("button-latched", STATE_ON ? true : false);
-  console.log("POWER");
 
-  // Recursively sum transition durations
-  function getDur(n) {
-    // Check if this uses WavLen<>.
-    if (n.constructor && n.constructor.name === 'WavLenClass') {
-      const ms = n.getInteger(0);
-      console.log('*** getDur: resolved WavLen to', ms, 'ms');
-      return Number(ms);
-    }
-    // If it has a fixed duration
-    if (n.MILLIS) return Number(n.MILLIS.getInteger(0));
-    // Otherwise, sum subnodes
-    let sum = 0;
-    if (n.args) for (let a of n.args) sum += getDur(a);
-    return sum;
-  }
+  STATE_LOCKUP=0;
+  updateLockupDropdown();
+  console.log("POWER");
 
   function igniteAndStartHum() {
     requestAnimationFrame(updateSmoothSwingGains)
     blade.addEffect(EFFECT_IGNITION, Math.random() * 0.7 + 0.2);
     setTimeout(() => {
       // Only start hum if still powered on!
-      FocusCheck();
-      if (STATE_ON && focusAllowsHum) {
+      // FocusCheck();
+      if (focusAllowsHum) {
         startHum();
       } else {
         console.log('[STATE_WAIT_FOR_ON] Power turned off before ignition; or Not focused full. not starting hum.');
@@ -8991,41 +9222,52 @@ function ClickPower() {
     }, 200);  // pseudo ProffieOSHumDelay hardcoded
   }
 
-  // Use preon.wav length for ignition delay.
-  if (STATE_ON) {
-    blade.addEffect(EFFECT_PREON, 0.0);
+  if (!STATE_ON && !STATE_WAIT_FOR_ON) {
+    STATE_WAIT_FOR_ON = true;
     const buffers = pickLoopBuffers('preon');
+    let ignitionDelay = 0;
     if (buffers.length) {
-      const preonDelay = Math.round(buffers[0].duration * 1000);
-      console.log(`Delaying ignition by ${preonDelay} ms (preon.wav length)`);
-      setTimeout(igniteAndStartHum, preonDelay);
-    } else {
-      // no preon sound → ignite immediately
-      igniteAndStartHum();
+      blade.addEffect(EFFECT_PREON, 0.0);
+      const idx = lastPlayedSoundIndex['preon'];
+      ignitionDelay = Math.round(buffers[idx].duration * 1000);
+      console.log(`Delaying ignition by ${ignitionDelay} ms (preon.wav length)`);
     }
+    setTimeout(() => {
+      STATE_WAIT_FOR_ON = false;
+      STATE_ON = true;
+      igniteAndStartHum();
+    }, ignitionDelay);
+      power_button.classList.toggle("button-latched", true);
   } else {
+    STATE_ON = 0;
+    power_button.classList.toggle("button-latched", false);
     blade.addEffect(EFFECT_RETRACTION, Math.random() * 0.7 + 0.2);
     stopAllLoops(200, true);  // Power button used: clear lockup state
-    let inoutLayer = null;
+    let styleDelay = 0;
+
     if (Array.isArray(current_style.LAYERS)) {
-      inoutLayer = current_style.LAYERS.find(
+      const inout = current_style.LAYERS.find(
         l => l.constructor?.name === 'InOutTrLClass'
       );
+      if (inout?.IN_TR) {
+        // Recursively sum up all transition durations.
+        const getDur = n => {
+          if (n.constructor && n.constructor.name === 'WavLenClass')
+            return Number(n.getInteger(0));
+          if (n.MILLIS)
+            return Number(n.MILLIS.getInteger(0));
+          if (n.args)
+            return n.args.reduce((sum, a) => sum + getDur(a), 0);
+          return 0;
+        };
+        styleDelay = getDur(inout.IN_TR);
+      }
     }
-
-    let styleDelay = 0;
-    if (inoutLayer?.IN_TR) {
-      styleDelay = getDur(inoutLayer.IN_TR);
+    const postoffBuffers = pickLoopBuffers('pstoff');
+    if (postoffBuffers.length) {
+      console.log(`Scheduling POSTOFF in ${styleDelay} ms`);
+      setTimeout(() => { blade.addEffect(EFFECT_POSTOFF, 0.0); }, styleDelay);
     }
-    // console.log(">>> Computed styleDelay (getDur of IN_TR) =", styleDelay, "ms");
-
-    const totalDelay = (typeof getEffectDelay === 'function')
-      ? getEffectDelay('pstoff', styleDelay)
-      : styleDelay;
-    // console.log(">>> Computed totalDelay (getEffectDelay)   =", totalDelay, "ms");
-
-    console.log(`Scheduling POSTOFF in ${totalDelay} ms`);
-    setTimeout(() => { blade.addEffect(EFFECT_POSTOFF, 0.0); }, totalDelay);
   }
 }
 
@@ -9876,7 +10118,7 @@ function initGL() {
     enlargeCanvas = !enlargeCanvas;
     this.innerText = enlargeCanvas ? 'Reduce' : 'Enlarge';
     if (enlargeCanvas) {
-      height = window.innerHeight / 2;
+      height = window.innerHeight / 2.2;
     } else {
       height = window.innerHeight / 3;
     }
@@ -9910,6 +10152,7 @@ function initGL() {
     canvas.height = cssH * dpr;
     origD = Math.min(canvas.width, canvas.height);
   });
+
 
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape' && document.fullscreenElement) {
@@ -9964,7 +10207,6 @@ function initGL() {
 
 function onPageLoad() {
   initGL();
-  // requestAnimationFrame(updateSmoothSwingGains);
   updateLockupDropdown();
   rebuildMoreEffectsMenu();
   structuredView = FIND("structured_view");
@@ -9988,11 +10230,10 @@ function handleSettings(checkbox) {
 
 // User can choose one or the other
 function handleWavLenControls() {
-  var useFont = useFontWavLenState.get();
   var wavlenLabel = document.querySelector('.wavlen-global-label');
   var wavlenInput = document.getElementById('WAVLEN_VALUE');
 
-  if (useFont) {
+  if (useFontWavLenState.get()) {
     wavlenLabel.classList.add('disabled');
     wavlenInput.disabled = true;
   } else {

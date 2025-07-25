@@ -96,8 +96,8 @@ function showLoadingOverlay() {
     color: '#fff',
     fontSize: '1.5em',
     display: 'flex',
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
     zIndex: '9999',
     textAlign: 'center',
   });
@@ -109,7 +109,6 @@ function hideLoadingOverlay() {
   if (overlay) document.body.removeChild(overlay);
   if (window.lockupLoopSrc) {
     endLockupLoop(window.currentLockupType, null, false);
-  } else {
   }
   resumeLoops();
 }
@@ -241,13 +240,10 @@ const swingSeparation = 180;   // degrees offset on each swap
 let lastMidTime       = performance.now();
 
 
-
-
-
-
 // Accent‐swing vs slash
 // Accent‐swing vs slash (acceleration‐based, with lower‐reset)
 function triggerAccentEvent(speed) {
+  if (!STATE_ON) return;
   // only the swing check is scaled for fullscreen; slash accel is constant
   const dynSwingThreshold = document.fullscreenElement
     ? swingThreshold * 0.7
@@ -282,86 +278,290 @@ function triggerAccentEvent(speed) {
   }
 }
 
-const updateSmoothSwingGains = (() => {  // runs constantly with requestAnimation
-  // Thresholds and windows
-  const loopStartThreshold  = 10.0;   // speed needed to start loops (ProffieOSSwingSpeedThreshold)
-  const SwingMin            = 15.0;   // crossfade floor (ProffieOSSwingLowerThreshold)
-  const SwingLPeak          = 50.0;   // swingL peaks here
-  const SwingMax            = 100.0;  // both done by here
-  const rampTime            = 0.3;    // seconds for each ramp
+// const updateSmoothSwingGains = (() => {
+//   const STALL_TIMEOUT    = 200;  // ms without a mouse_move → treat speed as 0
+//   const STOP_THRESHOLD   =   8;
+//   const START_THRESHOLD  =  12;
+//   const STOP_DEBOUNCE    = 50;  // ms you must stay ≤ STOP_THRESHOLD before stopping
 
-  // const loopStartThreshold = 20.0;   // higher speed needed to start loops
-  // const SwingMin           = 15.0;   // crossfade floor moved up
-  // const SwingLPeak         = 75.0;   // swingL peaks later
-  // const SwingMax           =125.0;   // crossfade ends later
-  // const rampTime           = 0.2;    // faster ramp
+//   const SwingMin   =  15.0;
+//   const SwingLPeak =  100.0;
+//   const SwingMax   = 150.0;
+//   const rampTime   =   0.3;  // seconds for cross-fade
+
+//   let lastState   = 'stopped';
+//   let staleLogged = false;
+//   let belowSince  = null;
+
+//   function frame() {
+//     const nowMs = Date.now();
+//     const dt    = nowMs - lastSwingUpdate;
+//     let   speed = dt > STALL_TIMEOUT
+//                   ? (staleLogged ? 0 : (staleLogged = true, 0))
+//                   : (staleLogged = false, lastSwingSpeed);
+
+//     // —— debounce logic ——  
+//     let next = lastState;
+//     if (speed <= STOP_THRESHOLD) {
+//       if (belowSince === null) belowSince = nowMs;
+//       else if (nowMs - belowSince >= STOP_DEBOUNCE) {
+//         next = 'stopped';
+//       }
+//     } else {
+//       belowSince = null;
+//       if (speed >= START_THRESHOLD) {
+//         next = 'running';
+//       }
+//     }
+
+//     if (next !== lastState) {
+//       const t = new Date().toISOString().substr(11,8);
+//       if (next === 'stopped') {
+//         console.log(`[SmoothSwing] ✋ stroke ended @${t} (speed ${speed.toFixed(1)} ≤ ${STOP_THRESHOLD})`);
+//         fadeAndStop('smoothLoopL', 100);
+//         fadeAndStop('smoothLoopH', 100);
+//       } else {
+//         console.log(`[SmoothSwing] ↻ new swing pair @ speed ${speed.toFixed(1)}`);
+//         startAudioLoop('swingl','smoothLoopL',0,true);
+//         startAudioLoop('swingh','smoothLoopH',0,true);
+//       }
+//       lastState = next;
+//     }
+
+//     // — crossfade gains when running —
+//     if (lastState === 'running' && window.smoothLoopL && window.smoothLoopH) {
+//       let gainL = 0, gainH = 0;
+//       if (speed > SwingMin) {
+//         if      (speed < SwingLPeak) gainL = (speed - SwingMin)/(SwingLPeak - SwingMin);
+//         else if (speed < SwingMax)   gainL = (SwingMax   - speed)/(SwingMax   - SwingLPeak);
+
+//         if      (speed < SwingLPeak) gainH = 0;
+//         else if (speed < SwingMax)   gainH = (speed - SwingLPeak)/(SwingMax   - SwingLPeak);
+//         else                          gainH = 1;
+//       }
+
+//       gainL *= globalVolume;
+//       gainH *= globalVolume;
+
+//       const ct = audioCtx.currentTime;
+//       const gL = window.smoothLoopL.gainNode.gain;
+//       const gH = window.smoothLoopH.gainNode.gain;
+//       gL.cancelScheduledValues(ct);
+//       gL.setValueAtTime(gL.value, ct);
+//       gL.linearRampToValueAtTime(gainL, ct + rampTime);
+//       gH.cancelScheduledValues(ct);
+//       gH.setValueAtTime(gH.value, ct);
+//       gH.linearRampToValueAtTime(gainH, ct + rampTime);
+//     }
+
+//     if (STATE_ON) requestAnimationFrame(frame);
+//   }
+
+//   return frame;
+// })();
 
 
-  // const SwingLPeak         = 50.0;   // now peaks earlier at 50
-  // const SwingMax           = 90.0;   // now ends at 90 (crossover ~70)
-  // const rampTime           = 0.3;    // unchanged
+// const updateSmoothSwingGains = (() => {
+//   const STALL_TIMEOUT    = 200;  // ms without a mouse_move → treat speed as 0
+//   const STOP_THRESHOLD   =   8;
+//   const START_THRESHOLD  =  12;
+//   const STOP_DEBOUNCE    = 50;  // ms you must stay ≤ STOP_THRESHOLD before stopping
 
-  return function() {
-    swingSpeed = lastSwingSpeed;
-    if (Date.now() - lastSwingUpdate > 50) swingSpeed = 0;
+//   const SwingMin   =  15.0;
+//   const SwingLPeak =  100.0;
+//   const SwingMax   = 150.0;
+//   const rampTime   =   0.3;  // seconds for cross-fade
 
-    // Start/stop loops with a real threshold
-    if (!STATE_ON || !soundOn || swingSpeed <= loopStartThreshold) {
-      if (!smoothswingIdle) {
-        fadeAndStop('smoothLoopL', 200);
-        fadeAndStop('smoothLoopH', 200);
-        console.log(`[SmoothSwing] !smoothswingIdle _____________________ STOPPING LOOPS`);
-        smoothswingIdle = true;
+//   let lastState   = 'stopped';
+//   let staleLogged = false;
+//   let belowSince  = null;
+
+//   function frame() {
+//     const nowMs = Date.now();
+//     const dt    = nowMs - lastSwingUpdate;
+//     let   speed = dt > STALL_TIMEOUT
+//                   ? (staleLogged ? 0 : (staleLogged = true, 0))
+//                   : (staleLogged = false, lastSwingSpeed);
+
+//     // —— debounce logic ——  
+//     let next = lastState;
+//     if (speed <= STOP_THRESHOLD) {
+//       if (belowSince === null) belowSince = nowMs;
+//       else if (nowMs - belowSince >= STOP_DEBOUNCE) {
+//         next = 'stopped';
+//       }
+//     } else {
+//       belowSince = null;
+//       if (speed >= START_THRESHOLD) {
+//         next = 'running';
+//       }
+//     }
+
+//     if (next !== lastState) {
+//       const t = new Date().toISOString().substr(11,8);
+//       if (next === 'stopped') {
+//         console.log(`[SmoothSwing] ✋ stroke ended @${t} (speed ${speed.toFixed(1)} ≤ ${STOP_THRESHOLD})`);
+//         fadeAndStop('smoothLoopL', 100);
+//         fadeAndStop('smoothLoopH', 100);
+//       } else {
+//         console.log(`[SmoothSwing] ↻ new swing pair @ speed ${speed.toFixed(1)}`);
+//         startAudioLoop('swingl','smoothLoopL',0,true);
+//         startAudioLoop('swingh','smoothLoopH',0,true);
+//       }
+//       lastState = next;
+//     }
+
+//     // — crossfade gains when running —
+//     if (lastState === 'running' &&
+//         window.smoothLoopL && window.smoothLoopH) {
+
+//       // clamp speed into [SwingMin … SwingMax]
+//       let s = Math.max(SwingMin, Math.min(speed, SwingMax));
+
+//       // compute normalized cross-fade factor 0→1 over the entire window
+//       let t = (s - SwingMin) / (SwingMax - SwingMin);
+
+//       // now L and H are perfect complements
+//       let gainL = (1 - t) * globalVolume;
+//       let gainH =         t  * globalVolume;
+
+//       // apply to your gainNodes exactly as before
+//       const now = audioCtx.currentTime;
+//       const gL  = window.smoothLoopL.gainNode.gain;
+//       const gH  = window.smoothLoopH.gainNode.gain;
+
+//       gL.cancelScheduledValues(now);
+//       gL.setValueAtTime(gL.value, now);
+//       gL.linearRampToValueAtTime(gainL, now + rampTime);
+
+//       gH.cancelScheduledValues(now);
+//       gH.setValueAtTime(gH.value, now);
+//       gH.linearRampToValueAtTime(gainH, now + rampTime);
+//     }
+
+//     if (STATE_ON) requestAnimationFrame(frame);
+//   }
+
+//   return frame;
+// })();
+
+const updateSmoothSwingGains = (() => {
+  const STALL_TIMEOUT    = 200;  // ms without a mouse_move → treat speed as 0
+  const STOP_THRESHOLD   =   8;  // deg/s → below this, we’ll stop (after debounce)
+  const START_THRESHOLD  =  12;  // deg/s → must exceed this to start
+  const STOP_DEBOUNCE    =  50;  // ms you must stay ≤ STOP_THRESHOLD before stopping
+
+  const SwingLPeak = 60.0;    // also kept
+  const SwingMax   = 150.0;    // deg/s → at or above this, envelope = 1
+  const rampTime   =   0.3;    // seconds for the cross-fade ramp
+
+  let lastState   = 'stopped';
+  let staleLogged = false;
+  let belowSince  = null;
+
+  function frame() {
+    const nowMs = Date.now();
+    const dt    = nowMs - lastSwingUpdate;
+    let   speed;
+
+    // Stall detection
+    if (dt > STALL_TIMEOUT) {
+      if (!staleLogged) {
+        console.log(`[SmoothSwing][DEBUG] no mouse_move for ${dt}ms → speed=0`);
+        staleLogged = true;
       }
+      speed = 0;
     } else {
-      if (smoothswingIdle) {
-        startAudioLoop('swingl', 'smoothLoopL', 0, true);
-        startAudioLoop('swingh', 'smoothLoopH', 0, true);
-        console.log(`[SmoothSwing] smoothswingIdle $%^($^%(*$^%($^%)($^%($^%$^)^%$)^)(^*(STARTING LOOPS`);
-      }
-      smoothswingIdle = false;
+      staleLogged = false;
+      speed = lastSwingSpeed;
     }
 
-    // Crossfade only when loops are running
-    if (!smoothswingIdle && window.smoothLoopL && window.smoothLoopH) {
-      // compute L/H gains from a simple triangular window
-      let gainL = 0, gainH = 0;
-      if (swingSpeed > SwingMin) {
-        if (swingSpeed < SwingLPeak) {
-          gainL = (swingSpeed - SwingMin) / (SwingLPeak - SwingMin);
-        } else if (swingSpeed < SwingMax) {
-          gainL = (SwingMax - swingSpeed) / (SwingMax - SwingLPeak);
-        }
-        gainH = swingSpeed < SwingLPeak
-          ? 0
-          : swingSpeed < SwingMax
-            ? (swingSpeed - SwingLPeak) / (SwingMax - SwingLPeak)
-            : 1;
+    // Debounce logic: decide next state
+    let next = lastState;
+    if (speed <= STOP_THRESHOLD) {
+      if (belowSince === null) belowSince = nowMs;
+      else if (nowMs - belowSince >= STOP_DEBOUNCE) next = 'stopped';
+    } else {
+      belowSince = null;
+      if (speed >= START_THRESHOLD) next = 'running';
+    }
+
+    // On state change → start or stop loops
+    if (next !== lastState) {
+      if (next === 'stopped') {
+        console.log(`[SmoothSwing] ✋ STOPPED (speed ${speed.toFixed(1)} ≤ ${STOP_THRESHOLD})`);
+        fadeAndStop('smoothLoopL', 100);
+        fadeAndStop('smoothLoopH', 100);
+      } else {
+        console.log(`[SmoothSwing] ↻ RUNNING (speed ${speed.toFixed(1)} ≥ ${START_THRESHOLD})`);
+// ↻ RUNNING (speed …)
+const swingBufsL = pickLoopBuffers('swingl');
+const swingBufsH = pickLoopBuffers('swingh');
+if (swingBufsL.length && swingBufsH.length) {
+  // choose a single random index and remember it for no‐repeat
+  const idx = noRepeatRandom(swingBufsL.length, lastPlayedSoundIndex['swingl']);
+  lastPlayedSoundIndex['swingl'] = lastPlayedSoundIndex['swingh'] = idx;
+
+  // stop whatever was playing
+  stopLoop('smoothLoopL');
+  stopLoop('smoothLoopH');
+
+  // play both L+H at the same index
+  const { src: srcL, gainNode: gL } = playBuffer(swingBufsL[idx], 0, true, 0, masterGain);
+  window.smoothLoopL = { src: srcL, gainNode: gL };
+  const { src: srcH, gainNode: gH } = playBuffer(swingBufsH[idx], 0, true, 0, masterGain);
+  window.smoothLoopH = { src: srcH, gainNode: gH };
+}
+      }
+      lastState = next;
+    }
+
+    if (lastState === 'running' && window.smoothLoopL && window.smoothLoopH) {
+      // overall envelope: 0 at STOP_THRESHOLD → 1 at SwingMax
+      const env = speed > STOP_THRESHOLD
+        ? Math.min((speed - STOP_THRESHOLD) / (SwingMax - STOP_THRESHOLD), 1)
+        : 0;
+
+      let gainL, gainH;
+
+      // FULL LOW until SwingLPeak
+      if (speed <= SwingLPeak) {
+        gainL = env;
+        gainH = 0;
+      }
+      // FULL HIGH above SwingMax
+      else if (speed >= SwingMax) {
+        gainL = 0;
+        gainH = env;
+      }
+      // NARROW BLEND between SwingLPeak → SwingMax
+      else {
+        const x = (speed - SwingLPeak) / (SwingMax - SwingLPeak);
+        gainL = (1 - x) * env;
+        gainH = x         * env;
       }
 
-      // apply globalVolume
+      // apply master volume
       gainL *= globalVolume;
       gainH *= globalVolume;
 
-      // ramp gains smoothly
-      const now = audioCtx.currentTime;
-      const gL  = window.smoothLoopL.gainNode.gain;
-      const gH  = window.smoothLoopH.gainNode.gain;
+      const ct = audioCtx.currentTime;
+      const gL = window.smoothLoopL.gainNode.gain;
+      const gH = window.smoothLoopH.gainNode.gain;
 
-      gL.cancelScheduledValues(now);
-      gL.setValueAtTime(gL.value, now);
-      gL.linearRampToValueAtTime(gainL, now + rampTime);
+      gL.cancelScheduledValues(ct);
+      gL.setValueAtTime(gL.value, ct);
+      gL.linearRampToValueAtTime(gainL, ct + rampTime);
 
-      gH.cancelScheduledValues(now);
-      gH.setValueAtTime(gH.value, now);
-      gH.linearRampToValueAtTime(gainH, now + rampTime);
-
-      // console.log( `[SmoothSwing] XFade @${swingSpeed.toFixed(1)} - ` + `L=${gainL.toFixed(2)} H=${gainH.toFixed(2)}`);
+      gH.cancelScheduledValues(ct);
+      gH.setValueAtTime(gH.value, ct);
+      gH.linearRampToValueAtTime(gainH, ct + rampTime);
     }
+    // 5) Loop
+    if (STATE_ON) requestAnimationFrame(frame);
+  }
 
-    // queue up next frame
-    if (STATE_ON) requestAnimationFrame(updateSmoothSwingGains);
-  };
+  return frame;
 })();
 
 
@@ -461,7 +661,7 @@ function playRandomEffect(effectName, isAllowed = true) {
     return;
   }
 
-  // C) pick & play
+  // Pick & play
   const fontLabel = currentFontName === "Default" ? "Default Font" : currentFontName;
   const pickIndex = arr => {
     const i = noRepeatRandom(arr.length, lastPlayedSoundIndex[effectName]);
@@ -520,22 +720,29 @@ function stopLoop(refName) {
 function fadeAndStop(loopRefName, fadeTime = 200) {
   const loop = window[loopRefName];
   if (loop && loop.gainNode) {
-    const g   = loop.gainNode.gain;
+    // Remember which exact src we’re fading out
+    const { src, gainNode } = loop;
+    const g = gainNode.gain;
     const now = audioCtx.currentTime;
     g.cancelScheduledValues(now);
     g.setValueAtTime(g.value, now);
-    g.linearRampToValueAtTime(0, now + fadeTime/1000);
-    setTimeout(() => stopLoop(loopRefName), fadeTime);
+    g.linearRampToValueAtTime(0, now + fadeTime / 1000);
+
+    // Only stop *this* src after fadeTime, if it hasn't been replaced
+    setTimeout(() => {
+      if (window[loopRefName] && window[loopRefName].src === src) {
+        stopLoop(loopRefName);
+      }
+    }, fadeTime);
   } else {
-    // fallback to immediate stop
     stopLoop(loopRefName);
   }
 }
 
 function stopAllLoops(fadeTime = 200, clearLockup = true, context = '') {
-  // first stop any lockup
+  // First stop any lockup
   endLockupLoop(undefined, undefined, clearLockup);  // Power off: clear lockup state
-  // then fade out hum + smooth swings
+  // Then fade out hum + smooth swings
   ['humAudio','smoothLoopL','smoothLoopH'].forEach(ref => {
         console.log(`[stopAllLoops] STOPPING Loops`);
     if (window[ref]) fadeAndStop(ref, fadeTime);
@@ -577,6 +784,10 @@ function stopAllOneShots(fadeTime = 150) {
 }
 
 function startAudioLoop(bufferKey, loopRefName, initialGain = 0, shouldLoop = true) {
+  console.debug(
+    `[SwingDebug][startAudioLoop] key=${bufferKey}, ref=${loopRefName}, ` +
+    `initialGain=${initialGain}, shouldLoop=${shouldLoop}`
+  );
   stopLoop(loopRefName);
 
   const startBuffers = pickLoopBuffers(bufferKey);
@@ -591,10 +802,11 @@ function startAudioLoop(bufferKey, loopRefName, initialGain = 0, shouldLoop = tr
 
 function startHum() {
   if (!soundOn) return;
-  // kill any zombie loops.
-  if (window.humAudio) fadeAndStop('humAudio', 0);
-        console.log(`[startHum] STOPPING and STARTING LOOPS`);
-  startAudioLoop('hum',    'humAudio',    globalVolume, true);
+  // Kill any zombie loops.
+  // if (window.humAudio) fadeAndStop('humAudio', 0);
+  //       console.log(`[startHum] STOPPING and STARTING LOOPS`);
+        console.log(`[startHum] __________ STARTING LOOPS`);
+          startAudioLoop('hum',    'humAudio',    globalVolume, true);
 
 }
 
@@ -709,6 +921,8 @@ function endLockupLoop(effectType, endEffectName, shouldClear) {
 }
 
 function resumeLoops() {
-  if (STATE_ON) startHum();
+  if (STATE_ON && focusAllowsHum) startHum();
   if (window.currentLockupType && !window.lockupLoopSrc) startLockupLoop(window.currentLockupType, true);
 }
+
+window.addEventListener('focus', () => { if (soundOn) resumeLoops(); });
