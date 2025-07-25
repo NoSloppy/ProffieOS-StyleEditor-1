@@ -60,8 +60,8 @@
 .fa-volume-off::before {
   content: "\f026"; }
 
-.fa-info-circle::before {
-  content: "\f05a"; }
+/*.fa-info-circle::before {
+  content: "\f05a"; }*/
 
 /*////////////// Add Sound PR ///////////*/
 
@@ -295,7 +295,7 @@ body {
 }
 
 
-#page_left_top:fullscreen #canvas-container,
+/*#page_left_top:fullscreen #canvas-container,
 #page_left_top:-webkit-full-screen #canvas-container {
   flex: 1 1 auto;
   display: flex;
@@ -303,7 +303,7 @@ body {
   min-height: 0;
   min-width: 0;
   background: #000;
-}
+}*/
 
 /* When fullscreen, force canvas to fill container height above controls */
 #page_left_top:fullscreen canvas,
@@ -344,11 +344,6 @@ body {
   margin: 0;
 }
 
-/* Push the canvas down so it doesn’t sit behind the new toolbar */
-#page_left_top:fullscreen #canvas-container,
-#page_left_top:-webkit-full-screen #canvas-container {
-  margin-top: 3em;
-}
 #page_left_top:fullscreen #ENLARGE_BUTTON,
 #page_left_top:-webkit-full-screen #ENLARGE_BUTTON {
   display: none;
@@ -376,11 +371,7 @@ body {
   order: -1;
 }
 
-/* ensure canvas-container sits below our toolbar */
-#page_left_top:fullscreen #canvas-container,
-#page_left_top:-webkit-full-screen #canvas-container {
-  order: 0;
-}
+
 #page_left_top:fullscreen .sound-ribbon-container,
 #page_left_top:-webkit-full-screen .sound-ribbon-container {
   margin-left: 1em;
@@ -405,12 +396,24 @@ canvas#canvas_id,
 }
 
 /* Show the Fullscreen/Exit button at top-right in FS mode */
-#page_left_top:fullscreen   #FULLSCREEN_BUTTON,
+#page_left_top:fullscreen #FULLSCREEN_BUTTON,
 #page_left_top:-webkit-full-screen #FULLSCREEN_BUTTON {
   position: fixed;
   top: 10px;
   right: 10px;
   z-index: 1001;
+}
+/* Push the canvas down so it doesn’t sit behind the new toolbar */
+#page_left_top:fullscreen #canvas-container,
+#page_left_top:-webkit-full-screen #canvas-container {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  background: #000;
+  order: 0;
+/*  margin-top: 3em;*/
 }
 /* Enlarge/reduce button */
 #ENLARGE_BUTTON {
@@ -645,8 +648,6 @@ input.nofocus:focus {
   flex-wrap: wrap;
 }
 
-
-
 .error-message {
   color: red;
   font-weight: bold;
@@ -788,42 +789,6 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   align-items: center;
   position: relative;
   width: 100%;
-}
-
-.wavlen-row .info-icon {
-  display: inline-block;
-  margin-left: 8px;
-  color: #000;
-  cursor: pointer;
-  transition: filter 0.15s;
-  font-size: 1.2em;
-}
-/*.wavlen-row .info-icon:hover,
-.wavlen-row .info-icon:focus {
-  filter: invert(1);
-  outline: none;
-}*/
-
-.wavlen-row .info-popup {
-  display: none;
-  position: absolute;
-  bottom: -255%;
-  left: 111%;
-  margin-top: 6px;
-  width: 300px;
-  background: #222;
-  color: #fff;
-  border: 1px solid #aaa;
-  border-radius: 6px;
-  box-shadow: 1px 2px 12px rgba(0,0,0,0.15);
-  font-size: 13px;
-  padding: 8px 10px;
-  z-index: 1050;
-  white-space: pre-line;
-}
-
-.wavlen-row.show .info-popup {
-  display: block;
 }
 
 .wavlen-global-label {
@@ -2017,6 +1982,10 @@ It is only an active button when applicable."
             class="close-settings" onclick="toggleSettingsPanel()">X</button>
           <h2 class="settings-header-label" title="Settings Panel">Settings</h2>
 
+            <label title="How to get info on items..">
+              <span>Enable Tool Tips and hover items for info.</span>
+            </label>
+<br>
           <section class="settings-section">
             <h4 class="settings-section-label" title="These settings apply to the whole page.">General:</h4>
             <label title="Toggles a Dark Mode look to this page.">
@@ -2067,21 +2036,10 @@ It is only an active button when applicable."
                <section class="wavlen-row">
                  <label for="USE_FONT_WAVLEN_BUTTON">
                    <input type="checkbox" id="USE_FONT_WAVLEN_BUTTON" class="use-font-wavlen" onclick="handleSettings(this)">
-                   <span title="Use loaded font to set WavLen for each EFFECT.">
+                   <span title="Use loaded font to set WavLen for each EFFECT. Note: Turning this option ON will disable the Global WavLen time below.">
                      Use loaded font for WavLen&lt;&gt;
                    </span>
                  </label>
-                 <span
-                   class="info-icon" tabindex="0" onclick="toggleInfoPopup(event)"
-                     onkeydown="if (event.key==='Enter') toggleInfoPopup(event)">
-                   <i class="fa-solid fa-info-circle"></i>
-                   <section class="info-popup">
-                     If you want the blade style to use WavLen&lt;&gt; from the files in the loaded sound font, turn this option ON.<br>
-                     Using the loaded sound font will provide discrete WavLen values per EFFECT,
-                     just like ProffieOS does.<br>
-                     <strong>Note:</strong> Turning this option ON will disable the Global WavLen time below.
-                   </section>
-                 </span>
                </section>
                <br>
                <label
