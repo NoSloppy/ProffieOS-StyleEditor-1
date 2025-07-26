@@ -7,7 +7,7 @@ var height;
 var dpr = window.devicePixelRatio || 1;
 const canvas = document.getElementById("canvas_id"); 
 var enlargeCanvas = false;
-let wasEnlargedWhenFullscreen = false;
+
 const pageLeftTop = FIND("page_left_top");
 
 function FIND(id) {
