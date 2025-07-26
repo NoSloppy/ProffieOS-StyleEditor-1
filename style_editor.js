@@ -1,1596 +1,49 @@
-<!-- happy -->
-<!DOCTYPE html>
-
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <!-- This should show up in search engine results. -->
-  <meta name="description" content="ProffieOS Style Editor: Customize your Proffieboard saber blade animations with this browser based tool.">
-  <link rel="shortcut icon" type="image/png" href="SE_Favicon.png">
-  <title>ProffieOS Style Editor</title>
-<style>
-/*
- * Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com
- * License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License)
- * Copyright 2023 Fonticons, Inc.
- */
-
-.fas,
-.fa-solid {
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-font-smoothing: antialiased;
-  display: var(--fa-display, inline-block);
-  font-style: normal;
-  font-variant: normal;
-  line-height: 1;
-  text-rendering: auto; }
-
-.fas,
-.fa-solid {
-  font-family: 'Font Awesome 6 Free'; }
-
-.fa-right-from-bracket::before {
-  content: "\f2f5"; }
-
-.fa-copy::before {
-  content: "\f0c5"; }
-
-.fa-up-right-and-down-left-from-center::before {
-  content: "\f424"; }
-
-.fa-layer-group::before {
-  content: "\f5fd"; }
-
-.fa-list::before {
-  content: "\f03a"; }
-
-.fa-arrows-rotate::before {
-  content: "\f021"; }
-
-.fa-save::before {
-  content: "\f0c7"; }
-
-.fa-cog::before {
-  content: "\f013"; }
-
-.fa-solid {
-  font-weight: 900; }
-
-@font-face {
-  font-family: 'Font Awesome 6 Free';
-  font-style: normal;
-  font-weight: 900;
-  font-display: block;
-  src: url("fontawesome-free-6.4.0-web/webfonts/fa-solid-900.woff2") format("woff2"), url("fontawesome-free-6.4.0-web/webfonts/fa-solid-900.ttf") format("truetype"); }
-
-/* Make page elements like buttons and whitespace non-selectable with drag box */
-* {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-/* Box sizing helps keep buttons uniform in
-size when padding and margins may change */
-* {
-  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-  box-sizing: border-box;
-}
-
-/* Dark mode styles */
-
-/* Whole page */ 
-.dark-mode {
-  background-color: #202020;
-  color: white !important;
-  color-scheme: dark !important;
-}
-
-/* Do Selected Effect, Expand, and Layerize */
-.dark-mode .page-left .button-off,
-.dark-mode .page-left .button-off:hover {
-  background-color: #777;
-  color: darkgray;
-   box-shadow: 0 0 0 1px transparent;
-}
-.dark-mode .settings-panel button:hover{
-  background-color: #f44336;
-}
-
-/* Other buttons */
-.dark-mode button,
-.dark-mode input[type="button"] {
-  background-color: #777;
-  color: #fff;
-  border: 1px solid transparent;
-}
-.dark-mode button:hover,
-.dark-mode input[type="button"]:hover {
-  background-color: #9F9F9F;
-}
-.dark-mode button:active,
-.dark-mode .settings-panel button:active,
-.dark-mode input[type="button"]:active {
-  background-color: steelblue;
-}
-.dark-mode button.submit-button {
-  background-color: forestgreen;
-}
-
-/* Power and Rotate latching buttons */
-.dark-mode .page-left .button-latched,
-.dark-mode .page-left .button-latched:hover {
-  background-color: steelblue;
-}
-
-/* Lockup and More Effects dropdown menus */
-.dark-mode select {
-  background-color: #777;
-  color: #fff;
-  border: 1px solid transparent;
-  padding: 1px;
-}
-.dark-mode select:hover {
-  background-color: #9F9F9F;
-}
-
-/* Variant and Alt adjusters */
-.dark-mode .variant-alt-container {
-  background-color: steelblue;
-  color: white;
-}
-
-.dark-mode .textbox {
-  background-color: #333;
-  color: white;
-}
-.dark-mode .settings-panel {
-  border: 3px solid #ccc;
-  background: #777;
-  color: black;
-}
-.dark-mode .settings-panel .settings-panel-arrow {
-  border-color: transparent #777 transparent transparent;
-}
-
-/* Tabs */
-.dark-mode .tab {
-  background-color: #333;
-}
-.dark-mode .tab button:hover {
-  background-color: #9F9F9F;
-  box-shadow: 0 0 3px 1px transparent;
-}
-.dark-mode .tab button.active {
-  background-color: steelblue;
-}
-.dark-mode .tab button.disabled {
-  background-color: #777;
-  color: #bbb;
-  cursor: not-allowed;
-}
-
-/* Structured View style arguments borders */
-.dark-mode .structured-view .selected-area-container {
-  background-color: steelblue;
-}
-.dark-mode .pp-container {
-  border-color: white;
-}
-
-.dark-mode .pp-container .running {
-  border-color: chartreuse;
-}
-/* Keep color palette background white for reference. */
-/*.dark-mode .rgb-tabcontent {
-background-color: white;
-}*/
-
-/* Popup Window */
-.dark-mode .popup-window {
-  border: 3px solid #ccc;
-  background: #777;
-}
-
-.dark-mode .footer-container {
-  background-color: #333;
-}
-
-/* Non-dark mode styles */
-
-body {
-  margin-top: -3px;
-  margin-bottom: 0;
-}
-
-.page-left {
-  position: relative;
-  vertical-align: top;
-  width: 50%;
-  padding-bottom: 30px;
-}
-.page-right {
-  vertical-align: top;
- }
-.canvas-container {
-  position: relative;
-}
-/* This keeps the More Effects menu and
-the Do Selected Effect button together */
-.more-menu-container {
-  white-space: nowrap;
-}
-
-/* Do Selected Effect, Expand, and Layerize */
-.page-left .button-off,
-.page-left .button-off:hover {
-  background-color: lightgray;
-  color: darkgray;
-  box-shadow: 0 0 2px 1px transparent;
-  cursor: not-allowed;
-}
-
-/* Lockup and More Effects Drop Downs */
-select {
-  background-color: #eee;
-  color: black;
-  border-radius: 5px;
-  padding: .2%;
-  font-size: .8em;
-  cursor: pointer;
-}
-select:hover {
-/*  background-color: #ddd;*/
-  box-shadow: 0 0 2px 1px dodgerblue;
-}
-/* Settings Panel buttons
-need to be here to not override Other Buttons below */
-.settings-panel button {
-  background-color: #f44336;
-  color: black;
-  margin-left: 46px;
-  border: 1px solid black;
-}
-.settings-panel button.close-settings {
-  position: absolute;
-  top: 0px;
-  left: -40px;
-  padding: 0px 4px;
-  font-weight: bold;
-}
-/* Other buttons */
-button,
-input[type="button"] {
-  display: inline-block;
-  background-color: #eee;
-  color: black;
-  border-radius: 2px;
-  padding: 3px;
-  margin-block: 5px;
-  font-size: 14px;
-  border: 1px solid #bbb;
-  font-weight: normal;
-  transition: box-shadow 0.1s ease;
-}
-button:hover,
-input[type="button"]:hover {
-  box-shadow: 0 0 2px 1px dodgerblue;
-}
-button:active,
-input[type="button"]:active {
-  background-color: dodgerblue;
-}
-button.submit-button {
-  background-color: limegreen;
-  border: 1px solid green;
-}
-button.submit-button:active {
-  background-color: dodgerblue;
-}
-/*Keep from browser takeover of number inputs */
-input[type='number'] {
-  width: 60px;
-  height: 22px;
-}
-input[type='number']::-webkit-inner-spin-button,
-input[type='number']::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-input[type='number'] {
-  -moz-appearance: textfield;
-}
-
-/* Power and Rotate latching buttons */
-.page-left .button-latched,
-.page-left .button-latched:hover {
-  background-color: #A1D1F3;
-}
-
-/* Variant and Alt adjusters */
-.variant-alt-container {
-  background: #A1D1F3;
-  border: 1px solid black;
-  border-radius: 4px;
-  display: inline-block;
-  padding-inline: 4px;
-}
-.variant-label {
-  margin-left: 3px;
-}
-.variant-alt-controls {
-  display: inline-flex;
-  align-items: center;
-}
-.variant-slider {
-  -webkit-appearance: none;
-  width: 65px;
-  height: 10px;
-  margin: 3px 3px;
-  margin-top: 5px;
-  cursor: pointer;
-}
-/* Thumb handle styling for Chrome, Safari, and other WebKit-based browsers */
-.variant-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  background: dodgerblue;
-  width: 14px;
-  height: 14px;
-  border-radius: 20%;
-  border: 1px solid #333;
-  margin-top: -2px;
-}
-/* Thumb handle styling for Firefox */
-.variant-slider::-moz-range-thumb {
-  background: dodgerblue;
-  width: 14px;
-  height: 14px;
-  border-radius: 20%;
-  border: 1px solid #333;
-}
-/* Thumb handle styling for Internet Explorer and Edge */
-.variant-slider::-ms-thumb {
-  background: dodgerblue;
-  width: 14px;
-  height: 14px;
-  border-radius: 20%;
-  border: 1px solid #333;
-}
-.alt-label {
-  margin-left: 8px;
-  margin-right: 3px;
-}
-
-.error-message {
-  color: red;
-  font-weight: bold;
-}
-/* Blade Style text box */
-.textbox {
-  background-color: #eee;
-  font-size: 14px;
-  width: 100%;
-}
-/* History Tab content */
-div.MAGIC_CLASS_FUNCTION input[type=button].btn {
-  background: green;
-  color: black;
-  padding: 2px 3px;
-}
-div.MAGIC_CLASS_COLOR input[type=button].btn {
-  background: green;
-  color: black;
-  padding: 2px 3px;
-}
-div.MAGIC_CLASS_TRANSITION input[type=button].btn {
-  background: green;
-  color: black;
-  padding: 2px 3px;
-}
-div.MAGIC_CLASS_INT input[type=button].btn {
-  background: green;
-  color: black;
-  padding: 2px 3px;
-}
-div.MAGIC_CLASS_EFFECT input[type=button].btn {
-  background: green;
-  color: black;
-  padding: 2px 3px;
-}
-div.MAGIC_INVISIBLE_CLASS_EFFECT {
-  display: inline;
-}
-div.MAGIC_INVISIBLE_CLASS_TRANSITION {
-  display: inline;
-}
-div.MAGIC_INVISIBLE_CLASS_FUNCTION {
-  display: inline;
-}
-span.MAGIC_CLASS_FUNCTION input[type=button].btn {
-  background: green;
-  color: black;
-  padding: 2px 3px;
-}
-span.MAGIC_CLASS_COLOR input[type=button].btn {
-  background: green;
-  color: black;
-  padding: 2px 3px;
-}
-span.MAGIC_CLASS_TRANSITION input[type=button].btn {
-  background: green;
-  color: black;
-  padding: 2px 3px;
-}
-span.MAGIC_CLASS_INT input[type=button].btn {
-  background: green;
-  color: black;
-  padding: 2px 3px;
-}
-span.MAGIC_CLASS_EFFECT input[type=button].btn {
-  background: green;
-  color: black;
-  padding: 2px 3px;
-}
-
-.settings-panel.show {
-  opacity: 1;
-  pointer-events: auto;
-}
-.settings-panel {
-  position: fixed;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  color: black;
-  width: 287px;
-  border: 3px solid #888;
-  background: #ddd;
-  padding: 36px;
-  padding-left: 30px;
-  border-radius: 9px;
-  box-shadow: 6px 10px 10px rgba(0, 0, 0, 0.9);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s ease-in-out;
-  z-index: 1000;
-}
-.settings-panel label {
-  display: flex;
-  align-items: center;
-}
-.settings-panel label input[type="checkbox"] {
-  margin-right: 8px;
-}
-.settings-section {
-  margin-bottom: 10px;
-}
-.settings-panel .settings-header-label {
-  margin-inline-start: 2.8em;
-  margin-block-start: -1.5em;
-  color: #333;
-  font-size: 22px;
-}
-.settings-section-label {
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 5px;
-  border-bottom: 2px solid #888;
-  padding-bottom: 5px;
-}
-
-/* Align Wavlen Settings label */
-.wavlen-label {
-  display: block;
-  margin-top: 5px;
-}
-.wavlen-value {
-  width: 80px;
-  margin-left: 5px;
-}
-
-/*.tabs-container {
-  position: relative;
-}*/
-/* Style the tab */
-.tab {
-  overflow: hidden;
-  border: 1px solid #ccc;
-  background-color: #f1f1f1;
-}
-/* Style the buttons that are used to open the tab content */
-.tab button {
-  background-color: inherit;
-  float: left;
-  border: none;
-  margin: unset;
-  outline: none;
-  cursor: pointer;
-  padding: 8px;
-  transition: 0.1s ease;
-}
-/* Change background color of buttons on hover */
-.tab button:hover {
-  background-color: #ddd;
-  box-shadow: 0 0 3px 1px transparent;
-}
-/* Create an active/current tablink class */
-.tab button.active {
-  background-color: #A1D1F3;
-}
-.tab button.disabled {
-  background-color: lightgray;
-  color: darkgray;
-  box-shadow: 0 0 0 1px transparent;
-  cursor: not-allowed;
-}
-
-/* Style the tab content */
-.tabcontent {
-  display: none;
-  padding: 6px 12px;
-  border: 1px solid #ccc;
-  border-top: none;
-}
-.tabcontent .btn {
-  border-radius: 5px;
-}
-.rgb-tabcontent {
-  color: black;
-}
-.custom-color {
-  background: #ccc;
-  text-align: center;
-  position: relative;
-}
-.rgb-tabcontent .btn {
-  border-radius: 16px;
-  width: 125px;
-}
-.rgb-tabcontent .custom-color .color-picker {
-  width: 100px;
-}
-
-.structured-view {
-  position: sticky;
-  top: 0;
-  width: 100%;
-  height: 100vh;
-  overflow-y: scroll;
-}
-.structured-view-label {
-  display: block;
-  font-size: 110%;
-  padding-top: 9px;
-  padding-bottom: 5px;
-}
-.structured-view .selected-area-container {
-  background-color: lightblue;
-}
-/* Fat font in Structured View */
-.pp span {
-  padding-left: 6px;
-  font-weight: 600;
-}
-/* Structured View style arguments borders */
-.pp-container {
-  border-color: gray;
-  border-style: solid;
-  border-width: 1px;
-  padding: 2px;
-}
-.pp-content {
-  margin-left: 1em;
-}
-/* Chartreuse highlighted borders */
-.running {
-  border-color: chartreuse;
-  border-width: 3px;
-  padding: 0px;
-}
-
-/* Structured View Layer buttons
-Add, Delete, Move Up, Move Down */
-.extra-buttons {
-  margin: 3px;
-  line-height: 1.0em;
-  font-size: 16px;
-}
-
-/* Footer */
-.footer-title {
-  min-width: 180px;
-  font-size: 16px;
-}
-.footer-container {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #eee;
-  padding: 2px 15px;
-}
-.other-sites {
-  float: right;
-  padding-right: 10px;
-  margin-left: 35px;
-}
-.footer-links {
-  display: flex;
-  align-items: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 100px;
-}
-.footer-links a img {
-  height: 16px;
-  width: 16px;
-  margin-right: 5px;
-}
-.footer-links a:hover {
-  color: #000;
-}
-/* Popup Window */
-.popup-window.show {
-  opacity: 1;
-  pointer-events: auto;
-}
-.popup-window {
-  font-weight: 500;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 30%;
-  color: black;
-  border: 3px solid #888;
-  background: #ddd;
-  padding: 20px;
-  text-align: center;
-  border-radius: 9px;
-  box-shadow: 6px 10px 10px rgba(0, 0, 0, 0.9);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s ease-in-out;
-  z-index: 9999;
-}
-
-.popup-window button {
-  background-color: steelblue;
-  color: black;
-  border-radius: 5px;
-  padding: 3px 35px;
-  font-size: 20px;
-  font-weight: bold;
-  border: 1px solid black;
-  cursor: pointer;
-}
-.overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 9998;
-}
-.overlay.show {
-  display: block;
-}
-
-</style>
-
-
-<script id="vertex_shader" type="x-shader/x-vertex">
-precision highp float;
-attribute vec2 a_position;
-varying vec2 v_position;
-uniform float u_width;
-uniform float u_height;
-
-void main() {
-    v_position = a_position * vec2(u_width, u_height);
-    gl_Position = vec4(a_position, 0, 1);
-}
-</script>
-
-<script id="hilt_graflex" type="x-shader/x-fragment">
-
-#define ITERATIONS 400
-
-float Clamp(vec3 p) {
-  p= vec3(p.x + 0.03, -p.z, p.y);
-  float dist = 100000.0;
-  // clamp
-  dist = min(dist, sdCappedCylinder(p.yxz, 0.040, 0.051));
-  dist = min(dist, sdBox(p.xyz + vec3(0.0, -0.038, 0.0), vec3(0.051, 0.020, 0.015)));
-  return dist;
-}
-
-float RedPill(vec3 p) {
-  p -= vec3(0.143,0,0);
-  if (p.y > 0.0) {
-    p.x-=0.030;
-    p.y = abs(p.y);
-  }
-  float dist = 1000000.0;
-  //  dist = min(dist, sdCappedCylinder(p, 0.011, 0.051));
-  dist = min(dist,
-      max(sdSphere(p, 0.053),
-      sdCappedCylinder(p, 0.011, 0.08)));
-  return dist;
-}
-
-float Button(vec3 p) {
-  float dist = 1000000.0;
-  dist = min(dist, RedPill(p));
-  p -= vec3(0.143,0,0);
-  if (p.y > 0.0) {
-    p.x-=0.030;
-    p.y = abs(p.y);
-  }
-  dist = min(dist, sdCappedCylinder(p, 0.018, 0.050));
-  //  dist = min(dist, sdCappedCylinder(p, 0.011, 0.051));
-  return dist;
-}
-
-// May need to find a better way to model this.
-float Cut(vec3 p) {
-  p.x -= 0.350;
-  //  p.y -= 0.008;
-  p *= rotz(-0.60);
-  p.x += sin(p.y*50.0)/55.0;
-  return sdBox(p, vec3(0.1, 0.2, 0.1)) * 0.8;
-}
-
-float Slots(vec3 p) {
-  float dist = sdBox(p + vec3(-0.259,0.0,0.0), vec3(0.004, 0.1, 0.005));
-  dist = min(dist, sdBox(p + vec3(-0.227,0.0,0.0), vec3(0.020, 0.1, 0.010)));
-  return dist;
-}
-
-float Slots2(vec3 p) {
-  p.z = -abs(p.z);
-  //  float dist = 100000.0;
-  float dist = sdBox(p + vec3(-0.179,0.055,0.01), vec3(0.010, 0.03, 0.005));
-  p *= rotx(0.95);
-  dist = min(dist, sdCappedCylinder(p+vec3(-0.175,0.040,0), 0.014, 0.02));
-  //  dist = min(dist, sdBox(p + vec3(-0.227,0.0,0.0), vec3(0.020, 0.1, 0.010)));
-  return dist;
-}
-
-float Pins(vec3 p) {
-  p.z = -abs(p.z);
-  p *= rotx(0.95);
-  p += vec3(-0.175,0.015,0);
-  p.x = abs(p.x);
-  p.x -= 0.005;
-  return sdVerticalCapsule(p.yxz, 0.018, 0.002);
-  //  return sdCappedCylinder(p, 0.002, 0.02);
-}
-
-
-float Cylinder(vec3 p) {
-  float dist = sdCappedCylinder(p.yxz, 0.038, 0.270);
-  dist = max(dist, -sdCappedCylinder(p.yxz + vec3(0,-0.470,0), 0.036, 0.270));
-  dist = max(dist, -Cut(p));
-  dist = max(dist, -Slots(p));
-  dist = max(dist, -Slots2(p));
-  return dist;
-}
-
-float sdCircle(vec2 xy, float r) {
-  return length(xy) - r;
-}
-
-float sdRect(vec2 p, vec2 b) {
-  vec2 q = abs(p) - b;
-  return length(max(q,0.0)) + min(max(q.x,q.y),0.0);
-}
-
-float earsFront(vec2 xy) {
-  xy.x = -abs(xy.x);
-  float dist = sdCircle(xy, 0.027);
-  dist = max(dist, -sdCircle(xy, 0.0265));
-  dist = max(dist, -sdRect(xy + vec2(0.0, -0.030), vec2(0.005, 0.010)));
-  dist = min(dist, sdRect(xy + vec2(0.005, -0.056), vec2(0.0005, 0.030)));
-  return dist;
-}
-
-float earsSide(vec2 xy) {
-  xy.x = -abs(xy.x);
-  float dist = sdRect(xy + vec2(0, -0.050), vec2(0.012, 0.030));
-  dist = min(dist, sdRect(xy, vec2(0.016, 0.030)));
-  dist = min(dist, max(
-     sdCircle(xy + vec2(0,-0.069), 0.016),
-     -sdRect(xy + vec2(0.011*2.0, -0.060), vec2(0.011, 0.030))));
-  return dist;
-}
-
-
-float bunnyEars(vec3 p) {
-  p.x -= 0.227;
-  return max(
-      opExtrusion( p.zyx, earsFront(p.zy), 0.1 ),
-      opExtrusion( p, earsSide(p.xy), 0.1 ));
-}
-
-float ROUND(float x) {
-  return floor(x + 0.5);
-}
-
-float grips(vec3 p) {
-  // 6-symmetry
-  float angle = atan(p.z, p.y);
-  float section = ROUND(angle * 3.0 / PI);
-  float angle2 = section * PI / 3.0;
-  vec3 p2 = p * rotx(angle2);
-
-  // T-track
-  float dist = sdBox(p2.xyz + vec3(0.270-0.092,-0.038,0.0), vec3(0.092, 0.004, 0.013));
-  dist = min(dist, sdBox(p2.xyz + vec3(0.270-0.092,-0.038,0.0), vec3(0.091, 0.012, 0.002)) - 0.001);
-  return dist;
-}
-
-#define SCALE 0.25
-
-// FIXME
-vec3 dorot(vec3 p) {
-  p.y -= 3.75;
-  p *= SCALE;
-  p = p.yxz;
-  p.x = -p.x;
-  p *= rotx(-PI/2.0);
-
-//  p = p  * roty(-0.4) * rotx(PI/5.0);
-  //    p = p  * roty(-0.4) * rotx(PI/7.0);
-  //    p = p * roty(-0.05);
-//  p *= rotz(iTime*0.1) * rotx(-iTime*0.0123) * roty(iTime*0.09781623);
-  return p;
-}
-
-// bounding box
-float bb(vec3 p) {
-  p.y-=0.01;
-  return sdVerticalCapsule(p, 0.25, 0.08);
-}
-
-// Return actual distance, step
-float handle2(vec3 p) {
-  p = dorot(p);
-
-  float dist = bb(p);
-  if (dist > 0.1) return dist;
-
-  dist = 100000.0;
-  dist = min(dist, Cylinder(p));
-  dist = min(dist, Clamp(p));
-  dist = min(dist, Button(p));
-  dist = min(dist, grips(p));
-  dist = min(dist, bunnyEars(p));
-  dist = min(dist, Pins(p));
-
-  return dist;
-}
-
-float handle(vec3 p) {
-  return handle2(p) / SCALE;
-}
-
-Material getHiltMaterial(vec3 hp, vec3 ray_dir) {
-  float dist = handle2(hp);
-  vec3 hpr = dorot(hp);
-
-  if (grips(hpr) == dist) {
-    return Material(vec3(0.01,0.01,0.01), 0.0, 0.4, vec3(0));
-  }
-
-  if (Pins(hpr) == dist) {
-    return Material(vec3(1.00, 0.71, 0.29), 1.0, 0.2, vec3(0));
-  }
-
-  if (length(hpr.zy) < 0.036 && abs(hpr.x) < 0.201) {
-    return Material(vec3(0.01,0.01,0.01), 0.2, 0.2, vec3(0));
-  }
-
-  if (RedPill(hpr) == dist) {
-    return Material(vec3(0.6,0.1,0.1), 0.5, 0.2, vec3(0));
-  }
-
-  if (hpr.z < -0.055 && abs(hpr.y) < 0.011) {
-    if (mod(hpr.x+0.2, 0.006) < 0.002) {
-      return Material(vec3(0.3, 0.9, 0.3), 0.0, 0.4, vec3(0));
-    } else {
-      return Material(vec3(1.00, 0.71, 0.29), 1.0, 0.2, vec3(0));
-    }
-  }
-
-  return Material(vec3(1.0), 0.9, 0.3, vec3(0));
-//  vec2 tpos = vec2(dot(hpr, vec3(13.1,1,0.5)), dot(hpr, vec3(7.033,0.1,2.2)));
-//  vec3 c = texture(iChannel0, tpos).xyz;
-//  return Material(vec3(0.3), 1.0-c.g, c.r*0.8 + 0.1);
-}
-
-
-</script>
-
-<script id="hilt_cylinder" type="x-shader/x-fragment">
-
-#define ITERATIONS 100
-
-float handle(vec3 p) {
-   vec2 h = vec2(.15, 0.7);
-   p.y -= 3.65;
-   vec2 d = abs(vec2(length(p.xz),p.y)) - h;
-   return min(max(d.x,d.y),0.0) + length(max(d,0.0));
-}
-Material getHiltMaterial(vec3 hp, vec3 ray_dir) {
-  return Material(vec3(1.0), 0.9, 0.3, vec3(0));
-}
-
-</script>
-
-<script id="fragment_shader" type="x-shader/x-fragment">
-precision highp float;
-uniform float u_time;
-varying vec2 v_position;
-uniform float u_width;
-uniform float u_height;
-uniform sampler2D sampler;
-uniform mat4 u_move_matrix;
-uniform mat4 u_old_move_matrix;
-
-const float PI = 3.1415926535;
-
-struct Material {
-  vec3 color;
-  float metallic;
-  float roughness;
-  vec3 emission;
-};
-
-$VARIABLES$
-
-mat3 rotz(float f) {
-  return mat3(cos(f), sin(f), 0,
-              -sin(f), cos(f), 0,
-              0,0,1);
-}
-
-mat3 roty(float f) {
-  return mat3(cos(f), 0, sin(f),
-              0, 1, 0,
-              -sin(f), 0, cos(f));
-}
-
-mat3 rotx(float f) {
-  return mat3(1,0,0,
-              0, cos(f), sin(f),
-              0, -sin(f), cos(f));
-}
-
-
-
-float opExtrusion( in vec3 p, in float sdf, in float h) {
-  vec2 w = vec2( sdf, abs(p.z) - h );
-  return min(max(w.x,w.y),0.0) + length(max(w,0.0));
-}
-
-float sdBox( vec3 p, vec3 b) {
-  vec3 q = abs(p) - b;
-  return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
-}
-
-float sdSphere( vec3 p, float s) {
-  return length(p)-s;
-}
-
-float sdCylinder( vec3 p, vec3 c) {
-  return length(p.xz-c.xy)-c.z;
-}
-
-float sdCappedCylinder( vec3 p, float h, float r) {
-  vec2 d = abs(vec2(length(p.xz),p.y)) - vec2(h,r);
-  return min(max(d.x,d.y),0.0) + length(max(d,0.0));
-}
-
-float sdRoundedCylinder( vec3 p, float ra, float rb, float h) {
-  vec2 d = vec2( length(p.xz)-2.0*ra+rb, abs(p.y) - h );
-  return min(max(d.x,d.y),0.0) + length(max(d,0.0)) - rb;
-}
-
-float sdVerticalCapsule( vec3 p, float h, float r )
-{
-  p.x -= clamp( p.x, -h, h );
-  return length( p ) - r;
-}
-
-vec4 opElongate( in vec3 p, in vec3 h) {
-  return vec4( p-clamp(p,-h,h), 0.0 ); // faster, but produces zero in the interior elongated box
-
-  //vec3 q = abs(p)-h;
-  //return vec4( max(q,0.0), min(max(q.x,max(q.y,q.z)),0.0) );
-}
-
-
-
-
-//------------------------------------------------------------------------------
-// BRDF
-//------------------------------------------------------------------------------
-
-float pow5(float x) {
-  float x2 = x * x;
-  return x2 * x2 * x;
-}
-
-float D_GGX(float linearRoughness, float NoH, const vec3 h) {
-  // Walter et al. 2007, "Microfacet Models for Refraction through Rough Surfaces"
-  float oneMinusNoHSquared = 1.0 - NoH * NoH;
-  float a = NoH * linearRoughness;
-  float k = linearRoughness / (oneMinusNoHSquared + a * a);
-  float d = k * k * (1.0 / PI);
-  return d;
-}
-
-float V_SmithGGXCorrelated(float linearRoughness, float NoV, float NoL) {
-  // Heitz 2014, "Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs"
-  float a2 = linearRoughness * linearRoughness;
-  float GGXV = NoL * sqrt((NoV - a2 * NoV) * NoV + a2);
-  float GGXL = NoV * sqrt((NoL - a2 * NoL) * NoL + a2);
-  return 0.5 / (GGXV + GGXL);
-}
-
-vec3 F_Schlick(const vec3 f0, float VoH) {
-  // Schlick 1994, "An Inexpensive BRDF Model for Physically-Based Rendering"
-  return f0 + (vec3(1.0) - f0) * pow5(1.0 - VoH);
-}
-
-float F_Schlick(float f0, float f90, float VoH) {
-  return f0 + (f90 - f0) * pow5(1.0 - VoH);
-}
-
-float Fd_Burley(float linearRoughness, float NoV, float NoL, float LoH) {
-  // Burley 2012, "Physically-Based Shading at Disney"
-  float f90 = 0.5 + 2.0 * linearRoughness * LoH * LoH;
-  float lightScatter = F_Schlick(1.0, f90, NoL);
-  float viewScatter  = F_Schlick(1.0, f90, NoV);
-  return lightScatter * viewScatter * (1.0 / PI);
-}
-
-float Fd_Lambert() {
-  return 1.0 / PI;
-}
-
-//------------------------------------------------------------------------------
-// Indirect lighting
-//------------------------------------------------------------------------------
-
-vec3 Irradiance_SphericalHarmonics(const vec3 n) {
-  // Irradiance from "Ditch River" IBL (http://www.hdrlabs.com/sibl/archive.html)
-  return max(
-     vec3( 0.754554516862612,  0.748542953903366,  0.790921515418539)
-   + vec3(-0.083856548007422,  0.092533500963210,  0.322764661032516) * (n.y)
-   + vec3( 0.308152705331738,  0.366796330467391,  0.466698181299906) * (n.z)
-   + vec3(-0.188884931542396, -0.277402551592231, -0.377844212327557) * (n.x)
-  , 0.0);
-}
-
-vec2 PrefilteredDFG_Karis(float roughness, float NoV) {
-  // Karis 2014, "Physically Based Material on Mobile"
-  const vec4 c0 = vec4(-1.0, -0.0275, -0.572,  0.022);
-  const vec4 c1 = vec4( 1.0,  0.0425,  1.040, -0.040);
-
-  vec4 r = roughness * c0 + c1;
-  float a004 = min(r.x * r.x, exp2(-9.28 * NoV)) * r.x + r.y;
-
-  return vec2(-1.04, 1.04) * a004 + r.zw;
-}
-
-
-
-
-
-vec3 A = vec3(0,3,0);
-vec3 B = vec3(0,-4,0);
-
-float get_point(vec3 p) {
-   vec3 pa = p - A, ba = B - A;
-   return clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
-}
-
-int get_led(vec3 p) {
-  return int(get_point(p) * 144.0);
-}
-
-float blade2(vec3 p, bool tangent) {
-   vec3 pa = p - A, ba = B - A;
-   float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
-   vec3 tmp = pa - ba * h;
-   float l2 = dot(tmp, tmp);
-   //   float R = 0.08;
-   float R = 0.09;
-    if (tangent && l2 >= R*R) {
-     return sqrt(l2 - R*R);
-   }  else {
-     return sqrt(l2) - R;
-   }
-}
-
-float blade(vec3 p, bool tangent) {
-  float ret = blade2(p, tangent);
-//  ret = min(ret, sdSphere(p, 0.8));
-  return ret;
-}
-$HILT$
-
-float map(vec3 p, bool tangent) {
-  return min(blade(p, tangent), handle(p));
-}
-
-vec3 getBladeColor(vec3 pos) {
-    return texture2D(sampler, vec2(get_point(pos), 0.5)).rgb;
-}
-
-float march(vec3 start, vec3 dir, out vec3 haze_color) {
-  haze_color = vec3(0,0,0);
-  float dist = 0.0;
-  float last_dist = 0.0;
-  float last_d = 0.0;
-  bool hit = false;
-  float haze = 1.0;
-  for (int i = 0; i < ITERATIONS; i++) {
-    vec3 p =start + dir * dist;
-    float hilt_dist = handle(p);
-    float blade_dist = blade(p, !hit);
-    float d = min(hilt_dist, blade_dist);
-
-    if (dist > 20.0) return 10000.0;
-    if (d < 0.001) {
-      if (d < 0.0) {
-        hit = true;
-//        dist = last_dist + (dist - last_dist) * (last_d / (last_d - d));
-        dist = last_dist;
-        continue;
-      }
-      return dist;
-    }
-    if (get_led(p) > 0) {
-      // haze_color += getBladeColor(p) * clamp(0.002 / (blade_dist*blade_dist), 0.0, 1.0);
-
-      // haze_color += getBladeColor(p) * 0.0005 / (blade_dist*blade_dist*blade_dist) * d;
-
-      float haze_m = clamp(0.004 / (blade_dist*blade_dist), 0.0, 1.0);
-      haze_color += getBladeColor(p) * haze_m * haze;
-      haze *= (1.0 - haze_m);
-    }
-    d *= 0.99;
-    last_d = d;
-    last_dist = dist;
-    dist += d;
-  }
-//  if (hit) return dist;
-//  return -1.0;
-  return dist;
-}
-
-float march2(vec3 start, vec3 dir, out vec3 haze_color) {
-  haze_color = vec3(0,0,0);
-  float dist = 0.0;
-  float last_dist = 0.0;
-  float last_d = 0.0;
-  bool hit = false;
-  float haze = 1.0;
-  float start_dist = map(start, false);
-  for (int i = 0; i < ITERATIONS; i++) {
-    vec3 p =start + dir * dist;
-    float hilt_dist = handle(p);
-    float blade_dist = blade(p, !hit);
-    float d = min(hilt_dist, blade_dist);
-
-    if (dist > 20.0) return 10000.0;
-    if (d < start_dist / 2.0) {
-      if (d < 0.0) {
-        hit = true;
-//        dist = last_dist + (dist - last_dist) * (last_d / (last_d - d));
-        dist = last_dist;
-        continue;
-      }
-      return dist;
-    }
-    if (get_led(p) > 0) {
-      // haze_color += getBladeColor(p) * clamp(0.002 / (blade_dist*blade_dist), 0.0, 1.0);
-
-      // haze_color += getBladeColor(p) * 0.0005 / (blade_dist*blade_dist*blade_dist) * d;
-
-      float haze_m = clamp(0.004 / (blade_dist*blade_dist), 0.0, 1.0);
-      haze_color += getBladeColor(p) * haze_m * haze;
-      haze *= (1.0 - haze_m);
-    }
-    last_d = d;
-    last_dist = dist;
-    dist += d;
-  }
-  return dist;
-}
-
-
-
-vec3 getNormal(vec3 p) {
-  float E = 0.00001;
-  vec3 X = vec3(E,0.0,0.0);
-  vec3 Y = vec3(0.0,E,0.0);
-  vec3 Z = vec3(0.0,0.0,E);
-//  return normalize(vec3(map(p + X, false) - map(p - X, false),
-//                        map(p + Y, false) - map(p - Y, false),
-//                        map(p + Z, false) - map(p - Z, false)));
-
-  float D = map(p, false);
-  return normalize(vec3(map(p + X, false) - D,
-                        map(p + Y, false) - D,
-                        map(p + Z, false) - D));
-}
-
-float line_dist(vec3 pt1, vec3 dir1, vec3 pt2, vec3 dir2) {
-  vec3 n = normalize(cross(dir1, dir2));
-  return abs(dot(n, pt1 - pt2));
-}
-
-
-
-// Cast a ray starting at "from" and keep going until we hit something or
-// run out of iterations.
-float ray(vec3 from, vec3 direction) {
-  // How far we travelled (so far)
-  float travel_distance = 0.0;
-  float last_travel_distance = 0.0;
-  bool hit = false;
-  for (int i = 0; i < 60; i++) {
-    // calculate the current position along the ray
-    vec3 position = from + direction * travel_distance;
-    float tmp = map(position, false);
-    float distance_to_closest_object = tmp;
-    float step_size = hit ? tmp : tmp;
-
-    if (distance_to_closest_object < 0.0005) {
-      return travel_distance;
-    }
-    last_travel_distance = travel_distance;
-
-    // We can safely advance this far since we know that the closest
-    // object is this far away. (But possibly in a completely different
-    // direction.)
-    travel_distance += step_size;
-  }
-
-  return travel_distance;
-}
-
-
-float shadow(in vec3 origin, in vec3 direction) {
-  float hit = 1.0;
-  float t = 0.001;
-
-  for (int i = 0; i < 100; i++) {
-    float h = map(origin + direction * t, false);
-    if (h < 0.0002) return 0.0;
-    t += h;
-    hit = min(hit, 10.0 * h / t);
-    if (t >= 2.5) break;
-  }
-
-  return clamp(hit, 0.0, 1.0);
-}
-
-
-
-#define saturate(x) clamp(x, 0.0, 1.0)
-
-
-Material getMaterial(vec3 hp, vec3 dir) {
-  if (blade(hp, false) <= handle(hp)) {
-    return Material(vec3(1.0), 0.0, 0.3, getBladeColor(hp));
-  } else {
-    return getHiltMaterial(hp, dir);
-  }
-}
-
-vec4 run(vec2 position) {
-    vec3 light = vec3(-5, 8.0, -8.0);
-    vec3 eye = vec3(0.0, 0.0, -12.0);
-    float zoom = 1.5;
-    vec3 dir = normalize(
-            vec3((position.x) / u_width / zoom,
-                 (position.y) / u_width / zoom, 2.0));
-    mat4 rot3 = mat4(0.0, -1.0, 0.0, 0.0,
-                     0.0, 0.0, -1.0, 0.0,
-                     1.0, 0.0, 0.0, 0.0,
-                     0.0, 0.0, 0.0, 1.0);
-
-    mat4 rot = rot3 * u_move_matrix;
-    vec3 new_eye = (rot * vec4(eye.xyz, 1.0)).xyz;
-    vec3 new_dir = (rot * vec4(dir.xyz, 1.0)).xyz;
-    light = (rot * vec4(light.xyz, 1.0)).xyz;
-
-    mat4 old_rot = rot3 * u_old_move_matrix;
-    vec3 old_eye = (old_rot * vec4(eye.xyz, 1.0)).xyz;
-    vec3 old_dir = (old_rot * vec4(dir.xyz, 1.0)).xyz;
-
-    float minpoint = 1.0;
-
-    if (true) {
-      // gauss
-      for (int i = 0; i < 5; i++) {
-        vec3 e1 = mix(old_eye, new_eye, minpoint);
-        vec3 d1 = normalize(mix(old_dir, new_dir, minpoint));
-        float delta = 0.001;
-        vec3 e2 = mix(old_eye, new_eye, minpoint - delta);
-        vec3 d2 = normalize(mix(old_dir, new_dir, minpoint - delta));
-        float dist1 = line_dist(e1, d1, A, B-A);
-        float dist2 = line_dist(e2, d2, A, B-A);
-        minpoint = minpoint - dist1 / ((dist1-dist2)/delta);
-      }
-      minpoint = clamp(minpoint, 0.0, 1.0);
-    }
-
-    eye = mix(old_eye, new_eye, minpoint);
-    dir = normalize(mix(old_dir, new_dir, minpoint));
-
-    vec3 haze_color;
-    float x = march(eye, dir, haze_color);
-
-    vec3 hp = eye + dir * x;
-    vec3 color = vec3(0);
-
-    if (x < 20.0) {
-      Material mat = getMaterial(hp, dir);
-
-//    vec3 normal = getNormal(hp);
-//    vec3 light_dir = light - hp;
-//    float light_dist2 = dot(light_dir, light_dir) / 10.0;
-//    light_dir = normalize(light_dir);
-//    float l = dot(light_dir, normal) * 5.0;
-
-//    l = max(l, 0.0);
-//    l /= sqrt(light_dist2);
-//    l += 0.1;  // ambient
-//    color *= l;
-//    color += color2 * 2.0;
-
-//    vec3 reflection = reflect(dir, normal);
-//    float l2 = max(dot(reflection, light_dir), 0.0);
-//    color += vec3(200.0) * pow(l2, 60.0);
-//    vec3 haze = vec3(0.01, 0.01, 0.01);
-//    float haze_mix = x < 0.0 ? 0.0 : pow(0.95, x);
-//    color = haze_mix * color + (1.0 - haze_mix) * haze;
-//    color += haze_color;
-
-
-//    color = sqrt(color);
-//    gl_FragColor = vec4(color, 1.0);
-
-    vec3 v = normalize(-dir);
-    vec3 n = getNormal(hp);
-    vec3 l = light - hp;
-    vec3 ld = normalize(l);
-    vec3 h = normalize(ld + v);
-    vec3 r = normalize(reflect(dir, n));
-
-    float NoV = abs(dot(n, v)) + 1e-5;
-    float NoL = saturate(dot(n, ld));
-    float NoH = saturate(dot(n, h));
-    float LoH = saturate(dot(ld, h));
-
-    vec3 baseColor = mat.color * 0.5;
-
-    float intensity = 3.8;
-    float indirectIntensity = 0.1;
-
-    float linearRoughness = mat.roughness * mat.roughness;
-    vec3 diffuseColor = (1.0 - mat.metallic) * baseColor.rgb;
-    vec3 f0 = 0.04 * (1.0 - mat.metallic) + baseColor.rgb * mat.metallic;
-
-    float attenuation = shadow(hp, l);
-
-    // specular BRDF
-    float D = D_GGX(linearRoughness, NoH, h);
-    float V = V_SmithGGXCorrelated(linearRoughness, NoV, NoL);
-    vec3  F = F_Schlick(f0, LoH);
-    vec3 Fr = (D * V) * F;
-
-    // diffuse BRDF
-    vec3 Fd = diffuseColor * Fd_Burley(linearRoughness, NoV, NoL, LoH);
-
-    color = Fd + Fr;
-    color *= (intensity * attenuation * NoL) * vec3(0.98, 0.92, 0.89);
-
-    // diffuse indirect
-    vec3 indirectDiffuse = Irradiance_SphericalHarmonics(n) * Fd_Lambert();
-
-    vec3 indirect_haze_color;
-    float indirectHit = march2(hp + r * 0.1, r, indirect_haze_color);
-//    float indirectHit = ray(hp + r * 0.1, r);
-    vec3 indirectSpecular = vec3(0.5, 0.5, 0.5) + (dot(vec3(0,0,-1), r) + 1.0) * 0.2;
-    vec3 indirectHitPosition = hp + r * indirectHit;
-    if (indirectHit < 20.0) {
-      Material indirectMaterial = getMaterial(indirectHitPosition, r);
-      indirectSpecular = indirectMaterial.color + indirectMaterial.emission;
-    }
-    indirectSpecular += indirect_haze_color;
-
-    // indirect contribution
-    vec2 dfg = PrefilteredDFG_Karis(mat.roughness, NoV);
-    vec3 specularColor = f0 * dfg.x + dfg.y;
-    vec3 ibl = diffuseColor * indirectDiffuse + indirectSpecular * specularColor;
-
-    color += ibl * indirectIntensity;
-
-    color += mat.emission;
-    }
-
-//    vec3 haze = vec3(0.01, 0.01, 0.01);
-//   float haze_mix = x > 20.0 ? 0.0 : pow(0.95, x);
-//    color = haze_mix * color + (1.0 - haze_mix) * haze;
-    color += haze_color;
-
-    // Clip to white
-    color += vec3(dot(max(color - vec3(1), vec3(0)), vec3(0.33)));
-    // color += vec3(dot(max(color - vec3(1), 0.0), vec3(0.299, 0.587, 0.114)));
-    // color += vec3(max(dot(color, vec3(0.299, 0.587, 0.114)) - 1.0, 0.0));
-
-//    gl_FragColor = pow(vec4(color, 1.0), vec4(1.0/2.2));
-    return pow(vec4(color, 1.0), vec4(1.0/2.2));
-}
-vec2 hash21(float p) {
-  vec3 p3 = fract(vec3(p) * vec3(.1031, .1030, .0973));
-  p3 += dot(p3, p3.yzx + 33.33);
-  return fract((p3.xx+p3.yz)*p3.zy);
-}
-void main() {
-  gl_FragColor = run(v_position);
-  for (int j = AA; j > 1; j--) {
-    gl_FragColor += run(v_position + hash21(float(j)) - vec2(0.5,0.5));
-  }
-  gl_FragColor /= float(AA);
-}
-
-</script>
-
-<script>
-
-function SafeguardInputs(e) {
-  if (e.target.value == "") {
-    console.log("SafeguardInputs() run to avoid null value");
-    var changeEvent = new Event('change');
-    e.target.value = 0;
-    if (e.target.id === "VARIANT_VALUE") {
-      FIND("VARIANT_SLIDER").value = 0;
-    }
-    e.target.dispatchEvent(changeEvent);
-  }
-}
-
 var gl = null;
 var shaderProgram = null;
 var t = 0.0;
 
 var width;
 var height;
+var dpr = window.devicePixelRatio || 1;
+const canvas = document.getElementById("canvas_id"); 
+var enlargeCanvas = false;
 
-// Create n textures of about 1MB each.
-function initGL() {
-  // Clear existing tab links and tab bodies before populating
-  // var tabLinksElement = FIND("TABLINKS");
-  // var tabBodiesElement = FIND("TABBODIES");
-  // tabLinksElement.innerHTML = "";
-  // tabBodiesElement.innerHTML = "";
-
-  AddTab("color", "Styles",effect_links.sort().join(""))
-  AddTab("rgb", "Colors", ""); updateRgbTabContent();
-  AddTab("layer", "Layers", layer_links.sort().join(""));
-  AddTab("function", "Functions", function_links.sort().join(""));
-  AddTab("transition", "Transitions", transition_links.sort().join(""));
-  AddTab("effect", "Effects");
-  AddTab("lockup_type", "Lockup Types");
-  AddTab("arguments", "Arguments");
-  AddTab("example", "Examples", template_links.join(""));
-  AddTab("history", "History");
-  AddTab("arg_string", "ArgString");
-  EFFECT_ENUM_BUILDER.addToTab("effect", "EFFECT_");
-  LOCKUP_ENUM_BUILDER.addToTab("lockup_type", "LOCKUP_");
-  ArgumentName_ENUM_BUILDER.addToTab("arguments", "");
-
-  // Add arg string.
-  var A = "";
-  A += "Arg string: <input id=ARGSTR name=arg type=text size=80 value='builtin 0 1' onchange='ArgStringChanged()' /><br><table>";
-  var v = Object.keys(ArgumentName_ENUM_BUILDER.value_to_name);
-  for (var i = 0; i < v.length; i++) {
-    var V = parseInt(v[i]);
-    var N = ArgumentName_ENUM_BUILDER.value_to_name[V];
-    A += "<tr><td>" + N + "</td><td>";
-    if (N.search("COLOR") >= 0) {
-       A += "<input type=color id=ARGSTR_"+N+" onclick='ClickArgColor("+N+")' onchange='ClickArgColor("+N+")' >";
-    } else {
-       A += "<input type=button value='<'  onclick='IncreaseArg("+N+",-1)' >";
-       A += "<input id=ARGSTR_"+N+" type='number' size=6 value=0 onchange='ArgChanged("+N+")' onfocusout='SafeguardInputs(event)' >";
-       A += "<input type=button value='>'  onclick='IncreaseArg("+N+",1)' >";
-    }
-    A += "</td></tr>\n";
+function FIND(id) {
+  var ret = document.getElementById(id);
+  if (!ret) {
+//    console.log("Failed to find " + id);
   }
-  A += "</table\n";
-  AddTabContent("arg_string", A);
+  return ret;
+}
 
+const start_millis = new Date().getTime();
+function actual_millis() {
+  return new Date().getTime() - start_millis;
+}
+var current_micros = 0;
+var current_micros_internal = 0;
+function micros() {
+  return current_micros;
+}
 
-  var canvas = FIND("canvas_id");
+function millis() {
+  return current_micros / 1000;
+}
 
-  width = window.innerWidth;
-  height = window.innerHeight;
-  canvas_id.setAttribute("title", "Blade Preview.\nMove mouse to swing. Click to Clash\nor to Do Selected Effect (and to dismiss this Tooltip.)\nGoto settings to change hilt model or toggle Mouse Swings mode (swinging with mouse moves.)");
+function fract(v) {
+  return v - Math.floor(v);
+}
 
-  if(window.devicePixelRatio !== undefined) {
-    dpr = window.devicePixelRatio;
-  } else {
-    dpr = 1;
-  }
-
-  width = width * 2 / 3;
-  height /= 3;
-  canvas.width = width * dpr;
-  canvas.height = height * dpr;
-  canvas.style.width = width + 'px';
-  canvas.style.height = height + 'px';
-
-  var enlargeCanvas = false;
-  FIND('ENLARGE').onclick = function() {
-    enlargeCanvas = !enlargeCanvas;
-    this.innerText = enlargeCanvas ? 'Reduce' : 'Enlarge';
-    if (enlargeCanvas) {
-      height = window.innerHeight / 2;
-    } else {
-      height = window.innerHeight / 3;
-    }
-    
-    // Update the canvas dimensions
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-    canvas.style.width = width + 'px';
-    canvas.style.height = height + 'px';
-  }
-
-  gl = canvas.getContext("experimental-webgl", {colorSpace: "srgb", antialias:false});
-
-  if (!gl) {
-    throw "Unable to fetch WebGL rendering context for Canvas";
-  }
-
-  var str = new URL(window.location.href).searchParams.get("S");
-  if (!str) {
-    str = "Layers<Red,ResponsiveLockupL<White,TrInstant,TrFade<100>,Int<26000>>,ResponsiveLightningBlockL<White>,ResponsiveMeltL<Mix<TwistAngle<>,Red,Yellow>>,ResponsiveDragL<White>,ResponsiveClashL<White,TrInstant,TrFade<200>,Int<26000>>,ResponsiveBlastL<White>,ResponsiveBlastWaveL<White>,ResponsiveBlastFadeL<White>,ResponsiveStabL<White>,InOutTrL<TrWipe<300>,TrWipeIn<500>>>";
-  }
-  FIND("style").value = str;
-
-  Run();
-  DoLayerize();
-
-  // Bind a vertex buffer with a single triangle
-  var buffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  var bufferData = new Float32Array([
-       -1.0, -1.0, 1.0, -1.0, -1.0,  1.0, 1.0, 1.0]);
-  gl.bufferData(gl.ARRAY_BUFFER, bufferData, gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(shaderProgram.a_position);
-  gl.vertexAttribPointer(shaderProgram.a_position, 2, gl.FLOAT, false, 0, 0);
-
-  var texture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-
-  // Start the event loop.
-  tick();
+var max = Math.max;
+var min = Math.min;
+var sin = Math.sin;
+function random(i) {
+  return Math.floor(Math.random() * i);
+}
+function clamp(a, b, c) {
+  if (a < b) return b;
+  if (a > c) return c;
+  return a;
 }
 
 class Matrix {
@@ -1692,14 +145,28 @@ function mouse_speed(t1, t2) {
 function mouse_move(e) {
   if (mouseswingsState.get()) return;
   IN_FRAME = true;
-  var canvas = FIND("canvas_id");
-  var rect = canvas.getBoundingClientRect();
-  var w = rect.right - rect.left;
-  var h = rect.bottom - rect.top;
-  var d = min(h, w);
-  var x = (e.clientX - (rect.left + rect.right)/2.0) / d;
-  var y = (e.clientY - (rect.top + rect.bottom)/2.0) / d;
-  var now = actual_millis();
+
+  const canvas = FIND("canvas_id");
+  const rect   = canvas.getBoundingClientRect();
+  const w      = rect.right - rect.left;
+  const h      = rect.bottom - rect.top;
+  const d = Math.min(h, w);
+
+  let x;
+  if (document.fullscreenElement === FIND("page_left_top") || enlargeCanvas) {
+    x = (e.clientX - (rect.left + rect.right) / 2) / d * 2.2;  // Fullscreen/Enlarge 
+  } else {
+    x = (e.clientX - (rect.left + rect.right) / 2) / d * 1.8;  // Normal
+  }
+
+  let y;
+  if (document.fullscreenElement === FIND("page_left_top")) {
+    y = (e.clientY - (rect.top + rect.bottom) / 2) / d * 0.75; // Fullscreen, slightly less.
+  } else {  // y already accounted for for enlarge.
+    y = (e.clientY - (rect.top + rect.bottom) / 2) / d;
+  }
+
+  const now    = actual_millis();
   MOUSE_POSITIONS = MOUSE_POSITIONS.concat([x* 10000, y * 10000, now])
   while (MOUSE_POSITIONS.length > 0 && now - MOUSE_POSITIONS[2] > 100) {
     MOUSE_POSITIONS = MOUSE_POSITIONS.slice(3);
@@ -1714,13 +181,24 @@ function mouse_move(e) {
 
     MOVE_MATRIX = Matrix.mkyrot(Math.PI/2.0)
     MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(1.0, 0.04, 0.0));
-    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mkyrot(-x/3));
+    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mkyrot(-x/8));
     MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(-1.0, 0.0, 0.0));
     MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mkzrot(-y));
     MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(-0.17, 0.0, 0.0));
   }
 //  console.log(MOVE_MATRIX.values);
+
+
+  // SmoothSwing updates
+  lastSwingSpeed = get_swing_speed();
+  lastSwingUpdate = Date.now();
+  // console.debug(
+  //   `[SwingDebug][mouse_move] lastSwingSpeed=${lastSwingSpeed.toFixed(1)}, ` +
+  //   `lastSwingUpdate=${lastSwingUpdate}`
+  // );
+    triggerAccentEvent(lastSwingSpeed);
 }
+//////////// BC ///////////
 
 function get_swing_speed() {
   var now = actual_millis();
@@ -1756,8 +234,10 @@ function mouse_leave(e) {
   MOVE_MATRIX = default_move_matrix();
   MOUSE_POSITIONS = [];
   IN_FRAME = false;
+  // fadeAndStop('smoothLoopL', 300);
+  // fadeAndStop('smoothLoopH', 300);
+  //   console.log(`[mouse_leave] STOPPING smoothswings..`);
 }
-
 
 function compile() {
   // Create a shader that samples a 2D image.
@@ -1852,6 +332,21 @@ class MyError {
   }
   valueOf() { return this.desc; }
 };
+//////////// SafeguardInputs PR ///////////////
+function ValidateInput(e) {
+  e.target.classList.remove('invalid');
+
+  if (e.target.value === "" || isNaN(Number(e.target.value))) {
+    e.target.classList.add('invalid');
+    // Force focus to keep user in the field
+    setTimeout(() => {
+      e.target.focus();
+      e.target.select();
+    }, 0);
+    return false;
+  }
+}
+//////////// SafeguardInputs PR ///////////////
 
 function Arg(expected_type, arg, default_arg) {
   //console.log("ARGUMENT: " + expected_type);
@@ -1966,7 +461,7 @@ class STYLE {
     var url = this.pp();
     pp_is_url--;
     var parser = new Parser(url, classes, identifiers);
-    ret = parser.parse();
+    var ret = parser.parse();
     ret.COMMENT = this.COMMENT;
     return ret;
   }
@@ -2055,6 +550,10 @@ class STYLE {
     return "";
   }
 
+  valueBox() {
+    return "";
+  }
+
   PP(name, note) {
     if (pp_is_url) {
       return this.PPURL.apply(this, arguments);
@@ -2067,6 +566,7 @@ class STYLE {
     }
     ret += "<div id=X" + id + " class='pp-container' onclick='FocusOn(" + id + ",event)'>\n";
     ret += "<span title='" + note + "'>" + name + "</span>&lt;\n";
+    ret += this.valueBox();
     ret += "<div class='pp-content'>\n";
     var comma = false;
     for (var i = 2; i < arguments.length; i += 2) {
@@ -2081,7 +581,6 @@ class STYLE {
         comment = arg.COMMENT;
         arg = this.call_pp_no_comment(arg);
       }
-
       if (arg.indexOf("<br>") == -1 && arg.indexOf("<div") == -1 && !comment) {
         ret += arg+" /* "+note+" */\n";
       } else {
@@ -2304,7 +803,7 @@ function AddEnum(enum_type, name, value) {
   enum_type.value_to_name[value] = name;
   window[name] = value;
   AddIdentifier(name, function() { return new enum_type(value); });
-  console.log(" ENUM " + name + " = " + value);
+  // console.log(" ENUM " + name + " = " + value);
 }
 
 class EnumBuilder {
@@ -2321,7 +820,7 @@ class EnumBuilder {
     this.last_value = value;
     this.value_to_name[value] = name;
     window[name] = value;
-    console.log(" ENUM " + name + " = " + value);
+    // console.log(" ENUM " + name + " = " + value);
   }
   addToTab(tab, common_prefix) {
     if (!common_prefix) {
@@ -2385,16 +884,27 @@ EFFECT_ENUM_BUILDER.addValue("EFFECT_CLASH");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_STAB");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_BLAST");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_FORCE");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_ACCENT_SWING");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_ACCENT_SLASH");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_SPIN");
+
 EFFECT_ENUM_BUILDER.addValue("EFFECT_BOOT");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_NEWFONT");
+// In-Out
 EFFECT_ENUM_BUILDER.addValue("EFFECT_PREON");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_POSTOFF");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_IGNITION");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_RETRACTION");
+// Lockup
 EFFECT_ENUM_BUILDER.addValue("EFFECT_DRAG_BEGIN");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_DRAG_END");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_LOCKUP_BEGIN");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_LOCKUP_END");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_MELT_BEGIN");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_MELT_END");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_LB_BEGIN");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_LB_END");
+// Utility
 EFFECT_ENUM_BUILDER.addValue("EFFECT_CHANGE");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_BATTERY_LEVEL");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_VOLUME_LEVEL");
@@ -2402,9 +912,6 @@ EFFECT_ENUM_BUILDER.addValue("EFFECT_POWERSAVE");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_BLADEIN");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_BLADEOUT");
 
-EFFECT_ENUM_BUILDER.addValue("EFFECT_ACCENT_SWING");
-EFFECT_ENUM_BUILDER.addValue("EFFECT_ACCENT_SLASH");
-EFFECT_ENUM_BUILDER.addValue("EFFECT_SPIN");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_ON");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_OFF");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_OFF_CLASH");
@@ -2415,7 +922,6 @@ EFFECT_ENUM_BUILDER.addValue("EFFECT_NEXT_QUOTE");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_TRACK");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_SECONDARY_IGNITION");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_SECONDARY_RETRACTION");
-
 EFFECT_ENUM_BUILDER.addValue("EFFECT_INTERACTIVE_PREON");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_INTERACTIVE_BLAST");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_BEGIN_BATTLE_MODE");
@@ -2454,7 +960,6 @@ EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_RESULT1");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_RESULT2");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_WIN");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_LOSE");
-
 // User-definable effects
 EFFECT_ENUM_BUILDER.addValue("EFFECT_USER1");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_USER2");
@@ -2474,83 +979,6 @@ EFFECT_ENUM_BUILDER.addValue("EFFECT_FONT_DIRECTORY_NOT_FOUND");
 // Menu effects
 EFFECT_ENUM_BUILDER.addValue("EFFECT_MENU_CHANGE");
 
-
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_NONE", 0);
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_CLASH");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_BLAST");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_FORCE");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_STAB");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_BOOT");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_LOCKUP_BEGIN");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_LOCKUP_END");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_DRAG_BEGIN");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_DRAG_END");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_PREON");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_POSTOFF");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_IGNITION");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_RETRACTION");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_CHANGE");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_NEWFONT");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_LOW_BATTERY");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_POWERSAVE");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_BATTERY_LEVEL");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_VOLUME_LEVEL");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_ON");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_FAST_ON");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_QUOTE");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_SECONDARY_IGNITION");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_SECONDARY_RETRACTION");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_OFF");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_FAST_OFF");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_OFF_CLASH");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_NEXT_QUOTE");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_INTERACTIVE_PREON");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_INTERACTIVE_BLAST");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_TRACK");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_BEGIN_BATTLE_MODE");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_END_BATTLE_MODE");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_BEGIN_AUTO_BLAST");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_END_AUTO_BLAST");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_ALT_SOUND");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_TRANSITION_SOUND");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_SOUND_LOOP");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_STUN");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_FIRE");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_CLIP_IN");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_CLIP_OUT");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_DESTRUCT");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_BOOM");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_RELOAD");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_MODE");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_RANGE");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_EMPTY");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_FULL");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_JAM");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_UNJAM");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_PLI_ON");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_PLI_OFF");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_START");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_ACTION1");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_ACTION2");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_CHOICE");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_RESPONSE1");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_RESPONSE2");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_RESULT1");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_RESULT2");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_WIN");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_LOSE");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_USER1");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_USER2");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_USER3");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_USER4");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_USER5");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_USER6");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_USER7");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_USER8");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_SD_CARD_NOT_FOUND");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_ERROR_IN_FONT_DIRECTORY");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_ERROR_IN_BLADE_ARRAY");
-// EFFECT_ENUM_BUILDER.addValue("EFFECT_FONT_DIRECTORY_NOT_FOUND");
 EFFECT_ENUM_BUILDER.build();
 
 LOCKUP_ENUM_BUILDER = new EnumBuilder("LOCKUP_TYPE", "SaberBase::");
@@ -2604,6 +1032,70 @@ ArgumentName_ENUM_BUILDER.addValue("IGNITION_OPTION2_ARG", 37);
 ArgumentName_ENUM_BUILDER.addValue("RETRACTION_OPTION2_ARG", 38);
 ArgumentName_ENUM_BUILDER.build();
 
+//////////// BC ///////////
+// Map each EFFECT constant → Proffie sound key (folder or file prefix)
+const EFFECT_SOUND_MAP = {
+  [EFFECT_NONE]:             null,        // no sound
+  [EFFECT_CLASH]:            "clsh",
+  [EFFECT_STAB]:             "stab",
+  [EFFECT_BLAST]:            "blst",
+  [EFFECT_FORCE]:            "force",
+  [EFFECT_BOOT]:             "boot",
+  [EFFECT_NEWFONT]:          "font",
+  [EFFECT_PREON]:            "preon",
+  [EFFECT_POSTOFF]:          "pstoff",
+  [EFFECT_IGNITION]:         "out",
+  [EFFECT_RETRACTION]:       "in",
+  [EFFECT_DRAG_BEGIN]:       "bgndrag",
+  [EFFECT_DRAG_END]:         "enddrag",
+  [EFFECT_LOCKUP_BEGIN]:     "bgnlock",
+  [EFFECT_LOCKUP_END]:       "endlock",
+  // Pseudo-events for sound playback / possible future use
+  [EFFECT_MELT_BEGIN]:       "bgnmelt",
+  [EFFECT_MELT_END]:         "endmelt",
+  [EFFECT_LB_BEGIN]:         "bgnlb",
+  [EFFECT_LB_END]:           "endlb",
+  [EFFECT_CHANGE]:           "ccchange",
+
+  [EFFECT_BATTERY_LEVEL]:    "battlevl",
+  [EFFECT_VOLUME_LEVEL]:     "volup",
+  [EFFECT_POWERSAVE]:        "dim",
+  [EFFECT_BLADEIN]:          "bladein",
+  [EFFECT_BLADEOUT]:         "bladeout",
+
+  [EFFECT_ACCENT_SWING]:     "swng",
+  [EFFECT_ACCENT_SLASH]:     "slsh",
+  [EFFECT_SPIN]:             "spin",
+  [EFFECT_FAST_ON]:          "fastout",
+  [EFFECT_QUOTE]:            "quote",
+
+  [EFFECT_BEGIN_BATTLE_MODE]:"bmbegin",
+  [EFFECT_END_BATTLE_MODE]:  "bmend",
+  [EFFECT_BEGIN_AUTO_BLAST]: "blstbgn",
+  [EFFECT_END_AUTO_BLAST]:   "blstend",
+
+
+  [EFFECT_TRANSITION_SOUND]: "tr",
+  [EFFECT_SOUND_LOOP]:       "trloop",
+
+  [EFFECT_STUN]:             "stun",
+  [EFFECT_FIRE]:             "fire",
+  [EFFECT_CLIP_IN]:          "clipin",
+  [EFFECT_CLIP_OUT]:         "clipout",
+  [EFFECT_RELOAD]:           "reload",
+  [EFFECT_MODE]:             "mode",
+  [EFFECT_RANGE]:            "range",
+  [EFFECT_EMPTY]:            "empty",
+  [EFFECT_FULL]:             "full",
+  [EFFECT_JAM]:              "jam",
+  [EFFECT_UNJAM]:            "unjam",
+  [EFFECT_PLI_ON]:           "plion",
+  [EFFECT_PLI_OFF]:          "plioff",
+  [EFFECT_DESTRUCT]:         "destruct",
+  [EFFECT_BOOM]:             "boom"
+};
+//////////// BC ///////////
+
 function effect_to_argument(effect) {
   switch (effect + 0) {
     case EFFECT_CLASH: return CLASH_COLOR_ARG;
@@ -2623,6 +1115,99 @@ function lockup_to_argument(effect) {
   }
   return undefined;
 }
+
+//////////// BC ///////////
+/**
+ * Read the current style textarea and return a Set of EFFECT_* IDs
+ * that are actually referenced (either literally or via macros).
+ */
+function getAllowedEffectsFromStyleText() {
+  const sty = FIND("style");
+  let text = sty?.value || "";
+  // Strip block comments: /* … */
+  text = text.replace(/\/\*[\s\S]*?\*\//g, "");
+  // Strip line comments: //
+  text = text.replace(/\/\/.*$/gm, "");  const allowed = new Set();
+
+  // Any literal EFFECT_XXX constant in the text
+  const consts = text.match(/\bEFFECT_[A-Z_]+\b/g) || [];
+  for (const c of new Set(consts)) {
+    if (window[c] !== undefined) {
+      allowed.add(window[c]);
+    }
+  }
+
+  // Known macros → their EFFECTs
+  const macroMap = {
+    ResponsiveClashL:        EFFECT_CLASH,
+    ResponsiveStabL:         EFFECT_STAB,
+    ResponsiveBlastL:        EFFECT_BLAST,
+    ResponsiveBlastWaveL:    EFFECT_BLAST,
+    ResponsiveBlastFadeL:     EFFECT_BLAST,
+
+    ResponsiveLockupL:       [EFFECT_LOCKUP_BEGIN,   EFFECT_LOCKUP_END],
+    ResponsiveDragL:         [EFFECT_DRAG_BEGIN,     EFFECT_DRAG_END],
+    ResponsiveMeltL:         [EFFECT_MELT_BEGIN,     EFFECT_MELT_END],
+    ResponsiveLightningBlockL:[EFFECT_LB_BEGIN,       EFFECT_LB_END],
+
+    InOutTrL:                [EFFECT_IGNITION,       EFFECT_RETRACTION],
+  };
+
+  for (let [macro, val] of Object.entries(macroMap)) {
+    if (text.includes(macro + "<")) {
+      if (Array.isArray(val)) {
+        val.forEach(v => allowed.add(v));
+      } else if (val != null) {
+        allowed.add(val);
+      }
+    }
+  }
+  // Also include lockup begin/end events for any literal LOCKUP_* in the style
+  getAllowedLockupsFromStyleText().forEach(lockupType => {
+    const evts = lockups_to_event[lockupType];
+    if (evts) {
+      evts.forEach(evt => allowed.add(evt));
+    }
+  });
+
+  return allowed;
+}
+
+function getAllowedLockupsFromStyleText() {
+  const sty = FIND("style");
+  let text = sty?.value || "";
+  // Strip block comments: /* … */
+  text = text.replace(/\/\*[\s\S]*?\*\//g, "");
+  // Strip line comments: //
+  text = text.replace(/\/\/.*$/gm, "");
+
+  const allowed = new Set();
+
+  // Direct matches: LOCKUP_NORMAL, LOCKUP_MELT, etc.
+  const lockups = text.match(/\bLOCKUP_[A-Z_]+\b/g) || [];
+  for (const c of new Set(lockups)) {
+    if (window[c] !== undefined) {
+      allowed.add(window[c]);
+    }
+  }
+
+  // Macro usage detection
+  const macroLockupMap = {
+    ResponsiveLockupL: LOCKUP_NORMAL,
+    ResponsiveDragL: LOCKUP_DRAG,
+    ResponsiveMeltL: LOCKUP_MELT,
+    ResponsiveLightningBlockL: LOCKUP_LIGHTNING_BLOCK
+  };
+
+  for (let macro in macroLockupMap) {
+    if (text.includes(macro + "<")) {
+      allowed.add(macroLockupMap[macro]);
+    }
+  }
+  return allowed;
+}
+
+//////////// BC ///////////
 
 class FUNCTION  extends STYLE {
   getType() { return "FUNCTION"; }
@@ -2710,6 +1295,14 @@ function ClickColor() {
   var B = FixColor(color_button.value.substr(5,2));
   SetTo("Rgb16<"+R+","+G+","+B+">");
 }
+
+//var qlinks = "<b>Colors</b> <input type=color id=COLOR value='#ff0000' onclick='ClickColor()' />";
+//var effect_links = "<b>Effects:</b>";
+//var layer_links = "";
+//var effect_type_links = "<b>Effect Types:</b>";
+//var template_links = "<b>Templates:</b>";
+//var function_links = "<b>Functions:</b>";
+//var transition_links = "<b>Transitions:</b>";
 
 var effect_links = [];
 var layer_links = [];
@@ -2810,6 +1403,143 @@ class RgbClass extends STYLE {
     }
   }
 };
+
+// class RgbClass extends STYLE {
+//   constructor(r,g,b,a) {
+//     super();
+//     this.r = IntArg(r)/255.0;
+//     this.g = IntArg(g)/255.0;
+//     this.b = IntArg(b)/255.0;
+//     if (this.r < 0) throw "Red is negative";
+//     if (this.g < 0) throw "Blue is negative";
+//     if (this.b < 0) throw "Green is negative";
+//     if (this.r > 1.0) throw "Red too big.";
+//     if (this.g > 1.0) throw "Green too big.";
+//     if (this.b > 1.0) throw "Blue too big.";
+//     if (a == undefined) {
+//       this.a = 1.0;
+//       this.name = colorNames[r+","+g+","+b]
+//     } else {
+//       this.a = a;
+//     }
+//   }
+//   run(blade) {}
+//   // getColor(led) {
+//   //   return this;
+//   // }
+//   // getColor now accepts an optional `out` object to reuse.
+//   // If you pass `out`, we copy into it and return it, else return `this`.
+//   getColor(led, out) {
+//     if (out) {
+//       out.r = this.r;
+//       out.g = this.g;
+//       out.b = this.b;
+//       out.a = this.a;
+//       return out;
+//     }
+//     return this;
+//   }
+
+//   pp() {
+//     if (this.name) return this.PPshort(this.name,"Color");
+//     return this.PPshort("Rgb",  "RGB Color",
+//                         Math.round(this.r*255), "Red component",
+//                         Math.round(this.g*255), "Green component",
+//                         Math.round(this.b*255), "Blue component");
+//   }
+//   // mix(other, blend) {
+//   //   var ret = new RgbClass(0,0,0);
+//   //   ret.r = other.r * blend + this.r * (1.0 - blend);
+//   //   ret.g = other.g * blend + this.g * (1.0 - blend);
+//   //   ret.b = other.b * blend + this.b * (1.0 - blend);
+//   //   ret.a = other.a * blend + this.a * (1.0 - blend);
+//   //   return ret;
+//   // }
+//   // multiply(v) {
+//   //   var ret = new RgbClass(0,0,0);
+//   //   ret.r = this.r * v;
+//   //   ret.g = this.g * v;
+//   //   ret.b = this.b * v;
+//   //   ret.a = this.a * v;
+//   //   return ret;
+//   // }
+//   // paintOver(other) {
+//   //   var ret = new RgbClass(0,0,0);
+//   //   ret.r = this.r * (1.0 - other.a) + other.r;
+//   //   ret.g = this.g * (1.0 - other.a) + other.g;
+//   //   ret.b = this.b * (1.0 - other.a) + other.b;
+//   //   ret.a = this.a * (1.0 - other.a) + other.a;
+//   //   return ret;
+//   // }
+// /*  • This will eliminate thousands(?) of new object allocations per frame and dramatically reduce CPU (and GC) overhead.
+//   • Only downside: if we ever store the result (rather than using it immediately), 
+//   it’ll get overwritten—but this is how Fredrik does it in ProffieOS(?) and 
+//   it’s fine for rendering since each color result is just immediately used?.*/
+// mix(other, blend) {
+//   scratchColor.r = other.r * blend + this.r * (1.0 - blend);
+//   scratchColor.g = other.g * blend + this.g * (1.0 - blend);
+//   scratchColor.b = other.b * blend + this.b * (1.0 - blend);
+//   scratchColor.a = other.a * blend + this.a * (1.0 - blend);
+//   return scratchColor;
+// }
+// multiply(v) {
+//   scratchColor.r = this.r * v;
+//   scratchColor.g = this.g * v;
+//   scratchColor.b = this.b * v;
+//   scratchColor.a = this.a * v;
+//   return scratchColor;
+// }
+// paintOver(other) {
+//   scratchColor.r = this.r * (1.0 - other.a) + other.r;
+//   scratchColor.g = this.g * (1.0 - other.a) + other.g;
+//   scratchColor.b = this.b * (1.0 - other.a) + other.b;
+//   scratchColor.a = this.a * (1.0 - other.a) + other.a;
+//   return scratchColor;
+// }
+
+
+//   // angle = 0 - 98304 (32768 * 3) (non-inclusive)
+//   rotate(angle) {
+//     var H;
+//     if (angle == 0) return this;
+//     var MAX = max(this.r, this.g, this.b);
+//     var MIN = min(this.r, this.g, this.b);
+//     var C = MAX - MIN;
+//     if (C == 0) return this;  // Can't rotate something without color.
+//     // Note 16384 = 60 degrees.
+//     if (this.r == MAX) {
+//       // r is biggest
+//       H = (this.g - this.b) / C;
+//     } else if (this.g == MAX) {
+//       // g is biggest
+//       H = (this.b - this.r) / C + 2;
+//     } else {
+//       // b is biggest
+//       H = (this.r - this.g) / C + 4;
+//     }
+//     H += angle / 16384.0;
+//     // return new RgbClass(f(5+H, C, MAX), f(3+H, C, MAX), f(1+H, C, MAX));
+//     scratchColor.r = f(5+H, C, MAX) / 255.0;
+//     scratchColor.g = f(3+H, C, MAX) / 255.0;
+//     scratchColor.b = f(1+H, C, MAX) / 255.0;
+//     scratchColor.a = this.a;
+//     return scratchColor;
+//   }
+
+//   argify(state) {
+//     if (state.color_argument) {
+//       ret = RgbArg_(ArgumentName(state.color_argument), this);
+//       state.color_argument = false;
+//       return ret;
+//     } else {
+//       return this;
+//     }
+//   }
+// };
+
+// // Scratch Rgb instance to reduce per-pixel allocations:
+// const scratchColor = new RgbClass(0, 0, 0);
+// const scratchColor2 = new RgbClass(0,0,0);
 
 function f(n, C, MAX) {
   var k = n % 6;
@@ -2982,7 +1712,6 @@ function Layers(BASE, Layer1, Layer2) {
   return new LayersClass(Array.from(arguments));
 }
 
-
 function enc(s) {
   return s.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
@@ -2993,11 +1722,9 @@ function encstr(s) {
 function mkbutton2(name, val) {
   return "<input type=button class='btn' onclick='SetToAndFormat(\""+val+"\", event)' value='"+enc(name)+"'>\n";
 }
-
 function mkbutton(name) {
   return mkbutton2(name, name);
 }
-
 
 function AddTemplate(name) {
   var val = name;
@@ -3043,9 +1770,9 @@ function AddHistory(name, type) {
   var label = name;
   if (label.length > 80) label = label.slice(0,78) + "...";
   name = name.split("\n").join(" ").split("   ").join(" ").split("  ").join(" ").split("< ").join("<");
-  var btn = "<input type=button class='btn' onclick='SetToAndFormat(\""+name+"\", event)' value='"+enc(label)+"'>\n";
-  var tag  = "<span class=MAGIC_CLASS_"+type+">" + btn + "</span>\n";
-  history_html = tag + history_html.replace(tag, "");
+  // Add data-type and new class
+  var btn = "<input type='button' class='history-btn' data-type='" + type + "' onclick='SetToAndFormat(\"" + name + "\", event)' value='" + enc(label) + "'>\n";
+  history_html = btn + history_html.replace(btn, "");
   FIND("history_tabcontent").innerHTML = history_html;
 }
 
@@ -3054,7 +1781,6 @@ function mapcolor(x) {
   x = Math.pow(x, 1.0/2.2);
   return Math.round(x * 255);
 }
-
 
 //sort color by hue
 function rgbToHsl(r, g, b) {
@@ -3087,7 +1813,7 @@ function mkcolorbutton(name, r, g, b) {
   g = mapcolor(g);
   b = mapcolor(b);
   var hsl = rgbToHsl(r, g, b);
-  console.log("mkcolorbutton:name="+name+"  rgb="+r+","+g+","+b+"    hsl="+hsl[0]+","+hsl[1]+","+hsl[2]+"  ");
+  // console.log("mkcolorbutton:name="+name+"  rgb="+r+","+g+","+b+"    hsl="+hsl[0]+","+hsl[1]+","+hsl[2]+"  ");
   var sortString;
   if (hsl[1] == 0.0) {
     sortString = "C:"+hsl[2];
@@ -3108,7 +1834,6 @@ function AddColor(name, r, g, b) {
   all_colors[name] = new RgbClass(r, g, b);
 }
 
-// Examples tab
 AddTemplate("InOutHelper<SimpleClash<Lockup<Blast<Blue,White>,AudioFlicker<Blue,White>>,White>, 300, 800>");
 // AddTemplate("StyleFirePtr<Red, Yellow>");
 AddTemplate("InOutHelper<EasyBlade<OnSpark<Green>, White>, 300, 800>>");
@@ -3122,8 +1847,7 @@ AddTemplate("StyleNormalPtr<Pulsing<Red, Rgb<50,0,0>, 5000>, White, 300, 800, Re
 AddTemplate("StyleRainbowPtr<300, 800>");
 AddTemplate("StyleStrobePtr<White, Rainbow, 15, 300, 800>");
 AddTemplate("StyleFirePtr<Red, Yellow>");
-AddTemplate("Layers<Red, ResponsiveLockupL<White, TrInstant, TrFade<100>, Int<26000>, Int<6000>>,ResponsiveLightningBlockL<White, TrInstant, TrInstant>,ResponsiveMeltL<Mix<TwistAngle<>,Red,Yellow>, TrWipeIn<600>, TrWipe<600>, Int<4000>, Int<10000>>,ResponsiveDragL<White, TrInstant, TrInstant, Int<2000>, Int<10000>>,ResponsiveClashL<White, TrInstant, TrFade<200>, Int<26000>, Int<6000>>,ResponsiveBlastL<White, Int<400>, Int<100>, Int<400>, Int<28000>, Int<8000>>,ResponsiveBlastWaveL<White, Int<400>, Int<100>, Int<400>, Int<28000>, Int<8000>>,ResponsiveBlastFadeL<White, Int<8000>, Int<400>, Int<28000>, Int<8000>>,ResponsiveStabL<White, TrWipeIn<600>, TrWipe<600>, Int<14000>, Int<8000>>,InOutTrL<TrWipe<300>, TrWipeIn<500>>>");
-
+AddTemplate("Layers<Red,ResponsiveLockupL<White,TrInstant,TrFade<100>,Int<26000>>,ResponsiveLightningBlockL<White>,ResponsiveMeltL<Mix<TwistAngle<>,Red,Yellow>>,ResponsiveDragL<White>,ResponsiveClashL<White,TrInstant,TrFade<200>,Int<26000>>,ResponsiveBlastL<White>,ResponsiveBlastWaveL<White>,ResponsiveBlastFadeL<White>,ResponsiveStabL<White>,InOutTrL<TrWipe<300>,TrWipeIn<500>>>");
 
 AddLayer("AlphaL<Red, Int<16000>>");
 AddLayer("AlphaMixL<Bump<Int<16384>,Int<16384>>,Red,Green,Blue>");
@@ -3137,14 +1861,13 @@ AddLayer("BrownNoiseFlickerL<Magenta, Int<50>>");
 AddEffect("ColorChange<TrInstant, Red, Green, Blue>");
 AddEffect("ColorSelect<Variation, TrInstant, Red, Green, Blue>");
 AddFunction("IntSelect<Variation, 0, 8192,32768>");
-AddEffect("ColorCycle<Blue,  0, 1, Cyan,  100, 3000, 5000>");
+AddEffect("ColorCycle<Blue, 0, 1, Cyan, 100, 3000, 5000>");
 AddEffect("ColorSequence<500, Red, Green, Blue>");
 AddEffect("EffectSequence<EFFECT_CLASH, Red, Green, Blue>");
 AddEffect("Cylon<Red, 5, 20>");
 AddEffect("Gradient<Blue, Green, Yellow, Red>");
 AddEffect("Gradient<Red, Blue, Green>");
 AddEffect("Gradient<Red, Blue>");
-// AddEffect("HardStripes<4000,-800,Blue,HotPink>");
 AddEffect("Hue<16384>");
 AddEffectWL("HumpFlicker<Green, Magenta, 50>");
 AddEffect("InOutHelper<White, 300, 800, Black>");
@@ -3172,11 +1895,8 @@ AddEffect("Rgb16<0,0,65536>");
 AddEffect("Rgb<100,100,100>");
 AddEffect("RgbCycle");
 AddEffect("RotateColorsX<Variation,Red>");
-
 AddEffect("Sequence<Red, Black, 100, 37, 0b0001010100011100, 0b0111000111000101, 0b0100000000000000>");
 AddLayer("SequenceL<Red, 100, 37, 0b0001010100011100, 0b0111000111000101, 0b0100000000000000>");
-AddFunction("SequenceF<100, 37, 0b0001010100011100, 0b0111000111000101, 0b0100000000000000>");
-
 AddEffectWL("SimpleClash<Red, White, 40>");
 AddEffect("Sparkle<Blue>");
 AddLayer("SparkleL");
@@ -3191,10 +1911,8 @@ AddFunction("BendTimePow<1000, 16384>");
 AddFunction("BendTimePowInv<1000, 16384>");
 AddFunction("ReverseTime<1000, 16384>");
 
-
 AddEffect("IgnitionDelay<500, InOutHelper<EasyBlade<OnSpark<Green>, White>, 300, 800>>>");
 AddEffect("RetractionDelay<500, InOutHelper<EasyBlade<OnSpark<Green>, White>, 300, 800>>>");
-
 
 AddLayer("TransitionEffectL<TrConcat<TrWipe<50>, White, TrWipe<50>>, EFFECT_BLAST>");
 AddLayer("MultiTransitionEffectL<TrConcat<TrWipe<50>, White, TrWipe<50>>, EFFECT_BLAST>");
@@ -3221,8 +1939,6 @@ AddTransition("TrCenterWipeIn<500>");
 AddTransition("TrCenterWipeInSpark<WHITE, 500>");
 AddTransition("TrWaveX<White>");
 AddTransition("TrSparkX<White>");
-AddTransition("TrTrailSparkX<White,Cyan>");
-
 AddTransition("TrWipeSparkTip<White, 300>");
 AddTransition("TrWipeInSparkTip<White, 300>");
 AddTransition("TrWipeSparkTipX<White, Int<300>>");
@@ -3270,7 +1986,7 @@ AddFunction("RandomBlinkF<Int<3000>>");
 AddFunction("RandomF");
 AddFunction("RandomPerLEDF");
 AddFunction("RampF");
-// AddFunction("SequenceF<100, 37, 0b0001010100011100, 0b0111000111000101, 0b0100000000000000>");
+AddFunction("SequenceF<100, 37, 0b0001010100011100, 0b0111000111000101, 0b0100000000000000>");
 AddFunction("SparkleF");
 AddFunction("StrobeF<Int<15>, Int<1>>");
 AddFunction("BlastFadeoutF");
@@ -3352,6 +2068,7 @@ AddColor("SteelBlue", 14, 57, 118);
 AddColor("Tomato", 255, 31, 15);
 AddColor("White", 255, 255, 255);
 AddColor("Yellow", 255, 255, 0);
+
 // New in ProffieOS 8.x:
 AddColor("ElectricPurple", 127, 0, 255);
 AddColor("ElectricViolet", 71, 0, 255);
@@ -3371,7 +2088,6 @@ AddColor("HaltRed", 255, 0, 19);
 AddColor("MoltenCore", 255, 24, 0);
 AddColor("SafetyOrange", 255, 33, 0);
 AddColor("OrangeJuice", 255, 55, 0);
-AddColor("Orange", 255, 97, 0);
 AddColor("ImperialYellow", 255, 115, 0);
 AddColor("SchoolBus", 255, 176, 0);
 AddColor("SuperSaiyan", 255, 186, 0);
@@ -3418,7 +2134,6 @@ var WHITE = Rgb(255,255,255);
 var BLACK = Rgb(0,0,0);
 var OrangeRed = Rgb(255,14,0);
 
-
 //--
 class RainbowClass extends STYLE {
   constructor() {
@@ -3441,6 +2156,7 @@ function Rainbow() {
 }
 
 var STATE_ON = 0;
+var STATE_WAIT_FOR_ON = 0;
 // 1 = lockup
 // 2 = drag
 // 3 = lb
@@ -3462,7 +2178,6 @@ function HandleLockup(lockup_type) {
   handled_lockups[lockup_type] = 1;
 }
 
-
 class BladeEffect {
   constructor(type, start_micros, location) {
     this.type = type;
@@ -3482,42 +2197,6 @@ class Range {
     return new Range(max(this.start, other.start), min(this.end, other.end));
   }
 };
-// For HardStripes to work...but it doesn't 
-
-// class Range {
-//   constructor(start = 0, end = 0) {
-//     this.start = start;
-//     this.end = end;
-//   }
-
-//   size() {
-//     if (this.start >= this.end) return 0;
-//     return this.end - this.start;
-//   }
-
-//   intersect(other) {
-//     return new Range(Math.max(this.start, other.start), Math.min(this.end, other.end));
-//   }
-
-//   static intersectWithStripes(stripeWidth, mod, end) {
-//     return Math.floor(end / mod) * stripeWidth + Math.min(stripeWidth, end % mod);
-//   }
-
-//   intersectWithStripes(stripeWidth, mod) {
-//     return Range.intersectWithStripes(stripeWidth, mod, this.end) - 
-//            Range.intersectWithStripes(stripeWidth, mod, this.start);
-//   }
-
-//   intersectWithStripesRange(stripe, mod) {
-//     if (!(stripe instanceof Range)) {
-//       stripe = new Range(stripe.start, stripe.end);
-//     }
-//     let shift = mod - stripe.start;
-//     let tmp = new Range(this.start + shift, this.end + shift);
-//     return tmp.intersectWithStripes(stripe.size(), mod);
-//   }
-// }
-
 
 // TODO
 // Gray out buttons not applicable to the current type. - BC WIP.
@@ -3590,7 +2269,6 @@ function ColorCycle(COLOR, percentage, rpm,
                              ON_COLOR, on_percentage, on_rpm,
                              fade_time_millis);
 }
-
 
 class CylonClass extends STYLE {
   constructor(COLOR, percentage, rpm,
@@ -3994,7 +2672,6 @@ function Gradient(A, B, C, D) {
   return new GradientClass(Array.from(arguments));
 }
 
-
 class MixClass extends STYLE {
   constructor(ARGS) {
     super("Mix between colors", ARGS);
@@ -4373,167 +3050,6 @@ class StripesClass extends MACRO {
 function Stripes(W,S,C) {
   return new StripesClass(Array.from(arguments));
 }
-
-// close but joints look wrong.
-
-// class HardStripesXClass extends STYLE {
-//   constructor(ARGS) {
-//     super("Configurable hard stripes", ARGS);
-//     this.add_arg("WIDTH", "FUNCTION", "Stripe width");
-//     this.add_arg("SPEED", "FUNCTION", "Scroll speed");
-//     this.COLORS = ARGS.slice(2);
-//     for (let i = 1; i < this.COLORS.length + 1; i++) {
-//       this.add_arg("COLOR" + i, "COLOR", "COLOR " + i);
-//     }
-//     this.last_micros = 0;
-//     this.m = 0;
-//   }
-
-//   run(blade) {
-//     super.run(blade);
-//     let now_micros = micros();
-//     let delta_micros = now_micros - this.last_micros;
-//     this.last_micros = now_micros;
-//     this.m = MOD((this.m + delta_micros * this.SPEED.getInteger(0) / 333), (this.COLORS.length * 341 * 1024));
-//     this.mult = (50000 * 1024 / this.WIDTH.getInteger(0));
-//   }
-
-//   HARD_GET_COLOR(pixel, N, led, p, mod, ret) {
-//     if (N >= this.COLORS.length || p < 0) return;
-    
-//     let segment_size = 341;
-//     let stripe = new Range(p, p + segment_size);
-//     let weight = pixel.intersectWithStripesRange(stripe, mod);
-
-//     if (weight) {
-//       let tmp = this.COLORS[N].getColor(led);
-//       if (weight === pixel.size()) {
-//         ret.r = tmp.r;
-//         ret.g = tmp.g;
-//         ret.b = tmp.b;
-//         return;
-//       } else {
-//         weight = weight * 16384 / pixel.size();
-//         ret.r = clamp(ret.r + ((tmp.r * weight) >> 14), 0, 65535);
-//         ret.g = clamp(ret.g + ((tmp.g * weight) >> 14), 0, 65535);
-//         ret.b = clamp(ret.b + ((tmp.b * weight) >> 14), 0, 65535);
-//       }
-//     }
-
-//     if (N + 1 < this.COLORS.length) {
-//       this.HARD_GET_COLOR(pixel, N + 1, led, p + segment_size, mod, ret);
-//     }
-//   }
-
-//   getColor(led) {
-//     let p = ((this.m + led * this.mult) >> 10) % (this.COLORS.length * 341);
-//     let ret = Rgb(0, 0, 0);
-//     this.HARD_GET_COLOR(new Range(0, this.mult >> 10), 0, led, p, this.COLORS.length * 341, ret);
-//     return ret;
-//   }
-// }
-
-// function HardStripesX(W, S, C) {
-//   return new HardStripesXClass(Array.from(arguments));
-// }
-
-// class HardStripesClass extends MACRO {
-//   constructor(ARGS) {
-//     super("Configurable hard stripes", ARGS);
-//     this.add_arg("WIDTH", "INT", "Stripe width");
-//     this.add_arg("SPEED", "INT", "Scroll speed");
-//     this.COLORS = ARGS.slice(2);
-//     for (let i = 1; i < this.COLORS.length + 1; i++) {
-//       this.add_arg("COLOR" + i, "COLOR", "COLOR " + i);
-//     }
-
-//     this.SetExpansion(new HardStripesXClass([Int(this.WIDTH), Int(this.SPEED)].concat(this.COLORS)));
-//   }
-// }
-
-// function HardStripes(W, S, C) {
-//   return new HardStripesClass(Array.from(arguments));
-// }
-
-
-// Still not right
-
-// class HardStripesXClass extends STYLE {
-//   constructor(ARGS) {
-//     super("Configurable hard stripes", ARGS);
-//     this.add_arg("WIDTH", "FUNCTION", "Stripe width");
-//     this.add_arg("SPEED", "FUNCTION", "Scroll speed");
-//     this.COLORS = ARGS.slice(2);
-//     for (var i = 1; i < this.COLORS.length + 1; i++)
-//       this.add_arg("COLOR" + i, "COLOR", "COLOR " + i);
-//     this.last_micros = 0;
-//     this.m = 0;
-//   }
-//   run(blade) {
-//     super.run(blade);
-//     var now_micros = micros();
-//     var delta_micros = now_micros - this.last_micros;
-//     this.last_micros = now_micros;
-//     this.m = MOD( (this.m + delta_micros * this.SPEED.getInteger(0) / 333), (this.COLORS.length * 341 * 1024))
-//     this.mult = (50000 * 1024 / this.WIDTH.getInteger(0));
-//   }
-
-//   GET_COLOR(N, led, p, ret) {
-//     if (N >= this.COLORS.length || p < 0) return;
-//     var segment_size = 341;
-//     var stripe_start = p;
-//     var stripe_end = p + segment_size;
-    
-//     // Determine the intersection range
-//     var intersection_start = Math.max(0, stripe_start);
-//     var intersection_end = Math.min(this.mult >> 10, stripe_end);
-//     var weight = intersection_end - intersection_start;
-
-//     if (weight > 0) {
-//       var tmp = this.COLORS[N].getColor(led);
-//       if (weight == this.mult >> 10) {
-//         ret.r = tmp.r;
-//         ret.g = tmp.g;
-//         ret.b = tmp.b;
-//         return;
-//       } else {
-//         var scaling_factor = weight * 16384 / (this.mult >> 10);
-//         ret.r += tmp.r * scaling_factor / 16384.0;
-//         ret.g += tmp.g * scaling_factor / 16384.0;
-//         ret.b += tmp.b * scaling_factor / 16384.0;
-//       }
-//     }
-//     this.GET_COLOR(N+1, led, p + segment_size, ret);
-//   }
-
-//   getColor(led) {
-//     var p = ((this.m + led * this.mult) >> 10) % (this.COLORS.length * 341);
-//     var ret = Rgb(0,0,0);
-//     this.GET_COLOR(0, led, p, ret);
-//     return ret;
-//   }
-// }
-
-// function HardStripesX(W,S,C) {
-//   return new HardStripesXClass(Array.from(arguments));
-// }
-
-// class HardStripesClass extends MACRO {
-//   constructor(ARGS) {
-//     super("Configurable hard stripes", ARGS);
-//     this.add_arg("WIDTH", "INT", "Stripe width");
-//     this.add_arg("SPEED", "INT", "Scroll speed");
-//     this.COLORS = ARGS.slice(2);
-//     for (var i = 1; i < this.COLORS.length + 1; i++)
-//       this.add_arg("COLOR" + i, "COLOR", "COLOR " + i);
-
-//     this.SetExpansion(new HardStripesXClass([Int(this.WIDTH), Int(this.SPEED)].concat(this.COLORS)));
-//   }
-// }
-
-// function HardStripes(W,S,C) {
-//   return new HardStripesClass(Array.from(arguments));
-// }
 
 class AudioFlickerLClass extends MACRO {
   constructor(COLOR) {
@@ -4935,17 +3451,8 @@ function AddClash() {
 function AddStab() {
   blade.addEffect(EFFECT_STAB, 1.0);
 }
-function AddNewfont() {
-  blade.addEffect(EFFECT_NEWFONT, Math.random() * 0.7 + 0.2);
-}
-function AddBoot() {
-  blade.addEffect(EFFECT_BOOT, Math.random() * 0.7 + 0.2);
-}
-function AddPreon() {
-  blade.addEffect(EFFECT_PREON, 0.0);
-}
-function AddPostoff() {
-  blade.addEffect(EFFECT_POSTOFF, 0.0);
+function AddSwing() {
+  blade.addEffect(EFFECT_ACCENT_SWING, Math.random() * 0.7 + 0.2);
 }
 
 var blast_hump = [ 255,255,252,247,240,232,222,211,
@@ -5056,7 +3563,6 @@ function BlastFadeoutF(FADEOUT_MS, EFFECT) {
   return new BlastFadeoutFClass(FADEOUT_MS, EFFECT);
 }
 
-
 class BlastFadeoutLClass extends MACRO {
   constructor(BLAST, FADEOUT_MS, EFFECT_ARG) {
     super("BlastFadeout layers", Array.from(arguments));
@@ -5070,7 +3576,6 @@ class BlastFadeoutLClass extends MACRO {
 function BlastFadeoutL(BLAST, FADEOUT_MS, EFFECT) {
   return new BlastFadeoutLClass(BLAST, FADEOUT_MS, EFFECT);
 }
-
 
 class BlastFadeoutClass extends MACRO {
   constructor(BASE, BLAST, FADEOUT_MS, EFFECT_ARG) {
@@ -5291,7 +3796,6 @@ function SimpleClash(T, CLASH, MILLIS, EF, SS) {
   return new SimpleClashClass(T, CLASH, MILLIS, EF, SS);
 }
 
-
 class LocalizedClashLClass extends STYLE {
   constructor(CLASH_COLOR, CLASH_MILLIS, CLASH_WIDTH_PERCENT, EFFECT_ARG) {
     super("Localized clash", arguments);
@@ -5432,7 +3936,6 @@ function Lockup(BASE, LOCKUP, DRAG, LOCKUP_SHAPE, DRAG_SHAPE) {
   return new LockupClass(BASE, LOCKUP, DRAG, LOCKUP_SHAPE, DRAG_SHAPE);
 }
 
-
 class LockupTrLClass extends STYLE {
   constructor(COLOR, BeginTr, EndTr, LOCKUP_TYPE) {
     super("Transition based lockup effect.", arguments);
@@ -5553,44 +4056,6 @@ function LockupTr(BASE, COLOR, BeginTr, EndTr, LOCKUP_TYPE, CONDITION) {
   return new LockupTrClass(BASE, COLOR, BeginTr, EndTr, LOCKUP_TYPE, CONDITION);
 }
 
-const start_millis = new Date().getTime();
-function actual_millis() {
-  return new Date().getTime() - start_millis;
-}
-var current_micros = 0;
-var current_micros_internal = 0;
-function micros() {
-  return current_micros;
-}
-
-function millis() {
-  return current_micros / 1000;
-}
-
-function fract(v) {
-  return v - Math.floor(v);
-}
-
-function FIND(id) {
-  ret = document.getElementById(id);
-  if (!ret) {
-//    console.log("Failed to find " + id);
-  }
-  return ret;
-}
-
-var max = Math.max;
-var min = Math.min;
-var sin = Math.sin;
-function random(i) {
-  return Math.floor(Math.random() * i);
-}
-function clamp(a, b, c) {
-  if (a < b) return b;
-  if (a > c) return c;
-  return a;
-}
-
 class Blade {
   constructor() {
     this.effects_ = [];
@@ -5602,7 +4067,10 @@ class Blade {
     return STATE_NUM_LEDS;
   }
   addEffect(type, location) {
-    console.log("Add effect " + type + " @ " + location);
+    // Use actual effect name for console logging clarity.
+    const effectName = Object.keys(window).find(
+      key => window[key] === type && key.indexOf("EFFECT_") === 0) || type;
+    console.log("Add effect " + effectName + " (" + type + ") @ " + location);
     this.effects_.push(new BladeEffect(type, micros(), location));
   }
   GetEffects() {
@@ -5613,11 +4081,85 @@ class Blade {
   }
 };
 
+// blade.addEffect override
+const origAddEffect = Blade.prototype.addEffect;
+
+Blade.prototype.addEffect = function(type, location, manual = false) {
+  type = Number(type);
+
+  // Log incoming effect + raw style text
+  // let soundName = EFFECT_SOUND_MAP[type] || "(no sound mapping)";
+  // console.log(`addEffect() → type=${type}, soundName='${soundName}'`);
+  // console.log("Style textarea:\n", FIND("style").value);
+
+  // Run the original so visuals still trigger
+  origAddEffect.call(this, type, location);
+
+    // Auto-follow DESTRUCT → BOOM
+    if (type === EFFECT_DESTRUCT) {
+      setTimeout(() => {
+        const idx = lastPlayedSoundIndex['destruct'];
+        const rawDur = customFontSoundDurations['destruct']?.[idx];
+        const dur = (typeof rawDur === 'number' && rawDur > 50) ? rawDur : 500;
+        setTimeout(() => {
+          this.addEffect(EFFECT_BOOM, location);
+        }, dur);
+      }, 10);
+    }
+
+ // Recompute allowed set and log it
+  const allowedByStyle = getAllowedEffectsFromStyleText();
+  // console.log("Allowed effects parsed from textarea:",
+  //   Array.from(allowedByStyle).map(
+  //     v => (EFFECT_ENUM_BUILDER.value_to_name[v] || v).replace(/^EFFECT_/, '')
+  //   )
+  // );
+
+  const BEGIN_EFFECT_MAP = {
+    [EFFECT_LOCKUP_BEGIN]: "bgnlock",
+    [EFFECT_DRAG_BEGIN]:   "bgndrag",
+    [EFFECT_MELT_BEGIN]:   "bgnmelt",
+    [EFFECT_LB_BEGIN]:     "bgnlb"
+  };
+if (BEGIN_EFFECT_MAP[type]) {
+  if (allowedByStyle.has(type)) {
+    // Do Selected Effect triggered
+    if (manual || window.lockupLoopSrc) playRandomEffect(BEGIN_EFFECT_MAP[type], true);
+  }
+  // Lockup chooser triggered
+  if (!manual && !window.lockupLoopSrc && allowedByStyle.has(type)) startLockupLoop(type);
+  return;
+}
+
+  const END_EFFECT_MAP = {
+    [EFFECT_LOCKUP_END]: "endlock",
+    [EFFECT_DRAG_END]:   "enddrag",
+    [EFFECT_MELT_END]:   "endmelt",
+    [EFFECT_LB_END]:     "endlb"
+  };
+if (END_EFFECT_MAP[type]) {
+  // If being called because we are forcibly clearing a lockup (i.e. not allowedByStyle anymore),
+  // always end the lockup loop (even if sound is denied by style)
+  const forceEnd = !allowedByStyle.has(type) && window.lockupLoopSrc;
+  endLockupLoop(type, (allowedByStyle.has(type) || forceEnd) ? END_EFFECT_MAP[type] : null, true);
+  return;
+}
+
+  const allowedByFocus = (!current_focus || current_focus.constructor.name === 'LayersClass');
+
+  // Else, only play sound if it's in the textarea.
+  const effectName = EFFECT_SOUND_MAP[type];
+  if (effectName) {
+  const isAllowed = allowedByFocus || allowedByStyle.has(type);
+  playRandomEffect(effectName, isAllowed);
+  }
+};
+
 var last_detected_blade_effect;
 
 var handled_types = {};
 function PushHandledTypes() {
-  ret = [ handled_types, handled_lockups ];
+  var ret = [ handled_types, handled_lockups ];
   handled_types = {};
   handled_lockups = {};
   return ret;
@@ -5855,7 +4397,6 @@ function InOutHelperL(EX, O, AD) {
   return new InOutHelperLClass(EX, O, AD);
 }
 
-
 class InOutHelperXClass extends MACRO {
   constructor(T, EXTENSION, OFF_COLOR, ALLOW_DISABLE) {
     super("0=retracted, 32768=extended", arguments);
@@ -5870,7 +4411,6 @@ class InOutHelperXClass extends MACRO {
 function InOutHelperX(T, EX, O, AD) {
   return new InOutHelperXClass(T, EX, O, AD);
 }
-
 
 //--
 class InOutHelperClass extends MACRO {
@@ -5887,7 +4427,6 @@ class InOutHelperClass extends MACRO {
 function InOutHelper(T, I, O, OFF) {
   return new InOutHelperClass(T, I, O, OFF);
 }
-
 
 class InOutSparkTipClass extends STYLE {
   constructor(T, OUT_MILLIS, IN_MILLIS, OFF_COLOR) {
@@ -6244,16 +4783,22 @@ class InOutTrLClass extends STYLE {
     this.add_arg("IN_TR", "TRANSITION", "OUT-IN transition");
     this.add_arg("OFF", "COLOR", "Color when off", BLACK.DOCOPY());
     this.add_arg("ALLOW_DISABLE", "INT", "allow disable?", 1);
-    this.on_ = false;
+    this.on_ = STATE_ON;
+    // Track so that focusing back to full style doesn't re-trigger ignition.
+    this._last_state = STATE_ON;
     this.out_active_ = false;
     this.in_active_ = false;
   }
   run(blade) {
     this.OFF.run(blade);
 
-    if (this.on_ != blade.is_on()) {
-      this.on_ = blade.is_on();
-      if (this.on_) {
+    // If blade power state just changed:
+    const nowOn = blade.is_on();
+    if (nowOn !== this._last_state) {
+      this._last_state = nowOn;
+      this.on_         = nowOn;
+
+      if (nowOn) {
         this.OUT_TR.begin();
         this.out_active_ = true;
       } else {
@@ -6476,7 +5021,6 @@ class ReverseTimeClass extends MACRO {
 function ReverseTime(MILLIS) {
   return new ReverseTimeClass(MILLIS);
 }
-
 
 class TrInstantClass extends TRANSITION {
   constructor() {
@@ -6748,8 +5292,6 @@ class TrCenterWipeClass extends MACRO {
     super("WipeIn transition", arguments);
     this.add_arg("MILLIS", "INT", "Center Wipe time in milliseconds.");
     this.add_arg("POS", "INT", "Position", 16384);
-    // this.add_arg("POS", "TIME_FUNCTION", "Position", Int(16384)); // Updated POS to "TIME_FUNCTION"
-
     this.SetExpansion(TrCenterWipeX(Int(MILLIS), Int(this.POS)));
   }
 }
@@ -6840,7 +5382,7 @@ class TrCenterWipeInSparkClass extends MACRO {
 
 function TrCenterWipeInSpark(COLOR, MILLIS, POS) { return new TrCenterWipeInSparkClass(COLOR, MILLIS, POS); }
 
-///// SparkTip
+/////
 
 class TrWipeSparkTipXClass extends MACRO {
   constructor(SPARK_COLOR, MILLIS, SIZE) {
@@ -6889,7 +5431,6 @@ class TrWipeInSparkTipClass extends MACRO {
 };
 
 function TrWipeInSparkTip(C, M, S) { return new TrWipeInSparkTipClass(C, M, S); }
-
 
 class TrWaveXClass extends TRANSITION {
   constructor(COLOR, FADEOUT_MS, WAVE_SIZE, WAVE_MS, WAVE_CENTER) {
@@ -6990,95 +5531,6 @@ function TrSparkX(COLOR, SPARK_SIZE, SPARK_MS, SPARK_CENTER) {
   return new TrSparkXClass(COLOR, SPARK_SIZE, SPARK_MS, SPARK_CENTER);
 }
 
-
-//// TrailSpark
-
-// working well, needs commonating with existing classes
-class TrTrailSparkXClass extends TRANSITION {
-  constructor(SPARK_COLOR, TRAIL_COLOR, FADEOUT_MS, SPARK_MS, SPARK_START, SPARK_WIDTH) {
-    super("Single wave with a hard edge Spark.", arguments);
-    this.add_arg("SPARK_COLOR", "COLOR", "Spark COLOR.");
-    this.add_arg("TRAIL_COLOR", "COLOR", "Trail COLOR.");
-    this.add_arg("FADEOUT_MS", "FUNCTION", "Trail Fade time.", Int(400));
-    this.add_arg("SPARK_MS", "FUNCTION", "Spark speed.", Int(400));
-    this.add_arg("SPARK_START", "FUNCTION", "Starting point.", Int(16384));
-    this.add_arg("SPARK_WIDTH", "FUNCTION", "Spark Width.", Int(1));
-    this.restart_ = false;
-    this.start_millis_ = 0;
-    this.spark_speed_ = 0; // pixels per millisecond
-  }
-
-  begin() {
-    this.restart_ = true;
-  }
-
-  done() {
-    // The effect is done when the spark has moved off the blade and the trail has faded.
-    let trailDuration = this.FADEOUT_MS.getInteger(0) + this.SPARK_MS.getInteger(0);
-    return millis() - this.start_millis_ >= trailDuration;
-  }
-
-  run(blade) {
-    super.run(blade);
-    if (this.restart_) {
-      this.spark_start_ = (this.SPARK_START.getInteger(0) * blade.num_leds()) / 32768.0;
-      this.start_millis_ = millis();
-      this.spark_speed_ = blade.num_leds() / this.SPARK_MS.getInteger(0); // Calculate speed
-      this.restart_ = false;
-    }
-    this.num_leds_ = blade.num_leds();
-  }
-  getColor(A, B, led) {
-    var now = millis();
-    var elapsed = now - this.start_millis_;
-    var fadeDuration = this.FADEOUT_MS.getInteger(0);
-    var sparkWidth = this.SPARK_WIDTH.getInteger(0) / 10;
-
-    var sparkPosition = this.spark_start_ + (elapsed * this.spark_speed_);
-    var sparkEffectiveStart = sparkPosition - sparkWidth; 
-
-    var sparkColor = this.SPARK_COLOR.getColor(led);
-    var trailColor = this.TRAIL_COLOR.getColor(led);
-
-    // Only draw the trail from the start location and forward
-    if (sparkPosition < this.spark_start_) {
-        return led >= this.spark_start_ && led < sparkPosition + sparkWidth ? sparkColor : B;
-    } else {
-        if (led >= sparkEffectiveStart && led < sparkPosition) {
-            return sparkColor;
-        } else if (led < sparkEffectiveStart && led >= this.spark_start_) {
-            // The LED is behind the spark and should start fading for the trail
-            var distanceFromSparkStart = sparkEffectiveStart - led;
-            if (distanceFromSparkStart <= fadeDuration * this.spark_speed_) {
-                // Calculate the fade based on distance from the start of the spark
-                var mix = distanceFromSparkStart / (fadeDuration * this.spark_speed_);
-                return trailColor.mix(B, mix); // Correctly apply the fade based on distance
-            }
-        }
-    }
-    // For LEDs ahead of the spark or after complete fade, show base color (B)
-    return B;
-  }
-};
-
-function TrTrailSparkX(SPARK_COLOR, TRAIL_COLOR, FADEOUT_MS, SPARK_MS, SPARK_START, SPARK_WIDTH) {
-  return new TrTrailSparkXClass(SPARK_COLOR, TRAIL_COLOR, FADEOUT_MS, SPARK_MS, SPARK_START, SPARK_WIDTH);
-}
-
-
-
-// Layers<
-//   Black,
-//   Remap<InvertF<RampF>,Layers<
-//     Mix<Int<30000>,RandomBlink<8000,Green>,Black>,
-//     TransitionLoopL<TrConcat<TrDelayX<Scale<RandomF,Int<300>,Int<1500>>>,TrTrailSparkX<RandomBlink<8000,White,Mix<Int<25000>,Green,Black>>,RandomBlink<8000,Green>,Int<750>,Int<2000>,Scale<RandomF,Int<0>,Int<10000>>,Int<30>>>>,
-//     TransitionLoopL<TrConcat<TrDelayX<Scale<RandomF,Int<800>,Int<800>>>,TrTrailSparkX<RandomBlink<8000,White,Mix<Int<25000>,Green,Black>>,RandomBlink<8000,Green>,Int<750>,Int<2500>,Int<0>,Int<30>>>>,
-//     TransitionLoopL<TrConcat<TrDelayX<Scale<RandomF,Int<500>,Int<1000>>>,TrTrailSparkX<RandomBlink<8000,White,Mix<Int<25000>,Green,Black>>,RandomBlink<8000,Green>,Int<750>,Int<3000>,RandomF,Int<30>>>>,
-//     TransitionLoopL<TrConcat<TrDelayX<Scale<RandomF,Int<200>,Int<500>>>,TrTrailSparkX<RandomBlink<8000,White,Mix<Int<25000>,Green,Black>>,RandomBlink<8000,Green>,Int<750>,Int<4000>,Scale<RandomF,Int<0>,Int<16000>>,Int<30>>>>>>>
-
-
-
-
 class TrColorCycleXClass extends TRANSITION_BASE {
   constructor(MILLIS, START_RPM, END_RPM) {
     super("ColorCycle transition", arguments);
@@ -7174,7 +5626,7 @@ class TrConcatClass extends TRANSITION {
   done() {
     return this.pos_ >= this.ARGS.length;
   }
-
+  
   run(blade) {
     if (this.done()) return;
     if (this.c1p != -1) this.ARGS[this.c1p].run(blade);
@@ -7185,7 +5637,6 @@ class TrConcatClass extends TRANSITION {
       this.pos_++;
       if (this.done()) break;
       if (this.ARGS[this.pos_].getType() != "TRANSITION") {
-
         this.c1p = this.c2p;
         this.updateC2P()
         if (this.c2p != -1) this.ARGS[this.c2p].run(blade);
@@ -7317,8 +5768,6 @@ function TrSelect(ARGS) {
   return new TrSelectClass(Array.from(arguments));
 }
 
-
-
 class TrSequenceClass extends TRANSITION {
   constructor(ARGS) {
     super("Sequence transitions", ARGS);
@@ -7356,9 +5805,6 @@ class TrSequenceClass extends TRANSITION {
 function TrSequence(ARGS) {
   return new TrSequenceClass(Array.from(arguments));
 }
-
-
-
 
 class TrExtendXClass extends TRANSITION {
   constructor(MILLIS, TRANSITION) {
@@ -7485,7 +5931,6 @@ class TrDoEffectAlwaysClass extends MACRO {
 function TrDoEffectAlways(TRANSITION, EFFECT, WAVNUM, LOCATION) {
   return new TrDoEffectAlwaysClass(TRANSITION, EFFECT, WAVNUM, LOCATION);
 }
-
 
 class TrDoEffectXClass extends TRANSITION {
   constructor(TRANSITION, EFFECT, WAVNUM, LOCATION) {
@@ -7709,7 +6154,6 @@ class BumpClass extends FUNCTION {
 function Bump(P, F) {
   return new BumpClass(P, F);
 }
-
 
 class ChangeSlowlyClass extends FUNCTION {
   constructor(F, SPEED) {
@@ -8168,7 +6612,31 @@ class WavLenClass extends FUNCTION {
      console.log("Updated WavLen: ", this.wavlenValue);
   }
   getInteger(led) {
-    return myWavLen.wavlenValue;
+    const effectArg  = this.EFFECT?.value;
+    const effectName = EFFECT_SOUND_MAP[effectArg];
+    // Build durations array from loaded buffers
+    const durations  = pickLoopBuffers(effectName)
+                          .map(b => b?.duration ? Math.round(b.duration * 1000) : null);
+
+    // Prevent lastPlayedSoundIndex[effectName] from being undefined:
+    // This keeps EFFECTS from missing the sound duration when loading the default font with Sound OFF.
+    // Defaults to first buffer so WavLen uses the real duration even before any sound is actually played.
+    const rawIdx = lastPlayedSoundIndex[effectName];
+    const idx = (typeof rawIdx === 'number' && rawIdx >= 0 && rawIdx < durations.length)
+                  ? rawIdx
+                  : 0;
+    let result;
+    if (
+      useFontWavLenState.get() &&
+      effectName &&
+      Array.isArray(durations) &&
+      durations[idx] != null
+    ) {
+      result = durations[idx];
+    } else {
+      result = myWavLen.wavlenValue;
+    }
+    return result;
   }
 };
 
@@ -8262,7 +6730,6 @@ class SwingAccelerationClass extends MACRO {
 };
 
 function SwingAcceleration(MAX) { return new SwingAccelerationClass(MAX); }
-
 
 class LayerFunctionsClass extends FUNCTION {
   constructor(ARGS) {
@@ -8428,13 +6895,14 @@ class SyncAltToVarianceFClass extends FUNCTION {
     if (VAR == this.last_ && Alt() == this.last_) return;
     if (this.last_ == 0x7fffffff) {
       console.log("SYNC FIRST");
-      FIND("ALT").value = VAR;
+      FIND("ALT_VALUE").value = VAR;
     } else if (VAR != this.last_) {
       if (isNaN(VAR)) VAR = 0;
       console.log("SYNC ALT: " + VAR);
-      FIND("ALT").value = VAR;
+      FIND("ALT_VALUE").value = VAR;
       blade.addEffect(EFFECT_ALT_SOUND, 0.0);
     } else {
+      console.log("SYNC VAR");
       VAR = Alt();
       if (isNaN(VAR)) VAR = 0;
       console.log("SYNC VAR: " + VAR);
@@ -9308,7 +7776,6 @@ function newCall(Cls) {
   return new (Function.prototype.bind.apply(Cls, arguments));
 }
 
-
   var classes = {
     AlphaL : AlphaL,
     AlphaMixL : AlphaMixL,
@@ -9338,8 +7805,6 @@ function newCall(Cls) {
     FOCUS : Focus,
     FireConfig : FireConfig,
     Gradient : Gradient,
-    // HardStripes : HardStripes,
-    // HardStripesX : HardStripesX,
     HumpFlicker : HumpFlicker,
     HumpFlickerL : HumpFlickerL,
     HumpFlickerF : HumpFlickerF,
@@ -9456,11 +7921,10 @@ function newCall(Cls) {
     TrJoin : TrJoin,
     TrJoinR : TrJoinR,
     TrRandom : TrRandom,
-    TrSelect : TrSelect,    
+    TrSelect : TrSelect,
     TrSequence : TrSequence,
     TrWaveX : TrWaveX,
     TrSparkX : TrSparkX,
-    TrTrailSparkX : TrTrailSparkX,
     TrWipeSparkTip : TrWipeSparkTip,
     TrWipeSparkTipX : TrWipeSparkTipX,
     TrWipeInSparkTip : TrWipeInSparkTip,
@@ -9557,7 +8021,6 @@ function newCall(Cls) {
     WavLen : WavLen,
     LockupPulseF : LockupPulseF,
 };
-
 
 AddIdentifier("RgbCycle", RgbCycle);
 AddIdentifier("Rainbow", Rainbow);
@@ -9663,10 +8126,9 @@ AddIdentifier("RareBlue", Rgb.bind(null, 0, 13, 255));
 AddIdentifier("OverdueBlue", Rgb.bind(null, 13, 0, 255));
 AddIdentifier("ViolentViolet", Rgb.bind(null, 55, 0, 255));
 
-
 class Parser {
   constructor(str, classes, identifiers) {
-    console.log("PARSING: " + str);
+    // console.log("PARSING: " + str);
     this.str = str;
     this.pos = 0;
     this.classes = classes;
@@ -9927,6 +8389,7 @@ var current_style = InOutHelper(SimpleClash(Lockup(new BlastClass(BLUE, WHITE), 
 //var current_style = InOutHelper(SimpleClash(Lockup(new BlastClass(new RainbowClass(), WHITE), new AudioFlickerClass(BLUE, WHITE)), WHITE, 40), 300, 800);
 var blade = new Blade();
 var rotate_start;
+var last_micros;
 
 var last_actual_millis= actual_millis() - 10;
 var time_factor = 1000; // transforms ms to us
@@ -9940,47 +8403,34 @@ var timeFactor = 1.0;
 var bad_fps = 0;
 var good_fps = 0;
 
-</script>
-<div id="popup_window" class="popup-window">
-  <p id="popup_message"></p>
-  <button title="OK" onclick="dismissPopupMessage()">OK</button>
-  <br>
-  <label title="Don't show this again. Click 'Restore Defaults' in Settings to re-enable.">
-    <input type="checkbox" id="dont_show_again" name="dontshow" onclick="DontShowAgain(this.checked)">
-    <span>Don't show this again</span>
-  </label>
-</div>
-<div id="overlay" class="overlay"></div>
+var popupIdentifier;
+var popupWindow = FIND("popup_window");
+var popupOverlay = FIND("popup_overlay");
 
-<script>
-  var popupIdentifier;
-  var popupWindow = FIND("popup_window");
-  var overlay = FIND("overlay");
+function showPopupMessage(message, currentPopup) {
+  popupIdentifier = currentPopup;
+  var checkbox = FIND("dont_show_again");
+  checkbox.checked = localStorage.getItem(popupIdentifier) === "false";
 
-  function showPopupMessage(message, currentPopup) {
-    popupIdentifier = currentPopup;
-    var checkbox = FIND("dont_show_again");
-    checkbox.checked = localStorage.getItem(popupIdentifier) === "false";
-
-    if (localStorage.getItem(popupIdentifier) === "false") {
-      console.log(popupIdentifier + " is disabled.");
-    } else {
-      FIND("popup_message").innerHTML = message;
-      popupWindow.classList.add("show");
-      overlay.classList.add("show");
-    }
+  if (localStorage.getItem(popupIdentifier) === "false") {
+    console.log(popupIdentifier + " is disabled.");
+  } else {
+    FIND("popup_message").innerHTML = message;
+    popupWindow.classList.add("show");
+    popupOverlay.classList.add("show");
   }
+}
 
-  function dismissPopupMessage() {
-    popupWindow.classList.remove("show");
-    overlay.classList.remove("show");
-  }
+function dismissPopupMessage() {
+  popupWindow.classList.remove("show");
+  popupOverlay.classList.remove("show");
+}
 
-  function DontShowAgain(checkboxState) {
-    checkboxState = !checkboxState;
-    localStorage.setItem(popupIdentifier, checkboxState);
-    console.log("Saving " + popupIdentifier + " " + checkboxState);
-  }
+function DontShowAgain(checkboxState) {
+  checkboxState = !checkboxState;
+  localStorage.setItem(popupIdentifier, checkboxState);
+  console.log("Saving " + popupIdentifier + " " + checkboxState);
+}
 
 var pixels;
 var AA = 1;
@@ -10073,12 +8523,12 @@ function drawScene() {
   // TODO: Generate mipmaps, then adjust level based on distance from blade
   gl.texImage2D(
       gl.TEXTURE_2D,
-      0,        // level
-      gl.RGBA,  // internalFormat
-      num_leds, 2,   // width, height
-      0,        // border
-      gl.RGBA,   // source format
-      gl.UNSIGNED_BYTE, // source type
+      0,                 // level
+      gl.RGBA,           // internalFormat
+      num_leds, 2,       // width, height
+      0,                 // border
+      gl.RGBA,           // source format
+      gl.UNSIGNED_BYTE,  // source type
       pixels);
 
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -10088,11 +8538,12 @@ function drawScene() {
 
   // Draw these textures to the screen, offset by 1 pixel increments
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gl.viewport(0, 0, width * dpr, height * dpr);
+  // Modified to canvas.width and height for fullscreen recovery.
+  gl.viewport(0, 0, canvas.width, canvas.height);
   gl.clearColor(0.0, 1.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
-  gl.viewport(0, 0, width * dpr, height * dpr);
+  // gl.viewport(0, 0, canvas.width,  canvas.height);  // redundant?
   var rotation = MOVE_MATRIX;
   if (STATE_ROTATE) {
     var u_value = (new Date().getTime() - rotate_start) / 3000.0;
@@ -10125,6 +8576,178 @@ function tick() {
   window.requestAnimationFrame(tick);
   drawScene();
 }
+
+// //Memory conservation attempt - start and stop
+// function drawScene() {
+//   var now_actual_millis = actual_millis();
+//   var delta_actual_millis = now_actual_millis - last_actual_millis;
+//   last_actual_millis = now_actual_millis;
+  
+//   var delta_us = delta_actual_millis * time_factor
+//   last_micros = current_micros;
+//   current_micros_internal += delta_us;
+//   current_micros = current_micros_internal
+//   if (current_micros - last_micros > 1000000/45) {
+//      bad_fps ++;
+//      if (good_fps) good_fps--;
+//   } else {
+//      if (bad_fps) bad_fps --;
+//      good_fps++;
+//   }
+//   if (benchmarkState.get()) {
+//      if (bad_fps > 20) {
+//         if (AA_STEP_SIZE < 0) AA_STEP_SIZE-=1; else AA_STEP_SIZE=-1;
+//         AA+=AA_STEP_SIZE;
+//         if (AA < 1) AA = 1;
+//         compile();
+//         bad_fps = 0;
+//         FIND("error_message").innerHTML = "AA="+AA;
+//      }
+//      if (good_fps > 20) {
+//         if (AA_STEP_SIZE > 0) AA_STEP_SIZE+=1; else AA_STEP_SIZE=1;
+//         AA+=AA_STEP_SIZE;
+//         compile();
+//         good_fps = 0;
+//         FIND("error_message").innerHTML = "AA="+AA;
+//      }
+//   } else {
+//     if (bad_fps > 10 && graflexState.get()) {
+//       showPopupMessage("Struggling to render hilt model.<br>Switching to simpler design.<br>To re-enable Graflex model, go to Settings.", "graflexPopup");
+//       graflexState.set(false);
+//     }
+//   }
+//   var num_leds = blade.num_leds()
+//   if (!pixels || pixels.length < num_leds * 4 * 2) {
+//      pixels = new Uint8Array(num_leds * 4 * 2);
+//   }
+//   var S = current_style;
+//   if (S != last_style) {
+//     last_style = S;
+//     if (S.getType) {
+//       S.set_right_side(current_focus || style_tree)
+//       if (S.getType() == "TRANSITION") {
+//         S = TransitionLoop(Rgb(0,0,0), TrConcat(TrDelay(500), Rgb(255,0,0), S, Rgb(0,0,255), TrInstant()));
+//       }
+//       if (S.getType() == "FUNCTION") {
+//         S = Mix(S, Rgb(0,0,0), Rgb(255,255,255));
+//       }
+//     }
+//     show_style = S;
+//   } else {
+//     S = show_style;
+//   }
+//   numTick++;
+//   if (S.getColor && S.getType && S.getType() == "COLOR" && numTick > framesPerUpdate) {
+//     numTick = 0;
+//     S.run(blade);
+//     for (var i = 0; i < num_leds; i++) {
+//         // var c = S.getColor(i);
+//         var c = S.getColor(i, scratchColor);
+//         pixels[i*4 + 0] = Math.round(c.r * 255);
+//         pixels[i*4 + 1] = Math.round(c.g * 255);
+//         pixels[i*4 + 2] = Math.round(c.b * 255);
+//         pixels[i*4 + 3] = 255;
+//     }
+//     if (last_micros != 0) {
+//       current_micros += delta_us / 2;
+//     }
+//     if (framesPerUpdate == 0) {
+//       S.run(blade);
+//     }
+//     for (var i = 0; i < num_leds; i++) {
+//         // var c = S.getColor(i);
+//         var c = S.getColor(i, scratchColor);
+//         pixels[i*4 + 0 + num_leds * 4] = Math.round(c.r * 255);
+//         pixels[i*4 + 1 + num_leds * 4] = Math.round(c.g * 255);
+//         pixels[i*4 + 2 + num_leds * 4] = Math.round(c.b * 255);
+//        pixels[i*4 + 3 + num_leds * 4] = 255;
+//     }
+//     S.update_displays();
+//   }
+//   // TODO: Generate mipmaps, then adjust level based on distance from blade
+//   gl.texImage2D(
+//       gl.TEXTURE_2D,
+//       0,        // level
+//       gl.RGBA,  // internalFormat
+//       num_leds, 2,   // width, height
+//       0,        // border
+//       gl.RGBA,   // source format
+//       gl.UNSIGNED_BYTE, // source type
+//       pixels);
+
+//   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+//   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+//   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+//   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+//   // Draw these textures to the screen, offset by 1 pixel increments
+//   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+//   // gl.viewport(0, 0, width * dpr, height * dpr);
+//   gl.viewport(0, 0, canvas.width, canvas.height);
+//   gl.clearColor(0.0, 1.0, 0.0, 1.0);
+//   gl.clear(gl.COLOR_BUFFER_BIT);
+
+//   gl.viewport(0, 0, canvas.width,  canvas.height);
+//   var rotation = MOVE_MATRIX;
+//   if (STATE_ROTATE) {
+//     var u_value = (new Date().getTime() - rotate_start) / 3000.0;
+//     var rotation = default_move_matrix();
+//     rotation = rotation.mult(Matrix.mkyrot(u_value));
+//     rotation = rotation.mult(Matrix.mkzrot(u_value / 7.777));
+
+//   } else {
+//     if (0) {
+//       OLD_MOVE_MATRIX = default_move_matrix();
+//       rotation = default_move_matrix();
+//       rotation = rotation.mult(Matrix.mkzrot(0.2));
+//     }
+//     rotate_start = new Date().getTime();
+//   }
+//   gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_time"),
+//                (new Date().getTime() - start) / 1000.0);
+//     gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_width"),  canvas.clientWidth  );
+//   gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_height"), canvas.clientHeight );
+
+
+//   gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "u_move_matrix"), false, rotation.values);
+//   gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "u_old_move_matrix"), false, OLD_MOVE_MATRIX.values);
+//   OLD_MOVE_MATRIX = rotation;
+//   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+//   t += 1;
+// }
+
+// // function tick() {
+// //   window.requestAnimationFrame(tick);
+// //   drawScene();
+// // }
+
+// let rafId = null;
+
+// function loop() {
+//   drawScene();
+//   rafId = requestAnimationFrame(loop);
+// }
+
+// function startLoop() {
+//   if (!rafId) rafId = requestAnimationFrame(loop);
+// }
+
+// function stopLoop() {
+//   if (rafId) {
+//     cancelAnimationFrame(rafId);
+//     rafId = null;
+//   }
+// }
+
+// // pause when the tab is hidden, resume when it comes back
+// document.addEventListener("visibilitychange", () => {
+//   if (document.hidden) {
+//     stopLoop();
+//   } else {
+//     startLoop();
+//   }
+// });
 var overall_string;
 
 function ReplaceCurrentFocus(str) {
@@ -10184,10 +8807,6 @@ function ReplaceCurrentFocus(str) {
   }
   var type = "COLOR";
   var classname = "Style";
-//  if (current_focus && current_style && current_focus != current_style) {
-//    type = current_style.getType();
-//    classname = current_focus.constructor.name;
-//  }
 
   if (current_style) {
     type = current_style.getType();
@@ -10195,13 +8814,8 @@ function ReplaceCurrentFocus(str) {
   }
 
   AddHistory(current_focus_url, current_style.getType());
-  console.log("TYPE = " + type);
-  // FIND("color_links").className = type == "COLOR" ? "normal" : "grayout";
-  // FIND("effect_links").className = type == "COLOR" ? "normal" : "grayout";
-  // FIND("effect_type_links").className = type == "EFFECT" ? "normal" : "grayout";
-  // FIND("template_links").className = type == "COLOR" ? "normal" : "grayout";
-  // FIND("function_links").className = type == "FUNCTION" ? "normal" : "grayout";
-  // FIND("transition_links").className = type == "TRANSITION" ? "normal" : "grayout";
+  highlightHistoryButtons(type);
+
   FIND("expand_button").className = current_style && current_style.isMacro ? "button-on" : "button-off";
   FIND("layerize_button").className = CanLayerize(current_style) ? "button-on" : "button-off";
 
@@ -10214,36 +8828,136 @@ function ReplaceCurrentFocus(str) {
   } else {
     ActivateTab(type.toLowerCase());
   }
-
-  for (var i = 0; i < document.styleSheets.length; i++) {
-    var sheet = document.styleSheets[i];
-    for (var r = 0; r < sheet.cssRules.length; r++) {
-      var rule = sheet.cssRules[r];
-      if (rule.cssText.toLowerCase().includes("magic_class_") ) {
-        if (rule.cssText.toLowerCase().includes("magic_class_" + type.toLowerCase())) {
-          rule.style.background = "lightblue";
-          rule.style.color = "black";
-        } else {
-          rule.style.background = "lightgray";
-          rule.style.color = "darkgray";
-        }
-      }
-      if (rule.cssText.toLowerCase().includes("magic_invisible_class_") ) {
-        if (rule.cssText.toLowerCase().includes("magic_invisible_class_" + type.toLowerCase())) {
-          rule.style.display = 'inline';
-        } else {
-          rule.style.display = 'none';
-        }
-      }
-    }
-  }
 }
 
+function highlightHistoryButtons(validType) {
+  console.log('highlightHistoryButtons called with type:', validType);
+  const allButtons = document.querySelectorAll('#history_tabcontent .history-btn');
+  allButtons.forEach(btn => {
+    btn.classList.remove('history-btn-valid', 'history-btn-invalid');
+    if (btn.dataset.type === validType) {
+      btn.classList.add('history-btn-valid');
+    } else {
+      btn.classList.add('history-btn-invalid');
+    }
+  });
+}
 
+// This replaces any empty WavLen<> in a TransitionEffectL with WavLen<EFFECT_XXXX>
+function autoBindWavLen(styleString) {
+  let out = '';
+  let i = 0;
+  while (i < styleString.length) {
+    let start = styleString.indexOf('TransitionEffectL<', i);
+    if (start === -1) {
+      out += styleString.slice(i);
+      break;
+    }
+    out += styleString.slice(i, start);
+    let bracketDepth = 0;
+    let j = start + 'TransitionEffectL<'.length;
+    for (; j < styleString.length; ++j) {
+      if (styleString[j] === '<') bracketDepth++;
+      else if (styleString[j] === '>') {
+        if (bracketDepth === 0) break;
+        bracketDepth--;
+      }
+    }
+    if (j >= styleString.length) {
+      // Malformed, just copy rest
+      out += styleString.slice(start);
+      break;
+    }
+    // Now grab the inside: a comma-separated args list, last is effectName
+    const inside = styleString.slice(start + 'TransitionEffectL<'.length, j);
+    let depth = 0, lastComma = -1;
+    for (let k = 0; k < inside.length; ++k) {
+      if (inside[k] === '<') depth++;
+      else if (inside[k] === '>') depth--;
+      else if (inside[k] === ',' && depth === 0) lastComma = k;
+    }
+    if (lastComma === -1) {
+      out += styleString.slice(start, j + 1);
+      i = j + 1;
+      continue;
+    }
+    const effectBody = inside.slice(0, lastComma).trim();
+    const effectName = inside.slice(lastComma + 1).trim();
+    // Replace all WavLen<> with WavLen<effectName> in effectBody
+    const fixedBody = effectBody.replace(/WavLen\s*<\s*>/g, `WavLen<${effectName}>`);
+    out += `TransitionEffectL<${fixedBody},${effectName}>`;
+    i = j + 1;
+  }
+  return out;
+}
+
+// This replaces any empty WavLen<> in an InOutTrL with WavLen<EFFECT_XXXX>
+function autoBindWavLenInOutTrL(styleString) {
+  let out = '';
+  let i = 0;
+  while (i < styleString.length) {
+    let start = styleString.indexOf('InOutTrL<', i);
+    if (start === -1) {
+      out += styleString.slice(i);
+      break;
+    }
+    out += styleString.slice(i, start);
+    let bracketDepth = 0;
+    let j = start + 'InOutTrL<'.length;
+    for (; j < styleString.length; ++j) {
+      if (styleString[j] === '<') bracketDepth++;
+      else if (styleString[j] === '>') {
+        if (bracketDepth === 0) break;
+        bracketDepth--;
+      }
+    }
+    if (j >= styleString.length) {
+      // Malformed, just copy rest
+      out += styleString.slice(start);
+      break;
+    }
+    const inside = styleString.slice(start + 'InOutTrL<'.length, j);
+    // Bracket-aware split on top-level comma
+    let depth = 0, split = -1;
+    for (let k = 0; k < inside.length; ++k) {
+      if (inside[k] === '<') depth++;
+      else if (inside[k] === '>') depth--;
+      else if (inside[k] === ',' && depth === 0) {
+        split = k;
+        break;
+      }
+    }
+    if (split === -1) {
+      out += styleString.slice(start, j + 1);
+      i = j + 1;
+      continue;
+    }
+    const inTr = inside.slice(0, split).trim();
+    const outTr = inside.slice(split + 1).trim();
+    let inFixed = inTr.replace(/WavLen\s*<\s*>/g, 'WavLen<EFFECT_IGNITION>');
+    let outFixed = outTr.replace(/WavLen\s*<\s*>/g, 'WavLen<EFFECT_RETRACTION>');
+    out += `InOutTrL<${inFixed},${outFixed}>`;
+    i = j + 1;
+  }
+  return out;
+}
+//////////// BC ///////////
 function Run() {
   var sty = FIND("style");
   var err = FIND("error_message");
-  var str = sty.value;
+  // grab the raw text
+  var originalStr = sty.value;
+  var str = originalStr;
+
+  // Only run autoBind if there is an empty WavLen<> placeholder
+  const emptyWavLenRegex = /WavLen\s*<\s*>/;
+  if (emptyWavLenRegex.test(str)) {
+    str = autoBindWavLen(str);
+    str = autoBindWavLenInOutTrL(str);
+    // write it back so the textarea updates
+    sty.value = str;
+  }
+
   var parser = new Parser(str,
                           classes,
                           identifiers);
@@ -10252,44 +8966,43 @@ function Run() {
     current_style = parser.parse();
   }
   catch(e) {
-    console.log(e);
-    console.log(e.stack);
-    console.log(typeof(e));
     if (typeof(e) == "string") {
+      err.innerHTML = e;
+      sty.focus();
+      sty.setSelectionRange(parser.pos, parser.pos);
 
-        err.innerHTML = e;
-        sty.focus();
-        sty.setSelectionRange(parser.pos, parser.pos);
-
-        parser = new Parser("BLACK",
-                            classes,
-                            identifiers);
-        current_style = parser.parse();
-        compile();
-        return;
-      } else if (typeof(e) == "object" && e.constructor == MyError) {
-        err.innerHTML = e.desc;
-        sty.focus();
-        if (e.begin_pos > -1) {
-          sty.setSelectionRange(e.begin_pos, e.end_pos);
-        } else {
-          sty.setSelectionRange(parser.pos, parser.pos);
-        }
-
-        parser = new Parser("BLACK",
-                            classes,
-                            identifiers);
-        current_style = parser.parse();
-        compile();
-        return;
+      parser = new Parser("BLACK",
+                          classes,
+                          identifiers);
+      current_style = parser.parse();
+      compile();
+      return;
+    } else if (typeof(e) == "object" && e.constructor == MyError) {
+      err.innerHTML = e.desc;
+      sty.focus();
+      if (e.begin_pos > -1) {
+        sty.setSelectionRange(e.begin_pos, e.end_pos);
       } else {
-        throw e;
+        sty.setSelectionRange(parser.pos, parser.pos);
       }
+
+      parser = new Parser("BLACK",
+                          classes,
+                          identifiers);
+      current_style = parser.parse();
+      compile();
+      return;
+    } else {
+      throw e;
+    }
   }
   ReplaceCurrentFocus(str);
   compile();
+  STATE_LOCKUP = LOCKUP_NONE;
+  updateLockupDropdown();
+
   if (current_style.argstring) {
-    FIND("ARGSTR").value = "builtin 0 1 " + current_style.argstring
+    FIND("ARGSTR").value = "builtin 0 1 " + current_style.argstring;
     ArgStringChanged();
   }
 }
@@ -10374,7 +9087,7 @@ function PopState(event) {
 }
 
 function SetTo(str) {
-  console.log(str);
+  console.log("Style SetTo:\n", str);
   var old = FIND("style").value;
   var url = new URL(window.location.href);
   url.searchParams.set("S", str);
@@ -10402,27 +9115,43 @@ function SetToAndFormat(str, event) {
   }
 }
 
-
 function FocusOnLow(id) {
   console.log("FOCUSON: " + id);
-  var style = style_ids[id];
-  console.log(id);
-  console.log(style);
+  const style = style_ids[id];
+  console.log("style_ids[" + id + "] =", style);
   current_focus = style;
   var container = FIND("X"+id);
   console.log(container);
   pp_is_url++;
-  var url = style.pp();
+  const url = style.pp();
   pp_is_url--;
-  console.log(url);
+  console.log("pp URL =", url);
   current_focus_url = url;
   SetTo(url);
+  FocusCheck();
   return true;
 }
 
 function FocusOn(id, event) {
   event.stopPropagation();
   FocusOnLow(id);
+}
+
+function FocusCheck() {
+  // Detect whether this is the top-level in structured view.
+  const outerMostBracket = (!current_focus || (current_focus.constructor.name === "LayersClass"));
+  // console.log('[FocusCheck] outerMostBracket = ' + outerMostBracket);
+  if (outerMostBracket) {
+    focusAllowsHum = true;
+    if (STATE_ON) {
+      // console.log("[FocusCheck] resumeLoops()");
+      resumeLoops();
+    }
+  } else {
+    // console.log("[FocusCheck] stopAllLoops()");
+    stopAllLoops(200, false);
+    focusAllowsHum = false;
+  }
 }
 
 function ClickRotate() {
@@ -10432,29 +9161,218 @@ function ClickRotate() {
   console.log("ROTATE");
 }
 
+//////////// BC ///////////
+
+var power_button = FIND("POWER_BUTTON");
+/*
+Compute delay for triggering ignition/postoff.
+For ignition delay, use preon sound duration.
+For POSTOFF delay, use IN_TR total time.
+*/
 function ClickPower() {
-  STATE_ON = !STATE_ON; STATE_LOCKUP=0;
-  var power_button = FIND("POWER_BUTTON");
-  power_button.classList.toggle("button-latched", STATE_ON ? true : false);
+  // Debounce
+  if (ClickPower._debounced) {
+    return;
+  }
+  ClickPower._debounced = true;
+  setTimeout(() => { ClickPower._debounced = false; }, 400);
+  stopAllLoops(200, true);  // Power button used: clear lockup state
+
+  STATE_LOCKUP=0;
+  updateLockupDropdown();
   console.log("POWER");
-  blade.addEffect(STATE_ON ? EFFECT_IGNITION : EFFECT_RETRACTION, Math.random() * 0.7 + 0.2);
+
+  function igniteAndStartHum() {
+    requestAnimationFrame(updateSmoothSwingGains)
+    blade.addEffect(EFFECT_IGNITION, Math.random() * 0.7 + 0.2);
+    setTimeout(() => {
+      // Only start hum if still powered on!
+      // FocusCheck();
+      if (focusAllowsHum) {
+        startHum();
+      } else {
+        console.log('[STATE_WAIT_FOR_ON] Power turned off before ignition; or Not focused full. not starting hum.');
+      }
+    }, 200);  // pseudo ProffieOSHumDelay hardcoded
+  }
+
+  // if (!STATE_ON && !STATE_WAIT_FOR_ON) {
+  //   STATE_WAIT_FOR_ON = true;
+  //   const buffers = pickLoopBuffers('preon');
+  // console.log('ClickPower DEBUG: soundOn=', soundOn, 'buffers:', buffers);    let ignitionDelay = 0;
+  //   if (buffers.length) {
+  //     blade.addEffect(EFFECT_PREON, 0.0);
+  //     const idx = lastPlayedSoundIndex['preon'];
+  //     ignitionDelay = Math.round(buffers[idx].duration * 1000);
+  //     console.log(`Delaying ignition by ${ignitionDelay} ms (preon.wav length)`);
+  //   }
+  //   setTimeout(() => {
+  //     STATE_WAIT_FOR_ON = false;
+  //     STATE_ON = true;
+  //     igniteAndStartHum();
+  //   }, ignitionDelay);
+  //     power_button.classList.toggle("button-latched", true);
+  // } else {
+  if (!STATE_ON && !STATE_WAIT_FOR_ON) {
+    STATE_WAIT_FOR_ON = true;
+    const buffers = pickLoopBuffers('preon');
+    let ignitionDelay = 0;
+    let idx = lastPlayedSoundIndex['preon'];
+    if (typeof idx !== 'number' || idx >= buffers.length) idx = 0;
+    if (buffers[idx]) {
+      blade.addEffect(EFFECT_PREON, 0.0);
+      ignitionDelay = Math.round(buffers[idx].duration * 1000);
+      console.log(`Delaying ignition by ${ignitionDelay} ms (preon.wav length)`);
+    }
+
+    setTimeout(() => {
+      STATE_WAIT_FOR_ON = false;
+      STATE_ON = true;
+      igniteAndStartHum();
+    }, ignitionDelay);
+
+    power_button.classList.toggle("button-latched", true);
+
+  } else {
+    STATE_ON = 0;
+    power_button.classList.toggle("button-latched", false);
+    blade.addEffect(EFFECT_RETRACTION, Math.random() * 0.7 + 0.2);
+    stopAllLoops(200, true);  // Power button used: clear lockup state
+    let styleDelay = 0;
+
+    if (Array.isArray(current_style.LAYERS)) {
+      const inout = current_style.LAYERS.find(
+        l => l.constructor?.name === 'InOutTrLClass'
+      );
+      if (inout?.IN_TR) {
+        // Recursively sum up all transition durations.
+        const getDur = n => {
+          if (n.constructor && n.constructor.name === 'WavLenClass')
+            return Number(n.getInteger(0));
+          if (n.MILLIS)
+            return Number(n.MILLIS.getInteger(0));
+          if (n.args)
+            return n.args.reduce((sum, a) => sum + getDur(a), 0);
+          return 0;
+        };
+        styleDelay = getDur(inout.IN_TR);
+      }
+    }
+    const postoffBuffers = pickLoopBuffers('pstoff');
+    if (postoffBuffers.length) {
+      console.log(`Scheduling POSTOFF in ${styleDelay} ms`);
+      setTimeout(() => { blade.addEffect(EFFECT_POSTOFF, 0.0); }, styleDelay);
+    }
+  }
 }
 
 var lockups_to_event = {};
-lockups_to_event[LOCKUP_NORMAL] = [ EFFECT_LOCKUP_BEGIN, EFFECT_LOCKUP_END ];
-lockups_to_event[LOCKUP_DRAG] = [ EFFECT_DRAG_BEGIN, EFFECT_DRAG_END ];
+lockups_to_event[LOCKUP_NORMAL]          = [ EFFECT_LOCKUP_BEGIN, EFFECT_LOCKUP_END ];
+lockups_to_event[LOCKUP_DRAG]            = [ EFFECT_DRAG_BEGIN, EFFECT_DRAG_END ];
+lockups_to_event[LOCKUP_MELT]            = [EFFECT_MELT_BEGIN, EFFECT_MELT_END];
+lockups_to_event[LOCKUP_LIGHTNING_BLOCK] = [EFFECT_LB_BEGIN, EFFECT_LB_END];
 
 function OnLockupChange() {
   console.log("OnLockupChange");
   var select = FIND("LOCKUP");
   var old = STATE_LOCKUP;
   STATE_LOCKUP = window[select.value];
+  window.currentLockupType = STATE_LOCKUP;
+  updateLockupDropdown();
   if (STATE_LOCKUP && lockups_to_event[STATE_LOCKUP]) {
     blade.addEffect(lockups_to_event[STATE_LOCKUP][0], Math.random() * 0.7 + 0.2);
   } else if (old && lockups_to_event[old]) {
     blade.addEffect(lockups_to_event[old][1], Math.random() * 0.7 + 0.2);
   }
 }
+
+function updateLockupDropdown() {
+  // console.log("[LockupDropdown] ▶ update called; STATE_LOCKUP =", STATE_LOCKUP);
+  const lockupSelect = FIND("LOCKUP");
+  lockupSelect.innerHTML = "";
+
+  // Get allowed lockup types from style code
+  const allowedLockups = getAllowedLockupsFromStyleText();
+  // console.log("[LockupDropdown]    allowedLockups =", Array.from(allowedLockups));
+
+// THIS WORKS if we want to play the endlock when refocusing off a selected lockup layer.
+// but maybe it should just stop playing instead ?
+// // Auto‐end any running lockup if its layer is no longer allowed
+// const prevBeginEvt = window.currentLockupType;
+// console.log(
+//   "[LockupDropdown] ▶ prevBeginEvt=", prevBeginEvt,
+//   "allowedLockups=", Array.from(allowedLockups)
+// );
+// // figure out which lockup enum originally drove that begin‐event
+// let prevEnum, endEvt;
+// for (const [lk, [b,e]] of Object.entries(lockups_to_event)) {
+//   if (b === prevBeginEvt) {
+//     prevEnum = Number(lk);
+//     endEvt   = e;
+//     break;
+//   }
+// }
+// if (prevEnum != null && !allowedLockups.has(prevEnum)) {
+//   console.log("[LockupDropdown] ⚡ auto‐ending lockup enum", prevEnum);
+//   const END_EFFECT_MAP = {
+//     [EFFECT_LOCKUP_END]:   "endlock",
+//     [EFFECT_DRAG_END]:     "enddrag",
+//     [EFFECT_MELT_END]:     "endmelt",
+//     [EFFECT_LB_END]:       "endlb"
+//   };
+//   // directly kill the loop and play its end‐sound
+//   endLockupLoop(prevBeginEvt, END_EFFECT_MAP[endEvt], true);
+//   // clear both state vars so dropdown & audio agree
+//   STATE_LOCKUP = LOCKUP_NONE;
+//   window.currentLockupType = null;
+// }
+
+// Silently stop loop if no lockup is selected
+if ((!STATE_LOCKUP || STATE_LOCKUP === LOCKUP_NONE) && window.lockupLoopSrc) {
+  try { window.lockupLoopSrc.stop(); window.lockupLoopSrc.disconnect(); } catch (_) {}
+  window.lockupLoopSrc = null;
+  if (window.lockupGainNode) {
+    try { window.lockupGainNode.disconnect(); } catch (_) {}
+    window.lockupGainNode = null;
+  }
+  window.currentLockupType = null;
+}
+  // Map value to display label
+  const lockupLabels = {
+    [LOCKUP_NORMAL]: "Lockup",
+    [LOCKUP_DRAG]: "Drag",
+    [LOCKUP_MELT]: "Melt",
+    [LOCKUP_LIGHTNING_BLOCK]: "LB"
+    // Add more here if needed
+  };
+
+  if (!STATE_LOCKUP || STATE_LOCKUP === LOCKUP_NONE) {
+    lockupSelect.appendChild(new Option("Choose Lockup", "LOCKUP_NONE"));
+    const lockupTypeNames = {
+      [LOCKUP_NORMAL]: "LOCKUP_NORMAL",
+      [LOCKUP_DRAG]: "LOCKUP_DRAG",
+      [LOCKUP_MELT]: "LOCKUP_MELT",
+      [LOCKUP_LIGHTNING_BLOCK]: "LOCKUP_LIGHTNING_BLOCK"
+    };
+
+    for (const lockupType of [LOCKUP_NORMAL, LOCKUP_DRAG, LOCKUP_MELT, LOCKUP_LIGHTNING_BLOCK]) {
+      if (allowedLockups.has(lockupType)) {
+        lockupSelect.appendChild(new Option(
+          lockupLabels[lockupType],
+          lockupTypeNames[lockupType]
+        ));
+      }
+    }
+    lockupSelect.value = "LOCKUP_NONE";
+  } else {
+    const stopOption = new Option("Stop", "LOCKUP_NONE");
+    lockupSelect.appendChild(stopOption);
+    lockupSelect.value = "LOCKUP_NONE";
+    lockupSelect.options[0].text = "\u00A0\u00A0\u00A0\u00A0End Lockup \u00A0";
+    lockupSelect.appendChild(new Option("\u00A0\u00A0\u00A0\u00A0Stop", "LOCKUP_NONE"));
+  }
+}
+//////////// BC ///////////
 
 function ClickLockup() {
   STATE_LOCKUP = STATE_LOCKUP == LOCKUP_NORMAL ? 0 : LOCKUP_NORMAL;
@@ -10485,6 +9403,79 @@ function ClickSave() {
   a.download = "blade-style.txt";
   a.click();
 }
+
+var num_alternatives = 1000;
+
+function Alt() {
+  return parseInt(FIND("ALT_VALUE").value);
+}
+//////////// SafeguardInputs PR ///////////////
+function updateAltValue(newValue) {
+  if (newValue > num_alternatives) {
+    newValue = num_alternatives;
+  }
+  FIND("ALT_VALUE").value = newValue;
+  console.log("Updated Alt: " + newValue);
+}
+
+function IncreaseAlt(n) {
+  var v = Alt() + n;
+  if (v < 0) v += num_alternatives;
+  if (v > num_alternatives) v -= num_alternatives;
+  FIND("ALT_VALUE").value = v;
+  console.log("Updated Alt: " + v)
+}
+
+function Variant() {
+ return parseInt(FIND("VARIANT_VALUE").value);
+}
+
+/* Variant Slider functions */
+
+function updateVariantValue(newValue) {
+  // Ensure values are in range, and auto-filled zeros get registered as 0.
+  if (newValue < 0) {
+    newValue = 0;
+  } else if (newValue > 32768) {
+    newValue = 32768;
+  }
+  FIND("VARIANT_VALUE").value = newValue;
+  FIND("VARIANT_SLIDER").value = newValue;
+  console.log("Updated Variant: " + newValue);
+}
+
+var timeoutId, intervalId;
+
+// Single click arrow to adjust by 1, hold to accelerate.
+function startAdjustingValue(adjustment, inputId) {
+  adjustmentValue(adjustment, inputId);
+  var speed = 100;
+  clearTimeout(timeoutId);
+  timeoutId = setTimeout(function() {
+    var startTime = new Date().getTime();
+    intervalId = setInterval(function() {
+      var elapsedTime = new Date().getTime() - startTime;
+      var progress = elapsedTime / speed;
+      var ease = Math.pow(progress, 2);
+      var value = Math.round(adjustment * ease);
+      adjustmentValue(value, inputId);
+    }, 1000 / 60); // 60 FPS for more responsive input.
+  }, 500); // delay until hold down button acceleration starts.
+}
+
+function adjustmentValue(adjustment, inputId) {
+  var variantInput = FIND(inputId);
+  var newValue = parseInt(variantInput.value) + adjustment;
+  variantInput.value = newValue;
+  updateVariantValue(newValue);
+}
+
+// Release or mouse leave arrow button
+function stopAdjustingValue() {
+  clearInterval(intervalId);
+  clearTimeout(timeoutId);
+}
+/* End Variant Slider functions */
 
 function Copy() {
   if (current_style.getType() != "COLOR") {
@@ -10571,6 +9562,7 @@ function DoArgify() {
   SetTo(tmp);
 }
 
+////////////////  TAB MANIA PR /////////////////
 
 // Tab mania.
 const allTabs = ["color", "rgb", "layer", "function", "transition", "effect", "lockup_type", "arguments", "example", "history", "arg_string"];
@@ -10626,9 +9618,6 @@ function updateRgbTabContent() {
     "<input type='color' id='COLOR' value='#ff0000' class='color-picker' onclick='ClickColor()' /></div>");
 }
 
-
-
-
 var tablinks = document.getElementsByClassName("tablinks");
 
 function enableTabs() {
@@ -10651,11 +9640,11 @@ function ActivateTab(tab) {
     console.log("No such tab");
     return;
   }
-  /* The priority is to have non-applicable tabs be disabled
-  if the tab is active due to a clicked type in the Structured View 
+  /* The purpose here is to have non-applicable tabs be disabled
+  if the tab is active due to a clicked type in the Structured View
   (therefore showing only valid replacement choices).
   If the tab is already active, clicking it again
-  allows "unlocking" of the other tabs. 
+  allows "unlocking" of the other tabs.
   This is useful when you want to change the top level
   of the Structured View to something completely different.
   */
@@ -10673,7 +9662,6 @@ function ActivateTab(tab) {
   for (var i = 0; i < tabcontent.length; i++) {
     tabcontent[i].style.display = "none";
   }
-
   // First, remove the "active" and "disabled" class from all tabs
   for (var i = 0; i < tablinks.length; i++) {
     tablinks[i].classList.remove("active");
@@ -10685,12 +9673,12 @@ function ActivateTab(tab) {
   FIND(tab + "_tabcontent").style.display = "block";
   FIND(tab + "_tab").classList.add("active");
 
-  // Find the outer-most bracket element using simplified XPath
-  var outerMostBracket = document.evaluate("/html/body/table/tbody/tr/td[2]/div/div/div", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+  // // Find the outer-most bracket element using simplified XPath
+  // var outerMostBracket = FIND('structured_view');
 
-  outerMostBracket.addEventListener("click", function (event) {
-    enableTabs();
-  });
+  // outerMostBracket.addEventListener("click", function (event) {
+  //   enableTabs();
+  // });
 
   // Deactivate tabs that are not compatible with the current tab
   var incompatibleTabs = getIncompatibleTabs(tab);
@@ -10705,7 +9693,7 @@ function ActivateTab(tab) {
     }
   }
   // Reset the flag
-  wasTabClicked = false; 
+  wasTabClicked = false;
 }
 
 function getIncompatibleTabs(tab) {
@@ -10721,457 +9709,215 @@ function getIncompatibleTabs(tab) {
 
   return incompatibleTabs;
 }
+////////////////  TAB MANIA PR /////////////////
 
+////////////// Recent EFFECTS PR ///////////
 
-</script>
-</head>
+const menu = FIND('more_effects_menu');
+const do_selected_button = FIND('do_selected');
+let recentEffects = [EFFECT_NONE];
+const MAX_RECENTS = 5;
 
-<!-- <body onload="initGL()"> -->
-<body>
-
-  <table>
-  <tr>
-    <td class="page-left">
-      <div class="canvas-container">      
-        <canvas
-          id="canvas_id"
-          
-          onmousemove='mouse_move(event)' onmouseleave='mouse_leave(event)'
-          onclick='AddClickedEffect()'>
-        </canvas>
-        <button
-          id="ENLARGE"
-          title="Click to toggle blade preview window size."
-          style="position:absolute; bottom:10px; right:10px;">Enlarge</button>
-      </div>
-      <br>
-      <button
-        id="POWER_BUTTON" 
-        title="Turn the blade On and Off. Simulates ignition and retraction events on the blade."
-        onclick="ClickPower()">Power</button>
-      <button
-        title="Simulates an impact hit on the blade. Triggers style code using EFFECT_CLASH."
-        onclick="AddClash()">Clash</button>
-      <button
-        title="Simulates an impact hit on the tip of the blade. Triggers style code using EFFECT_STAB."
-        onclick="AddStab()">Stab</button>
-      <button
-        title="Simulates a blaster bolt deflection impact hit on the blade. Triggers style code using EFFECT_BLAST."
-        onclick="AddBlast()">Blast</button>
-      <button
-        title="Triggers style code using EFFECT_FORCE."
-        onclick="AddForce()">Force</button>
-      <button
-        title="Simulates powering on the Proffieboard. Triggers style code Int<using EFFECT_BOOT."
-        onclick="AddBoot()">Boot</button>
-      <button
-        title="Simulates changing presets. Triggers style code using EFFECT_NEWFONT."
-        onclick="AddNewfont()">NewFont</button>
-      <button
-        title="Simulates &quot;pre-ignition&quot;; pressing the power button when there are preon.wav files available in the current font. Triggers style code using EFFECT_PREON."
-        onclick="AddPreon()">Preon</button>
-      <button
-        title="Simulates &quot;post-retraction&quot;; autofollows retraction when there are pstoff.wav files available in the current font. Triggers style code using EFFECT_POSTOFF."
-        onclick="AddPostoff()">Postoff</button>
-
-      <select
-        id="LOCKUP" name="lockup"
-        title="Choose a Lockup Type to begin lockup effect. Choose &quot;No Lockup&quot; to end lockup."
-        onchange="OnLockupChange()" >
-        <option value=LOCKUP_NONE>No lockup</option>
-        <option value=LOCKUP_NORMAL>Lockup</option>
-        <option value=LOCKUP_DRAG>Drag</option>
-        <option value=LOCKUP_MELT>Melt</option>
-        <option value=LOCKUP_LIGHTNING_BLOCK>LB</option>
-        <option value=LOCKUP_AUTOFIRE>Autofire</option>
-
-      </select>
-
-    <span class="more-menu-container">
-      <select
-        id="more_effects_menu"
-        title="This menu contains all of the additional EFFECTS. Select one, then use the &quot;Do Selected Effect&quot; button to trigger the effect." >
-      <option value="">Select More Effects</option>
-      </select>
-      <input
-        type=button id="do_selected" value="Do Selected Effect"
-        title="Press this to trigger the EFFECT selected in the More Effects menu.">
-    </span>
-
-  <script>
-         // Get the menu and button elements
-        const menu = FIND('more_effects_menu');
-        const do_selected_button = FIND('do_selected');
-
-        /* Add values from the enum builder to an array and sort alphabetically,
-        excluding effects with dedicated buttons.*/
-        const values = Object.entries(EFFECT_ENUM_BUILDER.value_to_name)
-          .sort((a, b) => a[1].localeCompare(b[1]))
-          .filter(([value]) => ![
-            EFFECT_CLASH,
-            EFFECT_STAB,
-            EFFECT_BLAST,
-            EFFECT_FORCE,
-            EFFECT_BOOT,
-            EFFECT_NEWFONT,
-            EFFECT_PREON,
-            EFFECT_POSTOFF,
-          ].includes(Number(value)));
-
-        // Add sub-groups for the different categories of effects
-        const generalEffectsMenu = document.createElement('optgroup');
-        generalEffectsMenu.label = 'General Effects';
-        const userEffectsMenu = document.createElement('optgroup');
-        userEffectsMenu.label = 'User Effects';
-        const blasterEffectsMenu = document.createElement('optgroup');
-        blasterEffectsMenu.label = 'Blaster Effects';
-        const gameEffectsMenu = document.createElement('optgroup');
-        gameEffectsMenu.label = 'Game Effects';
-        const errorMessagesMenu = document.createElement('optgroup');
-        errorMessagesMenu.label = 'Error Messages';
-
-        // Add sorted values to the menu and actions dictionary,
-        for (const [value, name] of values) {
-          const nameWithoutEffect = name.replace(/^EFFECT_/, '');
-          const option = document.createElement('option');
-          option.value = value;
-          option.text = nameWithoutEffect;
-
-          // Check if the effect belongs to a certain category and add it to the corresponding sub-group
-          if (name.startsWith('EFFECT_GAME')) {
-            gameEffectsMenu.appendChild(option);
-          } else if (name.startsWith('EFFECT_USER')) {
-            userEffectsMenu.appendChild(option);
-          } else {
-            switch (Number(value)) {
-              case EFFECT_BOOM:
-              case EFFECT_STUN:
-              case EFFECT_FIRE:
-              case EFFECT_CLIP_IN:
-              case EFFECT_CLIP_OUT:
-              case EFFECT_DESTRUCT:
-              case EFFECT_RELOAD:
-              case EFFECT_MODE:
-              case EFFECT_RANGE:
-              case EFFECT_EMPTY:
-              case EFFECT_FULL:
-              case EFFECT_JAM:
-              case EFFECT_UNJAM:
-              case EFFECT_PLI_ON:
-              case EFFECT_PLI_OFF:
-                blasterEffectsMenu.appendChild(option);
-                break;
-              case EFFECT_ERROR_IN_BLADE_ARRAY:
-              case EFFECT_ERROR_IN_FONT_DIRECTORY:
-              case EFFECT_FONT_DIRECTORY_NOT_FOUND:
-              case EFFECT_SD_CARD_NOT_FOUND:
-              case EFFECT_LOW_BATTERY:
-                errorMessagesMenu.appendChild(option);
-                break;
-              default:
-                generalEffectsMenu.appendChild(option);
-                break;
-            }
-          }
-        }
-
-        // Add the sub-groups to the main menu
-        menu.appendChild(generalEffectsMenu);
-        menu.appendChild(userEffectsMenu);
-        menu.appendChild(blasterEffectsMenu);
-        menu.appendChild(gameEffectsMenu);
-        menu.appendChild(errorMessagesMenu);
-
-        // Set up the event listener for the menu
-        menu.addEventListener('change', function() {
-          // If the selected value is not the default, enable the button and set its action
-          if (menu.value !== '') {
-            do_selected_button.disabled = false;
-            do_selected_button.className = "button-on"
-            do_selected_button.onclick = function() {
-              AddClickedEffect();
-            };
-          } else {
-            // If the selected value is the default, disable the button
-            do_selected_button.disabled = true;
-            do_selected_button.onclick = null;
-            do_selected_button.className = "button-off"
-          }
-        });
-        // Disable the button initially
-        do_selected_button.disabled = true;
-        do_selected_button.className = "button-off"
-
-        // What to do when preview saber area is clicked
-        function AddClickedEffect() {
-          if (do_selected_button.disabled) {
-            AddClash();
-          } else {
-            blade.addEffect(menu.value, 0.0)
-          }
-        };
-      </script>
-
-      <span class="variant-alt-container">
-        <span class="variant-alt-controls">
-          <span class="variant-label">Variant:</span>
-          <input
-            id="VARIANT_SLIDER" name=varslider type=range class="variant-slider"
-            title="Slide to adjust the Variant value."
-            min="0" max="32768" step="1" value="0"
-            oninput="updateVariantValue(this.value)" >
-          <input
-            id="VARIANT_MINUS" name=varminus type=button value="<"
-            title="Decreases the Variant value. Hold to increase speed of the changing value."
-            onmousedown="startAdjustingValue(-1, 'VARIANT_SLIDER')"
-            onmouseup="stopAdjustingValue()"
-            onmouseleave="stopAdjustingValue()" >
-          <input
-            id="VARIANT_VALUE" name=varvalue type='number' value="0"
-            title="The current Variant value. You can also type in this field for direct entry of a value."
-            oninput="updateVariantValue(this.value)"
-            onfocusout="SafeguardInputs(event)" >
-          <input
-            id="VARIANT_PLUS" name=varplus type=button value=">"
-            title="Increases the Variant value. Hold to increase speed of the changing value."
-            onmousedown="startAdjustingValue(1, 'VARIANT_SLIDER')"
-            onmouseup="stopAdjustingValue()"
-            onmouseleave="stopAdjustingValue()" >
-        <span class="alt-label">Alt:</span>
-          <input
-            id="ALT_MINUS" name=altminus type=button value="<"
-            title="Decreases the Alt value."
-            onclick="IncreaseAlt(-1)" >
-          <input
-            id="ALT" name=alt type='number' value="0"
-            title="The current Alt value. You can also type in this field for direct entry of a value."
-            oninput="updateAltValue(this.value)"
-            onfocusout="SafeguardInputs(event)" >
-          <input
-            id="ALT_PLUS" name=altplus type=button value=">"
-            title="Increases the Alt value."
-            onclick="IncreaseAlt(1)" >
-        </span>
-      </span>
-      <br>
-    <script>
-
-    var num_alternatives = 1000;
-
-    function Alt() {
-      return parseInt(FIND("ALT").value);
-    }
-
-function updateAltValue(newValue) {
-  if (newValue > num_alternatives) {
-    newValue = num_alternatives;
+// Get the menu and button elements
+function rebuildMoreEffectsMenu() {
+  const menu = FIND('more_effects_menu');
+  const do_selected_button = FIND('do_selected');
+  const currentValue = typeof selectedValue !== 'undefined'
+    ? selectedValue
+    : menu.value;
+  menu.innerHTML = '';
+  // Only show placeholder if nothing is currently selected
+  if (!currentValue || currentValue === '') {
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'Select More Effects';
+    placeholder.disabled = false;
+    placeholder.selected = true;
+    menu.appendChild(placeholder);
   }
-  FIND("ALT").value = newValue;
-  console.log("Updated Alt: " + newValue);
-}
 
-function IncreaseAlt(n) {
-  var v = Alt() + n;
-  if (v < 0) v += num_alternatives;
-  if (v > num_alternatives) v -= num_alternatives;
-  FIND("ALT").value = v;
-  console.log("Updated Alt: " + v)
-}
+  // Add sub-groups for the different categories of effects
+  const recentEffectsMenu  = document.createElement('optgroup');
+  recentEffectsMenu.label  = 'Recent Effects';
+  const generalEffectsMenu = document.createElement('optgroup');
+  generalEffectsMenu.label = 'General Effects';
+  const userEffectsMenu    = document.createElement('optgroup');
+  userEffectsMenu.label    = 'User Effects';
+  const blasterEffectsMenu = document.createElement('optgroup');
+  blasterEffectsMenu.label = 'Blaster Effects';
+  const gameEffectsMenu    = document.createElement('optgroup');
+  gameEffectsMenu.label    = 'Game Effects';
+  const errorMessagesMenu  = document.createElement('optgroup');
+  errorMessagesMenu.label  = 'Error Messages';
 
-    function Variant() {
-     return parseInt(FIND("VARIANT_VALUE").value);
-    }
+  // Add recent effects to the recentEffectsMenu optgroup
+  // Always add Recents at the top (even if only EFFECT_NONE)
+  recentEffects.forEach(type => {
+    const name = EFFECT_ENUM_BUILDER.value_to_name[type] || `EFFECT_${type}`;
+    const nameWithoutEffect = name.replace(/^EFFECT_/, '');
+    const option = document.createElement('option');
+    option.value = type;
+    option.text = nameWithoutEffect;
+    recentEffectsMenu.appendChild(option);
+  });
 
-    /* Variant Slider functions */
+  // List of EFFECTs to hide from dropdown (pseudo/future events)
+  const hiddenEffects = [
+    "EFFECT_MELT_BEGIN",
+    "EFFECT_MELT_END",
+    "EFFECT_LB_BEGIN",
+    "EFFECT_LB_END"
+  ];
 
-    function updateVariantValue(newValue) {
-      // Ensure values are in range, and auto-filled zeros get registered as 0.
-      if (newValue < 0) {
-        newValue = 0;
-      } else if (newValue > 32768) {
-        newValue = 32768;
+  /* Add values from the enum builder to an array and sort alphabetically,
+  excluding effects with dedicated buttons.*/
+  const values = Object.entries(EFFECT_ENUM_BUILDER.value_to_name)
+    .sort((a, b) => a[1].localeCompare(b[1]))
+    .filter(([value]) => ![
+      EFFECT_CLASH,
+      EFFECT_STAB,
+      EFFECT_BLAST,
+      EFFECT_FORCE,
+      EFFECT_ACCENT_SWING,
+    ].includes(Number(value)));
+
+  // Add sorted values to the menu and actions dictionary,
+  for (const [value, name] of values) {
+    if (Number(value) === EFFECT_NONE) continue;
+    const nameWithoutEffect = name.replace(/^EFFECT_/, '');
+    const option = document.createElement('option');
+    option.value = value;
+    option.text = nameWithoutEffect;
+
+    // Check if the effect belongs to a certain category and add it to the corresponding sub-group
+    if (name.startsWith('EFFECT_GAME')) {
+      gameEffectsMenu.appendChild(option);
+    } else if (name.startsWith('EFFECT_USER')) {
+      userEffectsMenu.appendChild(option);
+    } else {
+      switch (Number(value)) {
+        case EFFECT_BOOM:
+        case EFFECT_STUN:
+        case EFFECT_FIRE:
+        case EFFECT_CLIP_IN:
+        case EFFECT_CLIP_OUT:
+//////////  PR /////////////////
+        case EFFECT_DESTRUCT:
+//////////  PR /////////////////
+        case EFFECT_RELOAD:
+        case EFFECT_MODE:
+        case EFFECT_RANGE:
+        case EFFECT_EMPTY:
+        case EFFECT_FULL:
+        case EFFECT_JAM:
+        case EFFECT_UNJAM:
+        case EFFECT_PLI_ON:
+        case EFFECT_PLI_OFF:
+          blasterEffectsMenu.appendChild(option);
+          break;
+        case EFFECT_ERROR_IN_BLADE_ARRAY:
+        case EFFECT_ERROR_IN_FONT_DIRECTORY:
+        case EFFECT_FONT_DIRECTORY_NOT_FOUND:
+        case EFFECT_SD_CARD_NOT_FOUND:
+        case EFFECT_LOW_BATTERY:
+          errorMessagesMenu.appendChild(option);
+          break;
+        default:
+          generalEffectsMenu.appendChild(option);
+          break;
       }
-      FIND("VARIANT_VALUE").value = newValue;
-      FIND("VARIANT_SLIDER").value = newValue;
-      console.log("Updated Variant: " + newValue);
     }
+  }
+  // Add the sub-groups to the main menu
+  menu.appendChild(recentEffectsMenu);
+  menu.appendChild(generalEffectsMenu);
+  menu.appendChild(userEffectsMenu);
+  menu.appendChild(blasterEffectsMenu);
+  menu.appendChild(gameEffectsMenu);
+  menu.appendChild(errorMessagesMenu);
 
-    var timeoutId, intervalId;
+  // After populating options, set initial button state based on selection
+  if (menu.value !== '') {
+    do_selected_button.disabled = false;
+    do_selected_button.className = "button-on";
+    do_selected_button.onclick = function() {
+      AddClickedEffect();
+    };
+  } else {
+    do_selected_button.disabled = true;
+    do_selected_button.onclick = null;
+    do_selected_button.className = "button-off";
+  }
+}
 
-    // Single click arrow to adjust by 1, hold to accelerate.
-    function startAdjustingValue(adjustment, inputId) {
-      adjustmentValue(adjustment, inputId);
-      var speed = 100;
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(function() {
-        var startTime = new Date().getTime();
-        intervalId = setInterval(function() {
-          var elapsedTime = new Date().getTime() - startTime;
-          var progress = elapsedTime / speed;
-          var ease = Math.pow(progress, 2);
-          var value = Math.round(adjustment * ease);
-          adjustmentValue(value, inputId);
-        }, 1000 / 60); // 60 FPS for more responsive input.
-      }, 500); // delay until hold down button acceleration starts.
-    }
+// What to do when preview saber area is clicked
+function AddClickedEffect() {
+  const menu = FIND('more_effects_menu');
+  const do_selected_button = FIND('do_selected');
+  const raw = menu.value;
+  const type = Number(raw);
+  const effectName = EFFECT_SOUND_MAP[type] || raw;
 
-    function adjustmentValue(adjustment, inputId) {
-      var variantInput = FIND(inputId);
-      var newValue = parseInt(variantInput.value) + adjustment;
-      variantInput.value = newValue;
-      updateVariantValue(newValue);
-    }
+  // console.log("🖱️ Manual trigger:", { type, effectName });
+  // console.log("   customFontSounds:", customFontSounds[effectName]);
+  // console.log("   customFontSoundDurations:", customFontSoundDurations[effectName]);
+  // console.log("   lastPlayedSoundIndex:", lastPlayedSoundIndex[effectName]);
+  // Update recents
+  if (type && !recentEffects.includes(type)) {
+    recentEffects.unshift(type);
+    if (recentEffects.length > MAX_RECENTS) recentEffects.length = MAX_RECENTS;
+  } else if (type) {
+    // Move to top if already in the list
+    recentEffects = [type, ...recentEffects.filter(t => t !== type)];
+  }
 
-    // Release or mouse leave arrow button
-    function stopAdjustingValue() {
-      clearInterval(intervalId);
-      clearTimeout(timeoutId);
-    }
-    /* End Variant Slider functions */
+  rebuildMoreEffectsMenu();  
+  if (do_selected_button.disabled) {
+    AddClash();
+  } else {
+    blade.addEffect(type, 0.0, true);
+  }
+}
 
-    </script>
-
-      <span id="error_message" class="error-message"></span>
-
-        <pre><textarea
-          rows=10 cols=80 id=style wrap="off" class="textbox"
-          title="Style and value editing area. Edits in here are committed by clicking the Submit button below." >
-        </textarea></pre>
-
-        <span>
-          <button 
-            class="submit-button" title="Submit what is currently in the text box above."
-            onclick="Run()">
-            <i class="fa-solid fa-right-from-bracket"></i> Submit</button>
-          <button 
-            title="Adds StylePtr&lt;&gt;() wrapper and copies the style to the clipboard."
-            onclick="Copy()">
-            <i class="fa-solid fa-copy"></i> Copy</button>
-          <button 
-            id="expand_button"
-            title="Reveals the &quot;under the hood&quot; code that the shorthand macro uses. This allows access to otherwise omitted arguments, and most importantly allows functions to be used instead of just numbers. It is only an active button when applicable."
-            onclick="DoExpand()">
-            <i class="fa-solid fa-up-right-and-down-left-from-center"></i> Expand</button>
-          <button 
-            id="layerize_button"
-            title="Transforms nested version style code and breaks it out into more contemporary Layers format."
-            onclick="DoLayerize()">
-            <i class="fa-solid fa-layer-group"></i> Layerize</button>
-          <button
-            title="Converts arguments to their ARG version counterparts for use with ProffieOS Workbench or Edit Mode. See the &quot;ArgString&quot; tab below."
-            onclick="DoArgify()">
-            <i class="fa-solid fa-list"></i> Argify</button>
-          <button
-            id="ROTATE_BUTTON" title="Toggles animation of the preview blade above."
-            onclick="ClickRotate()">
-            <i class="fa-solid fa-arrows-rotate"></i> Rotate</button>
-          <button 
-            title="Save the blade style to your computer."
-            onclick="ClickSave()">
-            <i class="fa-solid fa-save"></i> Save</button>
-          <button 
-            id="SETTINGS_BUTTON" title="Settings"
-            onclick="toggleSettingsPanel()">
-            <i class="fa-solid fa-cog"></i> Settings</button>
-        </span>
-
-        <div id="settings_panel" class="settings-panel"
-          title="Turning on checkboxes saves your settings for future visits to the Style Editor page.">
-
-          <button
-           title="Close Settings Panel."
-            class="close-settings" onclick="toggleSettingsPanel()">X</button>
-
-          <h2 class="settings-header-label" title="Settings Panel">Settings</h2>
-
-          <div class="settings-section">
-            <h4 class="settings-section-label" title="These settings apply to the whole page.">General:</h4>
-
-            <label title="Toggles a Dark Mode look to this page.">
-              <input type="checkbox" id="DARK_BUTTON" name="darkmode" onclick="handleSettings(this)">
-              <span>Dark Mode</span>
-            </label>
-
-            <label title="Toggles pop-up tooltips On or Off.">
-              <input type="checkbox" id="TIPS_BUTTON" name="tooltips" onclick="handleSettings(this)">
-              <span >Tool Tips</span>
-            </label>
-
-            <label title="Toggle between sorting the Colors tab hue or by name.">
-              <input type="checkbox" id="COLORSORT_BUTTON" name="colorsort" onclick="handleSettings(this)">
-              <span>Sort Colors by name</span>
-            </label>
-
-          </div>
-
-          <div class="settings-section">
-            <h4 class="settings-section-label" title="These settings apply to the blade preview above.">Blade Preview:</h4>
-
-            <label title="Toggles the Graflex Hilt model in the preview.">
-              <input type="checkbox" id="GRAFLEX_BUTTON" name="graflex" onclick="handleSettings(this)">
-              <span>Graflex Hilt</span>
-            </label>
-
-            <label title="Toggles the option for swinging around the preview blade above using mouse control.">
-              <input type="checkbox" id="MOUSESWINGS_BUTTON" name="mouseswings" onclick="handleSettings(this)">
-              <span>Disable mouse swings</span>
-            </label>
-
-            <label title="Toggles automated swing emulation on the preview blade while at rest (ie: shown when using SwingSpeed<>). Swinging while hovering over the preview area always shows swing blade effects according to movements.">
-              <input type="checkbox" id="AUTOSWING_BUTTON" name="autoswing" onclick="handleSettings(this)">
-              <span>Swing Emulation</span>
-            </label>
-
-            <label title="Simulates In-Hilt LED blades, (no addressable pixel effects).">
-              <input type="checkbox" id="INHILT_BUTTON" name="inhilt" onclick="handleSettings(this)">
-              <span>Inhilt LED</span>
-            </label>
-
-            <label title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement. *Note* Graflex hilt model probably won't be able to render with this on.">
-              <input type="checkbox" id="SLOW_BUTTON" name="slow" onclick="handleSettings(this)">
-              <span>Slow</span>
-            </label>
-          </div>
-          <div class="settings-section">
-            <h4 class="settings-section-label" title="These settings are useful for people making modifications to the style editor.">Developer Settings:</h4>
-            <label title="Benchmark how many passes we can render per frame.">
-              <input type="checkbox" id="BENCHMARK_BUTTON" name="benchmark" onclick="handleSettings(this)">
-              <span>Benchmark</span>
-            </label>
-            <label title="Enter a custom WavLen value in milliseconds." class="wavlen-label">
-              WavLen time:
-              <input type='number' id="WAVLEN_VALUE" class="wavlen-value" value="500">
-            </label>
-          </div>
-          <br>
-          <button
-            title="Restore all settings to default, including restoring popups."
-            id="restore_defaults" onclick="ClickRestore()">Restore Defaults</button>
-        </div>
-<script>
+menu.addEventListener('change', function() {
+  if (menu.value !== '') {
+    do_selected_button.disabled = false;
+    do_selected_button.className = "button-on";
+    do_selected_button.onclick = function() {
+      AddClickedEffect();
+    };
+  } else {
+    do_selected_button.disabled = true;
+    do_selected_button.onclick = null;
+    do_selected_button.className = "button-off";
+  }
+});
 
 function toggleSettingsPanel() {
-  var settingsButton = FIND("SETTINGS_BUTTON");
-  var settingsPanel = FIND("settings_panel");
-
-  settingsPanel.classList.toggle("show");
-
-  // Mouseleave event listener
-  if (settingsPanel.classList.contains("show")) {
-    var timeoutId = null;
-    settingsPanel.addEventListener("mouseleave", function(e) {
-      timeoutId = setTimeout(function() {
-        settingsPanel.classList.remove("show");
-      }, 1000);
-    });
-    settingsPanel.addEventListener("mouseenter", function(e) {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-        timeoutId = null;
-      }
-    });
+  if (document.querySelector('input.invalid')) {
+    console.log('*** INVALID INPUT - Not closing panel.');
+    return;
   }
+  const settingsPanel = FIND('settings_panel');
+  settingsPanel.classList.toggle('show');
 }
+
+// Click outside to close Settings Panel
+document.body.addEventListener('click', function(e) {
+  if (document.querySelector('input.invalid')) {
+    console.log('*** INVALID INPUT - Not closing panel.');
+    return;
+  }
+  const settingsPanel = FIND('settings_panel');
+  const settingsButton = FIND('SETTINGS_BUTTON');
+  if (
+    settingsPanel.classList.contains('show') &&
+    !settingsPanel.contains(e.target) &&
+    e.target !== settingsButton
+  ) {
+    settingsPanel.classList.remove('show');
+  }
+});
 
 // Call the onPageLoad function when the page is loaded
 window.addEventListener('DOMContentLoaded', onPageLoad);
@@ -11180,23 +9926,11 @@ var all_saved_states = [];
 var state_by_checkbox = new Map();
 var body = document.querySelector("body");
 var structuredView;
+//////////////// WAVLEN PR /////////////////
 var wavlenInput = FIND("WAVLEN_VALUE");
 var myWavLen = new WavLenClass();
 
 /* Settings buttons saved as local storage */
-// function getSavedState(buttonState, defaultValue) {
-//   var value = localStorage.getItem(buttonState);
-//   console.log("Retrieved SavedState for " + buttonState + ": " + value);
-
-//   if (value === null) {
-//     return defaultValue;
-//   }
-//   if (buttonState === "wavlenSave"){
-//     return value;
-//   }
-//   return value !== "false";
-// }
-
 function getSavedState(buttonState, defaultValue) {
   var value = localStorage.getItem(buttonState);
   console.log("Retrieved SavedState for " + buttonState + ": " + value);
@@ -11217,9 +9951,6 @@ class SavedState {
   onload() {
     this.set(getSavedState(this.name + "Save", this.def));
   }
-  set(value) {
-    throw new Error("set() must be implemented by subclass");
-  }
   get() { return this.value; }
 }
 
@@ -11230,14 +9961,9 @@ class SavedStateBool extends SavedState {
     const checkbox = FIND(name.toUpperCase() + "_BUTTON");
     state_by_checkbox.set(checkbox, this);
   }
-  // set(value) {
-  //   this.value = value;
-  //   FIND(this.name.toUpperCase() + "_BUTTON").checked = value ? true : false;
-  //   saveState(this.name + "Save", value);
-  //   this.update_function(value);
-  // }
   set(value) {
     const boolValue = (value === true || value === "true");
+    const prev = this.value;
     this.value = boolValue;
     FIND(this.name.toUpperCase() + "_BUTTON").checked = boolValue;
     saveState(this.name + "Save", boolValue);
@@ -11256,14 +9982,14 @@ class SavedStateNumber extends SavedState {
     this.update_function(value);
   }
 }
-
+//////////////// WAVLEN PR /////////////////
 
 var darkState = new SavedStateBool("dark", false, (on) => {
   body.classList.toggle("dark-mode", on);
   structuredView.classList.toggle("dark-mode", on);
 });
 
-var tipsState = new SavedStateBool("tips", true, (on) => { 
+var tipsState = new SavedStateBool("tips", true, (on) => {
  if (on) {
     const elementsWithDataTitles = document.querySelectorAll("[data-title]");
     elementsWithDataTitles.forEach((element) => {
@@ -11278,7 +10004,6 @@ var tipsState = new SavedStateBool("tips", true, (on) => {
     });
   }
 });
-
 var colorsortState = new SavedStateBool("colorsort", false, (on) => {
   updateRgbTabContent();
 });
@@ -11289,22 +10014,256 @@ var autoswingState = new SavedStateBool("autoswing", true, (on) => {});
 var inhiltState = new SavedStateBool("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
 var slowState = new SavedStateBool("slow", false, (on) => { framesPerUpdate = on ? 10 : 0; time_factor = framesPerUpdate == 0 ? 1000 : (500/framesPerUpdate)});
 var benchmarkState = new SavedStateBool("benchmark", false, (on) => { AA=1; compile(); FIND("error_message").innerHTML = ""; });
+//////////////// WAVLEN PR /////////////////
 var wavlenState = new SavedStateNumber("wavlen", 500, (value) => {
   myWavLen.setLength(value);
 });
-wavlenInput.addEventListener("input", function(e) {
-  var value = parseInt(this.value);
-  var newValue = (isNaN(value) || value < 1) ? 1 : value;
-  this.value = newValue;
-  wavlenState.set(newValue);
+wavlenInput.addEventListener("focusout", function(e) {
+  ValidateInput(e);
+  if (!e.target.classList.contains('invalid')) {
+    wavlenState.set(Number(e.target.value));
+  }
 });
+
+var soundOnState = new SavedStateBool("sound", true, (on) => {
+  soundOn = on;
+  const icon = FIND("sound-toggle-icon");
+  if (on) {
+    icon.classList.remove("fa-volume-off");
+    icon.classList.add("fa-volume-high");
+  } else {
+    icon.classList.remove("fa-volume-high");
+    icon.classList.add("fa-volume-off");
+  }
+
+  if (!on) {
+    console.log('Sound turned OFF → stopping all loops');
+    stopAllLoops(200, false);  // Sound off button used: do NOT clear lockup state
+  } else {
+    console.log('Sound turned ON → resuming loops');
+    resumeLoops();
+  }
+});
+
+var fontfallbackState = new SavedStateBool("font_fallback",false, (on) => { useDefaultFontFallback = on; });
+
+var useFontWavLenState = new SavedStateBool("use_font_wavlen", true, (on, prev) => {
+  handleWavLenControls();
+  if (on && !prev) wavlenState.set(500);
+});
+
+var origD;
+// Create n textures of about 1MB each.
+function initGL() {
+  // Clear existing tab links and tab bodies before populating
+  var tabLinksElement = FIND("TABLINKS");
+  var tabBodiesElement = FIND("TABBODIES");
+  tabLinksElement.innerHTML = "";
+  tabBodiesElement.innerHTML = "";
+
+  AddTab("color", "Styles",effect_links.sort().join(""))
+  AddTab("rgb", "Colors", ""); updateRgbTabContent();
+  AddTab("layer", "Layers", layer_links.sort().join(""));
+  AddTab("function", "Functions", function_links.sort().join(""));
+  AddTab("transition", "Transitions", transition_links.sort().join(""));
+  AddTab("effect", "Effects");
+  AddTab("lockup_type", "Lockup Types");
+  AddTab("arguments", "Arguments");
+  AddTab("example", "Examples", template_links.join(""));
+  AddTab("history", "History");
+  AddTab("arg_string", "ArgString");
+  EFFECT_ENUM_BUILDER.addToTab("effect", "EFFECT_");
+  LOCKUP_ENUM_BUILDER.addToTab("lockup_type", "LOCKUP_");
+  ArgumentName_ENUM_BUILDER.addToTab("arguments", "");
+
+  // Add arg string.
+  var A = "";
+  A += "Arg string: <input id=ARGSTR name=arg type=text size=80 value='builtin 0 1' onchange='ArgStringChanged()' /><br><table>";
+  var v = Object.keys(ArgumentName_ENUM_BUILDER.value_to_name);
+  for (var i = 0; i < v.length; i++) {
+    var V = parseInt(v[i]);
+    var N = ArgumentName_ENUM_BUILDER.value_to_name[V];
+    A += "<tr><td>" + N + "</td><td>";
+    if (N.search("COLOR") >= 0) {
+      A += "<input type=color id=ARGSTR_"+N+" onclick='ClickArgColor("+N+")' onchange='ClickArgColor("+N+")' >";
+    } else {
+      A += "<input type=button value='<'  onclick='IncreaseArg("+N+",-1)' >";
+      A += "<input id=ARGSTR_"+N+" type='text' size=6 value=0 class='nofocus' onchange='ArgChanged("+N+")' onfocusout='ValidateInput(event)' >";
+      A += "<input type=button value='>'  onclick='IncreaseArg("+N+",1)' >";
+    }
+    A += "</td></tr>\n";
+  }
+  A += "</table\n";
+  AddTabContent("arg_string", A);
+
+  var container = FIND("page_left_top");
+  canvas_id.setAttribute("title", "Blade Preview.\nMove mouse to swing. Click to Clash\nor to Do Selected Effect (and to dismiss this Tooltip.)\nGoto settings to change hilt model or toggle Mouse Swings mode (swinging with mouse moves.)");
+
+  if(window.devicePixelRatio !== undefined) {
+    dpr = window.devicePixelRatio;
+  } else {
+    dpr = 1;
+  }
+
+  width = window.innerWidth * 2 / 3;
+  height = window.innerHeight / 3;
+  window.normalWidth = width;
+  window.normalHeight = height;
+  canvas.width = width * dpr;
+  canvas.height = height * dpr;
+  origD = Math.min(width, height);
+
+  FIND('ENLARGE_BUTTON').onclick = function() {
+    enlargeCanvas = !enlargeCanvas;
+    this.innerText = enlargeCanvas ? 'Reduce' : 'Enlarge';
+    if (enlargeCanvas) {
+      height = window.innerHeight / 2.2;
+    } else {
+      height = window.innerHeight / 3;
+    }
+    canvas.height = height * dpr;
+    canvas.style.height = height + 'px';
+  };
+
+  FIND('FULLSCREEN_BUTTON').onclick = function() {
+    if (!document.fullscreenElement) {
+      FIND('page_left_top').requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  };
+
+  document.addEventListener("fullscreenchange", function() {
+    const fullscreenButton = FIND("FULLSCREEN_BUTTON");
+    fullscreenButton.innerText = document.fullscreenElement
+      ? "Exit Fullscreen"
+      : "Fullscreen";
+
+    let cssW, cssH;
+    if (document.fullscreenElement === container) {
+      const rect = FIND("canvas-container").getBoundingClientRect();
+      cssW = rect.width;  cssH = rect.height;
+    } else {
+      cssW = window.normalWidth;  cssH = window.normalHeight;
+    }
+
+    canvas.width  = cssW * dpr;
+    canvas.height = cssH * dpr;
+    origD = Math.min(canvas.width, canvas.height);
+  });
+
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && document.fullscreenElement) {
+      document.exitFullscreen();
+    }
+  });
+
+  gl = canvas.getContext("experimental-webgl", {colorSpace: "srgb", antialias:false});
+
+  if (!gl) {
+    throw "Unable to fetch WebGL rendering context for Canvas";
+  }
+
+  var str = new URL(window.location.href).searchParams.get("S");
+  if (!str) {
+    str = "Layers<Red,InOutTrL<TrWipeX<WavLen<EFFECT_IGNITION>>,TrWipeInX<WavLen<EFFECT_RETRACTION>>>,ResponsiveLockupL<White,TrInstant,TrFade<100>,Int<26000>>,ResponsiveLightningBlockL<White>,ResponsiveMeltL<Mix<TwistAngle<>,Red,Yellow>>,ResponsiveDragL<White>,TransitionEffectL<TrConcat<TrWipe<100>,AliceBlue,TrDelayX<WavLen<EFFECT_CLASH>>>,EFFECT_CLASH>,TransitionEffectL<TrConcat<TrWipe<100>,Cyan,TrDelayX<WavLen<EFFECT_STAB>>>,EFFECT_STAB>,TransitionEffectL<TrConcat<TrWipe<100>,Aquamarine,TrDelayX<WavLen<EFFECT_BLAST>>>,EFFECT_BLAST>,TransitionEffectL<TrConcat<TrWipe<100>,Azure,TrDelayX<WavLen<EFFECT_FORCE>>>,EFFECT_FORCE>,TransitionEffectL<TrConcat<TrWipe<100>,Bisque,TrDelayX<WavLen<EFFECT_BOOT>>>,EFFECT_BOOT>,TransitionEffectL<TrConcat<TrWipe<100>,Black,TrDelayX<WavLen<EFFECT_NEWFONT>>>,EFFECT_NEWFONT>,TransitionEffectL<TrConcat<TrWipe<100>,BlanchedAlmond,TrDelayX<WavLen<EFFECT_PREON>>>,EFFECT_PREON>,TransitionEffectL<TrConcat<TrWipe<100>,Chartreuse,TrDelayX<WavLen<EFFECT_IGNITION>>>,EFFECT_IGNITION>,TransitionEffectL<TrConcat<TrWipe<100>,Coral,TrDelayX<WavLen<EFFECT_RETRACTION>>>,EFFECT_RETRACTION>,TransitionEffectL<TrConcat<TrWipe<100>,Blue,TrDelayX<WavLen<EFFECT_POSTOFF>>>,EFFECT_POSTOFF>,TransitionEffectL<TrConcat<TrWipe<100>,Cornsilk,TrDelayX<WavLen<EFFECT_DRAG_BEGIN>>>,EFFECT_DRAG_BEGIN>,TransitionEffectL<TrConcat<TrWipe<100>,Cyan,TrDelayX<WavLen<EFFECT_DRAG_END>>>,EFFECT_DRAG_END>,TransitionEffectL<TrConcat<TrWipe<100>,DarkOrange,TrDelayX<WavLen<EFFECT_LOCKUP_BEGIN>>>,EFFECT_LOCKUP_BEGIN>,TransitionEffectL<TrConcat<TrWipe<100>,DeepPink,TrDelayX<WavLen<EFFECT_LOCKUP_END>>>,EFFECT_LOCKUP_END>,TransitionEffectL<TrConcat<TrWipe<100>,DeepSkyBlue,TrDelayX<WavLen<EFFECT_MELT_BEGIN>>>,EFFECT_MELT_BEGIN>,TransitionEffectL<TrConcat<TrWipe<100>,FloralWhite,TrDelayX<WavLen<EFFECT_MELT_END>>>,EFFECT_MELT_END>,TransitionEffectL<TrConcat<TrWipe<100>,GhostWhite,TrDelayX<WavLen<EFFECT_LB_BEGIN>>>,EFFECT_LB_BEGIN>,TransitionEffectL<TrConcat<TrWipe<100>,Green,TrDelayX<WavLen<EFFECT_LB_END>>>,EFFECT_LB_END>,TransitionEffectL<TrConcat<TrWipe<100>,GreenYellow,TrDelayX<WavLen<EFFECT_CHANGE>>>,EFFECT_CHANGE>,TransitionEffectL<TrConcat<TrWipe<100>,HoneyDew,TrDelayX<WavLen<EFFECT_BATTERY_LEVEL>>>,EFFECT_BATTERY_LEVEL>,TransitionEffectL<TrConcat<TrWipe<100>,HotPink,TrDelayX<WavLen<EFFECT_VOLUME_LEVEL>>>,EFFECT_VOLUME_LEVEL>,TransitionEffectL<TrConcat<TrWipe<100>,Ivory,TrDelayX<WavLen<EFFECT_POWERSAVE>>>,EFFECT_POWERSAVE>,TransitionEffectL<TrConcat<TrWipe<100>,LavenderBlush,TrDelayX<WavLen<EFFECT_BLADEIN>>>,EFFECT_BLADEIN>,TransitionEffectL<TrConcat<TrWipe<100>,LemonChiffon,TrDelayX<WavLen<EFFECT_BLADEOUT>>>,EFFECT_BLADEOUT>,TransitionEffectL<TrConcat<TrWipe<100>,LightCyan,TrDelayX<WavLen<EFFECT_ACCENT_SWING>>>,EFFECT_ACCENT_SWING>,TransitionEffectL<TrConcat<TrWipe<100>,Blue,TrDelayX<WavLen<EFFECT_ACCENT_SLASH>>>,EFFECT_ACCENT_SLASH>,TransitionEffectL<TrConcat<TrWipe<100>,LightSalmon,TrDelayX<WavLen<EFFECT_SPIN>>>,EFFECT_SPIN>,TransitionEffectL<TrConcat<TrWipe<100>,LightYellow,TrDelayX<WavLen<EFFECT_ON>>>,EFFECT_ON>,TransitionEffectL<TrConcat<TrWipe<100>,Magenta,TrDelayX<WavLen<EFFECT_OFF>>>,EFFECT_OFF>,TransitionEffectL<TrConcat<TrWipe<100>,MintCream,TrDelayX<WavLen<EFFECT_OFF_CLASH>>>,EFFECT_OFF_CLASH>,TransitionEffectL<TrConcat<TrWipe<100>,MistyRose,TrDelayX<WavLen<EFFECT_FAST_ON>>>,EFFECT_FAST_ON>,TransitionEffectL<TrConcat<TrWipe<100>,Moccasin,TrDelayX<WavLen<EFFECT_FAST_OFF>>>,EFFECT_FAST_OFF>,TransitionEffectL<TrConcat<TrWipe<100>,NavajoWhite,TrDelayX<WavLen<EFFECT_QUOTE>>>,EFFECT_QUOTE>,TransitionEffectL<TrConcat<TrWipe<100>,Orange,TrDelayX<WavLen<EFFECT_NEXT_QUOTE>>>,EFFECT_NEXT_QUOTE>,TransitionEffectL<TrConcat<TrWipe<100>,OrangeRed,TrDelayX<WavLen<EFFECT_TRACK>>>,EFFECT_TRACK>,TransitionEffectL<TrConcat<TrWipe<100>,PapayaWhip,TrDelayX<WavLen<EFFECT_SECONDARY_IGNITION>>>,EFFECT_SECONDARY_IGNITION>,TransitionEffectL<TrConcat<TrWipe<100>,PeachPuff,TrDelayX<WavLen<EFFECT_SECONDARY_RETRACTION>>>,EFFECT_SECONDARY_RETRACTION>,TransitionEffectL<TrConcat<TrWipe<100>,Pink,TrDelayX<WavLen<EFFECT_INTERACTIVE_PREON>>>,EFFECT_INTERACTIVE_PREON>,TransitionEffectL<TrConcat<TrWipe<100>,Red,TrDelayX<WavLen<EFFECT_INTERACTIVE_BLAST>>>,EFFECT_INTERACTIVE_BLAST>,TransitionEffectL<TrConcat<TrWipe<100>,SeaShell,TrDelayX<WavLen<EFFECT_BEGIN_BATTLE_MODE>>>,EFFECT_BEGIN_BATTLE_MODE>,TransitionEffectL<TrConcat<TrWipe<100>,Snow,TrDelayX<WavLen<EFFECT_END_BATTLE_MODE>>>,EFFECT_END_BATTLE_MODE>,TransitionEffectL<TrConcat<TrWipe<100>,SpringGreen,TrDelayX<WavLen<EFFECT_BEGIN_AUTO_BLAST>>>,EFFECT_BEGIN_AUTO_BLAST>,TransitionEffectL<TrConcat<TrWipe<100>,SteelBlue,TrDelayX<WavLen<EFFECT_END_AUTO_BLAST>>>,EFFECT_END_AUTO_BLAST>,TransitionEffectL<TrConcat<TrWipe<100>,Tomato,TrDelayX<WavLen<EFFECT_CLASH_UPDATE>>>,EFFECT_CLASH_UPDATE>,TransitionEffectL<TrConcat<TrWipe<100>,White,TrDelayX<WavLen<EFFECT_ALT_SOUND>>>,EFFECT_ALT_SOUND>,TransitionEffectL<TrConcat<TrWipe<100>,Yellow,TrDelayX<WavLen<EFFECT_TRANSITION_SOUND>>>,EFFECT_TRANSITION_SOUND>,TransitionEffectL<TrConcat<TrWipe<100>,ElectricPurple,TrDelayX<WavLen<EFFECT_SOUND_LOOP>>>,EFFECT_SOUND_LOOP>,TransitionEffectL<TrConcat<TrWipe<100>,ElectricViolet,TrDelayX<WavLen<EFFECT_STUN>>>,EFFECT_STUN>,TransitionEffectL<TrConcat<TrWipe<100>,ElectricLime,TrDelayX<WavLen<EFFECT_FIRE>>>,EFFECT_FIRE>,TransitionEffectL<TrConcat<TrWipe<100>,Amber,TrDelayX<WavLen<EFFECT_CLIP_IN>>>,EFFECT_CLIP_IN>,TransitionEffectL<TrConcat<TrWipe<100>,CyberYellow,TrDelayX<WavLen<EFFECT_CLIP_OUT>>>,EFFECT_CLIP_OUT>,TransitionEffectL<TrConcat<TrWipe<100>,CanaryYellow,TrDelayX<WavLen<EFFECT_RELOAD>>>,EFFECT_RELOAD>,TransitionEffectL<TrConcat<TrWipe<100>,PaleGreen,TrDelayX<WavLen<EFFECT_MODE>>>,EFFECT_MODE>,TransitionEffectL<TrConcat<TrWipe<100>,Flamingo,TrDelayX<WavLen<EFFECT_RANGE>>>,EFFECT_RANGE>,TransitionEffectL<TrConcat<TrWipe<100>,VividViolet,TrDelayX<WavLen<EFFECT_EMPTY>>>,EFFECT_EMPTY>,TransitionEffectL<TrConcat<TrWipe<100>,PsychedelicPurple,TrDelayX<WavLen<EFFECT_FULL>>>,EFFECT_FULL>,TransitionEffectL<TrConcat<TrWipe<100>,HotMagenta,TrDelayX<WavLen<EFFECT_JAM>>>,EFFECT_JAM>,TransitionEffectL<TrConcat<TrWipe<100>,BrutalPink,TrDelayX<WavLen<EFFECT_UNJAM>>>,EFFECT_UNJAM>,TransitionEffectL<TrConcat<TrWipe<100>,NeonRose,TrDelayX<WavLen<EFFECT_PLI_ON>>>,EFFECT_PLI_ON>,TransitionEffectL<TrConcat<TrWipe<100>,VividRaspberry,TrDelayX<WavLen<EFFECT_PLI_OFF>>>,EFFECT_PLI_OFF>,TransitionEffectL<TrConcat<TrWipe<100>,HaltRed,TrDelayX<WavLen<EFFECT_DESTRUCT>>>,EFFECT_DESTRUCT>,TransitionEffectL<TrConcat<TrWipe<100>,MoltenCore,TrDelayX<WavLen<EFFECT_BOOM>>>,EFFECT_BOOM>>";
+  }
+  FIND("style").value = str;
+
+  Run();
+  DoLayerize();
+
+  // Bind a vertex buffer with a single triangle
+  var buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  var bufferData = new Float32Array([
+       -1.0, -1.0, 1.0, -1.0, -1.0,  1.0, 1.0, 1.0]);
+  gl.bufferData(gl.ARRAY_BUFFER, bufferData, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(shaderProgram.a_position);
+  gl.vertexAttribPointer(shaderProgram.a_position, 2, gl.FLOAT, false, 0, 0);
+
+  var texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+
+  // Start the event loop.
+  // ==== 15 FPS rAF loop, auto-pauses on tab hide ====
+  const targetFps = 15;
+  const frameInterval = 1000 / targetFps;
+  let lastTime = performance.now();
+
+  (function loop(now) {
+    requestAnimationFrame(loop);
+    if (document.hidden) return;            // don’t render when tab isn’t visible
+
+    const delta = now - lastTime;
+    if (delta < frameInterval) return;       // not enough time elapsed
+
+    lastTime = now - (delta % frameInterval);
+    drawScene();
+  })();
+}
 
 function onPageLoad() {
   initGL();
+  updateLockupDropdown();
+  rebuildMoreEffectsMenu();
   structuredView = FIND("structured_view");
   all_saved_states.forEach(state => {
     state.onload();
   });
+
+const pageLeft = document.querySelector('.page-left');
+const splitter = document.getElementById('splitter');
+
+let isDragging = false;
+let startX = 0;
+let startWidth = 0;
+
+splitter.addEventListener('mousedown', (e) => {
+  isDragging = true;
+  startX = e.clientX;
+  // Always use the current width at drag start as the minimum
+  startWidth = pageLeft.offsetWidth;
+  document.body.style.cursor = 'ew-resize';
+  e.preventDefault();
+});
+
+document.addEventListener('mousemove', (e) => {
+  // At page load, .page-left is at the minimum width the user can ever shrink it to.
+  if (!isDragging) return;
+  let dx = e.clientX - startX;
+  let newWidth = startWidth + dx;
+  // Don't let it get crazy
+  const max = window.innerWidth * 0.9;
+  if (newWidth < startWidth) newWidth = startWidth; // limit to starting width, never smaller
+  if (newWidth > max) newWidth = max;
+  pageLeft.style.width = newWidth + 'px';
+  // pageRight will auto-shrink due to flex
+});
+
+document.addEventListener('mouseup', () => {
+  if (isDragging) {
+    isDragging = false;
+    document.body.style.cursor = '';
+  }
+});
+
+// // Optional: on window resize, remove explicit width if it's now too big
+// window.addEventListener('resize', () => {
+//   // Remove explicit width if it overflows window, let flex shrink
+//   if (parseInt(pageLeft.style.width) > window.innerWidth - 200) {
+//     pageLeft.style.width = '';
+//   }
+// });
+
+  // Welcome click for unlocking audio
+  const startOverlay = document.getElementById('start-overlay');
+  startOverlay.style.display = 'flex';
+  startOverlay.onclick = function () {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    startOverlay.style.display = 'none';
+  };
 }
 
 function handleSettings(checkbox) {
@@ -11312,38 +10271,21 @@ function handleSettings(checkbox) {
   state.set(!state.get());
 }
 
+// User can choose one or the other
+function handleWavLenControls() {
+  var wavlenLabel = document.querySelector('.wavlen-global-label');
+  var wavlenInput = document.getElementById('WAVLEN_VALUE');
+
+  if (useFontWavLenState.get()) {
+    wavlenLabel.classList.add('disabled');
+    wavlenInput.disabled = true;
+  } else {
+    wavlenLabel.classList.remove('disabled');
+    wavlenInput.disabled = false;
+  }
+}
+
 function ClickRestore() {
   localStorage.clear();
   onPageLoad();
 }
-
-</script>
-
-    <br>
-    <!-- <div id=TABS class="tabs-container"> -->
-    <div id=TABS>
-      <div id=TABLINKS class=tab></div>
-      <div id=TABBODIES></div>
-    </div>
-    <div class="footer-container">
-      <span class="footer-title">ProffieOS Style Editor</span>
-      <span class="footer-links">
-        <span class="other-sites">Other sites: </span>
-        <a href="https://crucible.hubbe.net/" target="_blank"><img src="https://crucible.hubbe.net/uploads/default/optimized/1X/2237f551ca8f4f69ac478df5c64aee1c951c33f5_2_180x180.png" alt="Crucible logo"></a>
-        <a href="https://pod.hubbe.net/" target="_blank"><img src="https://pod.hubbe.net/images/favicon.png" alt="Pod logo"></a>
-        <a href="https://fredrik.hubbe.net/lightsaber/" target="_blank"><img src="https://fredrik.hubbe.net/favicon.ico" alt="Lightsaber logo"></a>
-        <a href="https://www.fett263.com/" target="_blank"><img src="https://www.fett263.com//favicon.ico" alt="Fett263 logo"></a>
-        <a href="https://www.facebook.com/groups/opensourcesabers/" target="_blank"><img src="https://www.facebook.com/favicon.ico" alt="Facebook logo"></a>
-      </span>
-    </div>
-    </td>
-    <td class="page-right">
-      <div id="structured_view" class="structured-view">
-        <span class="structured-view-label">Structured view, click to edit.</span>
-        <div id="pp" class="pp"></div>
-      </div>
-    </td>
-    </tr>
-  </table>
-  </body>
-</html>
