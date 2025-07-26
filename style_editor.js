@@ -8,6 +8,7 @@ var dpr = window.devicePixelRatio || 1;
 const canvas = document.getElementById("canvas_id"); 
 var enlargeCanvas = false;
 let wasEnlargedWhenFullscreen = false;
+const pageLeftTop = FIND("page_left_top");
 
 function FIND(id) {
   var ret = document.getElementById(id);
@@ -154,14 +155,14 @@ function mouse_move(e) {
   const d = Math.min(h, w);
 
   let x;
-  if (document.fullscreenElement === FIND("page_left_top") || enlargeCanvas) {
+  if (document.fullscreenElement === pageLeftTop || enlargeCanvas) {
     x = (e.clientX - (rect.left + rect.right) / 2) / d * 2.2;  // Fullscreen/Enlarge 
   } else {
     x = (e.clientX - (rect.left + rect.right) / 2) / d * 1.8;  // Normal
   }
 
   let y;
-  if (document.fullscreenElement === FIND("page_left_top")) {
+  if (document.fullscreenElement === pageLeftTop) {
     y = (e.clientY - (rect.top + rect.bottom) / 2) / d * 0.75; // Fullscreen, slightly less.
   } else {  // y already accounted for for enlarge.
     y = (e.clientY - (rect.top + rect.bottom) / 2) / d;
@@ -10097,8 +10098,6 @@ function initGL() {
   A += "</table\n";
   AddTabContent("arg_string", A);
 
-  var container = FIND("page_left_top");
-
   if(window.devicePixelRatio !== undefined) {
     dpr = window.devicePixelRatio;
   } else {
@@ -10126,7 +10125,7 @@ function initGL() {
 
   FIND('FULLSCREEN_BUTTON').onclick = function() {
     if (!document.fullscreenElement) {
-      FIND('page_left_top').requestFullscreen();
+      pageLeftTop.requestFullscreen();
     } else {
       document.exitFullscreen();
     }
