@@ -847,53 +847,48 @@ function endLockupLoop(effectType, endEffectName, shouldClear) {
   }
   // Play endlock if exists, with fallback to default font when needed
   if (endEffectName) {
-    const fontLabel = currentFontName === "Default"
-      ? "Default Font"
-      : (currentFontName || "Custom Font");
-
-    // Try custom sound.
-    const customBufs = (customFontSoundBuffers[endEffectName] || [])
-      .filter(b => b instanceof AudioBuffer);
-
-    if (customBufs.length > 0) {
-      const endIdx = noRepeatRandom(customBufs.length, lastPlayedSoundIndex[endEffectName]);
-      lastPlayedSoundIndex[endEffectName] = endIdx;
-      const buf   = customBufs[endIdx];
-      const fname = customFontSoundFilenames[endEffectName]?.[endIdx] || "(unknown)";
-      const dur   = customFontSoundDurations[endEffectName]?.[endIdx]
-                 ? Math.round(customFontSoundDurations[endEffectName][endIdx]) : "???";
-      console.log(`▶ ${fontLabel}: ** playing ${fname} – ${dur}ms`);
-      playBuffer(buf, 0, false, globalVolume, masterGain);
-      // Continue after playing custom.
-      // Now drop the old lockup gain node itself
-      if (window.lockupGainNode) {
-        try { window.lockupGainNode.disconnect(); } catch(_) {}
-        window.lockupGainNode = null;
+    function tryPlayBuffers(bufs, fnames, durs, fontLabel) {
+      if (bufs.length > 0) {
+        const endIdx = noRepeatRandom(bufs.length, lastPlayedSoundIndex[endEffectName]);
+        lastPlayedSoundIndex[endEffectName] = endIdx;
+        const buf = bufs[endIdx];
+        const fname = fnames?.[endIdx] || "(unknown)";
+        const dur = durs?.[endIdx] ? Math.round(durs[endIdx]) : "???";
+        console.log(`▶ ${fontLabel}: ** playing ${fname} – ${dur}ms`);
+        playBuffer(buf, 0, false, globalVolume, masterGain);
+        if (window.lockupGainNode) {
+          try { window.lockupGainNode.disconnect(); } catch(_) {}
+          window.lockupGainNode = null;
+        }
+        if (shouldClear) window.currentLockupType = null;
+        return true;
       }
-      if (shouldClear) window.currentLockupType = null;
-      return;
+      return false;
     }
 
-    // If we're on Default font OR fallback is enabled, try default buffers.
+    // Try custom font first
+    const customBufs = (customFontSoundBuffers[endEffectName] || []).filter(b => b instanceof AudioBuffer);
+    if (tryPlayBuffers(
+      customBufs,
+      customFontSoundFilenames[endEffectName],
+      customFontSoundDurations[endEffectName],
+      currentFontName === "Default" ? "Default Font" : (currentFontName || "Custom Font")
+    )) return;
+
+    // Then try default font fallback if needed
     if (currentFontName === "Default" || useDefaultFontFallback) {
-      const defaultBufs = defaultFontSoundBuffers[endEffectName] || [];
-      if (defaultBufs.length > 0) {
-        const endIdx = noRepeatRandom(defaultBufs.length, lastPlayedSoundIndex[endEffectName]);
-        lastPlayedSoundIndex[endEffectName] = endIdx;
-        const buf   = defaultBufs[endIdx];
-        const fname = defaultFontSoundFilenames[endEffectName]?.[endIdx] || "(unknown)";
-        const dur   = defaultFontSoundDurations[endEffectName]?.[endIdx]
-                   ? Math.round(defaultFontSoundDurations[endEffectName][endIdx]) : "???";
-        console.log(`▶ Default Font: ** playing ${fname} – ${dur}ms`);
-        playBuffer(buf, 0, false, globalVolume, masterGain);
-      }
+      tryPlayBuffers(
+        defaultFontSoundBuffers[endEffectName] || [],
+        defaultFontSoundFilenames[endEffectName],
+        defaultFontSoundDurations[endEffectName],
+        "Default Font"
+      );
     }
   }
   if (window.lockupGainNode) {
     try { window.lockupGainNode.disconnect(); } catch(_) {}
     window.lockupGainNode = null;
   }
-  // Only clear on true END event (user ends lockup or power actually turns off)
   if (shouldClear) window.currentLockupType = null;
 }
 
