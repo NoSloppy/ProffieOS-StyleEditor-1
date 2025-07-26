@@ -8,6 +8,8 @@ var dpr = window.devicePixelRatio || 1;
 const canvas = document.getElementById("canvas_id"); 
 var enlargeCanvas = false;
 
+const pageLeftTop = FIND("page_left_top");
+
 function FIND(id) {
   var ret = document.getElementById(id);
   if (!ret) {
@@ -153,14 +155,14 @@ function mouse_move(e) {
   const d = Math.min(h, w);
 
   let x;
-  if (document.fullscreenElement === FIND("page_left_top") || enlargeCanvas) {
+  if (document.fullscreenElement === pageLeftTop || enlargeCanvas) {
     x = (e.clientX - (rect.left + rect.right) / 2) / d * 2.2;  // Fullscreen/Enlarge 
   } else {
     x = (e.clientX - (rect.left + rect.right) / 2) / d * 1.8;  // Normal
   }
 
   let y;
-  if (document.fullscreenElement === FIND("page_left_top")) {
+  if (document.fullscreenElement === pageLeftTop) {
     y = (e.clientY - (rect.top + rect.bottom) / 2) / d * 0.75; // Fullscreen, slightly less.
   } else {  // y already accounted for for enlarge.
     y = (e.clientY - (rect.top + rect.bottom) / 2) / d;
@@ -10096,9 +10098,6 @@ function initGL() {
   A += "</table\n";
   AddTabContent("arg_string", A);
 
-  var container = FIND("page_left_top");
-  canvas_id.setAttribute("title", "Blade Preview.\nMove mouse to swing. Click to Clash\nor to Do Selected Effect (and to dismiss this Tooltip.)\nGoto settings to change hilt model or toggle Mouse Swings mode (swinging with mouse moves.)");
-
   if(window.devicePixelRatio !== undefined) {
     dpr = window.devicePixelRatio;
   } else {
@@ -10107,8 +10106,7 @@ function initGL() {
 
   width = window.innerWidth * 2 / 3;
   height = window.innerHeight / 3;
-  window.normalWidth = width;
-  window.normalHeight = height;
+  let normalHeight = height;
   canvas.width = width * dpr;
   canvas.height = height * dpr;
   origD = Math.min(width, height);
@@ -10119,7 +10117,7 @@ function initGL() {
     if (enlargeCanvas) {
       height = window.innerHeight / 2.2;
     } else {
-      height = window.innerHeight / 3;
+      height = normalHeight;
     }
     canvas.height = height * dpr;
     canvas.style.height = height + 'px';
@@ -10127,7 +10125,7 @@ function initGL() {
 
   FIND('FULLSCREEN_BUTTON').onclick = function() {
     if (!document.fullscreenElement) {
-      FIND('page_left_top').requestFullscreen();
+      pageLeftTop.requestFullscreen();
     } else {
       document.exitFullscreen();
     }
@@ -10139,16 +10137,21 @@ function initGL() {
       ? "Exit Fullscreen"
       : "Fullscreen";
 
-    let cssW, cssH;
-    if (document.fullscreenElement === container) {
-      const rect = FIND("canvas-container").getBoundingClientRect();
-      cssW = rect.width;  cssH = rect.height;
+    if (!document.fullscreenElement) {
+      // Exited fullscreen: restore enlarge or normal
+      if (enlargeCanvas) {
+        height = window.innerHeight / 2.2;
+      } else {
+        height = normalHeight;
+      }
+      canvas.height = height * dpr;
+      canvas.style.height = height + 'px';
     } else {
-      cssW = window.normalWidth;  cssH = window.normalHeight;
+      // Entered fullscreen: set to normal height
+      height = normalHeight;
+      canvas.height = height * dpr;
+      canvas.style.height = height + 'px';
     }
-
-    canvas.width  = cssW * dpr;
-    canvas.height = cssH * dpr;
     origD = Math.min(canvas.width, canvas.height);
   });
 
@@ -10236,7 +10239,8 @@ document.addEventListener('mousemove', (e) => {
   let newWidth = startWidth + dx;
   // Don't let it get crazy
   const max = window.innerWidth * 0.9;
-  if (newWidth < startWidth) newWidth = startWidth; // limit to starting width, never smaller
+  // limit to starting width, never smaller
+  if (newWidth < startWidth) newWidth = startWidth;
   if (newWidth > max) newWidth = max;
   pageLeft.style.width = newWidth + 'px';
   // pageRight will auto-shrink due to flex
@@ -10248,14 +10252,6 @@ document.addEventListener('mouseup', () => {
     document.body.style.cursor = '';
   }
 });
-
-// // Optional: on window resize, remove explicit width if it's now too big
-// window.addEventListener('resize', () => {
-//   // Remove explicit width if it overflows window, let flex shrink
-//   if (parseInt(pageLeft.style.width) > window.innerWidth - 200) {
-//     pageLeft.style.width = '';
-//   }
-// });
 
   // Welcome click for unlocking audio
   const startOverlay = document.getElementById('start-overlay');
