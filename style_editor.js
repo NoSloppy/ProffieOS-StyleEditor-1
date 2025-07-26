@@ -1397,7 +1397,7 @@ class RgbClass extends STYLE {
 
   argify(state) {
     if (state.color_argument) {
-      ret = RgbArg_(ArgumentName(state.color_argument), this);
+      var ret = RgbArg_(ArgumentName(state.color_argument), this);
       state.color_argument = false;
       return ret;
     } else {
@@ -8651,13 +8651,13 @@ function ReplaceCurrentFocus(str) {
   FIND("layerize_button").className = CanLayerize(current_style) ? "button-on" : "button-off";
 
   if (type == "COLOR" && classname.endsWith("LClass")) {
-    ActivateTab("layer");
+    ActivateTab("layer", true);
   } else if (type == "COLOR" && (classname == "Rgb16Class" || classname == "RgbClass")) {
-    ActivateTab("rgb");
+    ActivateTab("rgb", true);
   } else if (type === "ArgumentName") {
-    ActivateTab("arguments");
+    ActivateTab("arguments", true);
   } else {
-    ActivateTab(type.toLowerCase());
+    ActivateTab(type.toLowerCase(), true);
   }
 }
 
@@ -9396,7 +9396,7 @@ function DoArgify() {
 ////////////////  TAB MANIA PR /////////////////
 
 // Tab mania.
-const allTabs = ["color", "rgb", "layer", "function", "transition", "effect", "lockup_type", "arguments", "example", "history", "arg_string"];
+const allTabs = ["color", "rgb", "layer", "function", "transition", "effect", "lockup_type", "arguments", "example"];  // don't include History or argString
 // The "color group" are the 3 tabs that contain valid replacements for a COLOR.
 const colorGroup = ["color", "rgb", "layer"];
 var wasTabClicked = false;
@@ -9412,8 +9412,7 @@ function AddTab(tab, name, contents) {
 }
 
 function TabClicked(tab) {
-  wasTabClicked = true;
-  ActivateTab(tab);
+  ActivateTab(tab, false);
 }
 
 function AddTabContent(tab, data) {
@@ -9466,80 +9465,52 @@ window.addEventListener("load", function () {
   }, 0);
 });
 
-function ActivateTab(tab) {
+function ActivateTab(tab, fromStructuredView = false) {
   if (!FIND(tab + "_tab")) {
     console.log("No such tab");
     return;
   }
-  /* The purpose here is to have non-applicable tabs be disabled
-  if the tab is active due to a clicked type in the Structured View
-  (therefore showing only valid replacement choices).
-  If the tab is already active, clicking it again
-  allows "unlocking" of the other tabs.
-  This is useful when you want to change the top level
-  of the Structured View to something completely different.
-  */
-  var activeTab = FIND(tab + "_tab");
-  if (activeTab.classList.contains("active") && wasTabClicked) {
-    // If the clicked tab is already active, enable all tabs
+
+  // Hide all tab contents
+  const tabcontents = document.querySelectorAll('.tabcontent');
+  tabcontents.forEach(tc => tc.style.display = "none");
+
+  // Remove active/disabled from all tabs
+  const tablinks = document.querySelectorAll('.tablinks');
+  tablinks.forEach(btn => {
+    btn.classList.remove("active", "disabled");
+    btn.disabled = false;
+  });
+
+  // Show current tab & set active
+  FIND(tab + "_tabcontent").style.display = "block";
+  const activeTab = FIND(tab + "_tab");
+  activeTab.classList.add("active");
+
+  // If clicking already-active tab (user), unlock all
+  if (activeTab.classList.contains("active") && !fromStructuredView) {
     enableTabs();
-    // Reset the wasTabClicked flag as all tabs are now enabled
-    wasTabClicked = false;
     return;
   }
 
-  // Get all elements with class="tabcontent" and hide them to clear last selected tabcontents.
-  var tabcontent = document.getElementsByClassName("tabcontent");
-  for (var i = 0; i < tabcontent.length; i++) {
-    tabcontent[i].style.display = "none";
-  }
-  // First, remove the "active" and "disabled" class from all tabs
-  for (var i = 0; i < tablinks.length; i++) {
-    tablinks[i].classList.remove("active");
-    tablinks[i].classList.remove("disabled");
-    tablinks[i].disabled = false;
-  }
-
-  // Show the current tab, and add an "active" class to the button that opened the tab
-  FIND(tab + "_tabcontent").style.display = "block";
-  FIND(tab + "_tab").classList.add("active");
-
-  // // Find the outer-most bracket element using simplified XPath
-  // var outerMostBracket = FIND('structured_view');
-
-  // outerMostBracket.addEventListener("click", function (event) {
-  //   enableTabs();
-  // });
-
-  // Deactivate tabs that are not compatible with the current tab
-  var incompatibleTabs = getIncompatibleTabs(tab);
-  if (!wasTabClicked || (colorGroup.includes(tab) && !allTabsEnabled)) {
-    for (var i = 0; i < incompatibleTabs.length; i++) {
-      currentTab = FIND(incompatibleTabs[i] + "_tab");
-      if (currentTab) {
-        currentTab.classList.add("disabled");
-        currentTab.disabled = true;
-        allTabsEnabled = false;
-      }
-    }
-  }
-  // Reset the flag
-  wasTabClicked = false;
-}
-
-function getIncompatibleTabs(tab) {
-  let incompatibleTabs;
-
+  // Figure out which tabs should be enabled:
+  let validTabs;
   if (colorGroup.includes(tab)) {
-    // If the current tab is in the color group, filter out all other tabs outside this group
-    incompatibleTabs = allTabs.filter(t => !colorGroup.includes(t));
+    validTabs = colorGroup.concat("history", "arg_string");
   } else {
-    // If the current tab is NOT in the color group, filter out all tabs including the color group
-    incompatibleTabs = allTabs.filter(t => t !== tab);
+    validTabs = [tab, "history", "arg_string"];
   }
 
-  return incompatibleTabs;
+  // Disable everything except valid tabs
+  tablinks.forEach(btn => {
+    const btnTab = btn.id.replace("_tab", "");
+    if (!validTabs.includes(btnTab)) {
+      btn.classList.add("disabled");
+      btn.disabled = true;
+    }
+  });
 }
+
 ////////////////  TAB MANIA PR /////////////////
 
 ////////////// Recent EFFECTS PR ///////////
