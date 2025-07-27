@@ -14,8 +14,8 @@ const lastPlayedSoundIndex = {};
 let soundOn = true;
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-const volumeSlider = document.getElementById('VOLUME_SLIDER');
-const volumeValue = document.getElementById('VOLUME_VALUE');
+const volumeSlider = FIND('VOLUME_SLIDER');
+const volumeValue = FIND('VOLUME_VALUE');
 let globalVolume = Number(volumeSlider.value) / 100;
 
 // master gain for global volume
@@ -23,8 +23,8 @@ const masterGain = audioCtx.createGain();
 masterGain.gain.value = globalVolume;
 masterGain.connect(audioCtx.destination);
 
-let lockupGainNode = null;
-let lockupLoopSrc  = null;
+let lockupGainNode  = null;
+let lockupLoopSrc   = null;
 let lockupEndBuffer = null;
 
 let activeOneShots = [];
@@ -46,9 +46,9 @@ fetch('default_font_urls.txt')
 
     // For each effect, create buffer + duration slots
     for (const [effect, urlList] of Object.entries(defaultFontSounds)) {
-      defaultFontSoundBuffers[effect]   = [];
+      defaultFontSoundBuffers[effect] = [];
       defaultFontSoundDurations[effect] = [];
-      defaultFontSoundFilenames[effect]  = [];
+      defaultFontSoundFilenames[effect] = [];
 
       urlList.forEach((url, idx) => {
         fetch(url)
@@ -94,7 +94,7 @@ function showLoadingOverlay() {
 }
 
 function hideLoadingOverlay() {
-  const loadingOverlay = document.getElementById('loading_overlay');
+  const loadingOverlay = FIND('loading_overlay');
   if (loadingOverlay) document.body.removeChild(loadingOverlay);
   if (window.lockupLoopSrc) {
     endLockupLoop(window.currentLockupType, null, false);
@@ -102,13 +102,21 @@ function hideLoadingOverlay() {
   resumeLoops();
 }
 
-const chooseLocalFontBtn = document.getElementById('choose_local_font');
-const fileInput          = document.getElementById('files');
-const localFontName      = document.getElementById('local_font_name');
+const fontChooser = FIND('font_chooser');
+const fileInput   = FIND('files');
+const localFontName = FIND('local_font_name');
 
-chooseLocalFontBtn.addEventListener('click', () => {
-  fileInput.value = '';
-  fileInput.click();
+fontChooser.addEventListener('change', function() {
+  if (this.value === "Default") {
+    currentFontName = "Default";
+    localFontName.textContent = "";
+    useDefaultFontFallback = false;
+    // You might want to call a function here to reset to default font, if needed
+    console.log("Switched to Default Font");
+  } else if (this.value === "Custom") {
+    fileInput.value = '';
+    fileInput.click();
+  }
 });
 
 // Load custom font.
@@ -127,7 +135,7 @@ fileInput.addEventListener('change', (e) => {
     : files[0].name;
 
   // Set the button's label to the folder name
-  document.getElementById('choose_local_font_label').textContent = folderName;
+  FIND('choose_local_font_label').textContent = folderName;
   currentFontName = folderName;
   // Reset to defaults (so fallback is always there)
   customFontSounds = {};
@@ -177,22 +185,6 @@ fileInput.addEventListener('change', (e) => {
     .catch(err => console.error("Error loading durations:", err))
     .then(() => hideLoadingOverlay && hideLoadingOverlay());
 });
-
-//   Promise.all(promises)
-//     .catch(err => console.error("Error loading durations:", err))
-//     .then(() => {
-//       hideLoadingOverlay && hideLoadingOverlay();
-//       const fullStyleFocused =
-//         !current_focus ||
-//         current_focus_url === '$' ||
-//         (current_focus && current_focus.constructor.name === 'LayersClass');
-//       if (STATE_ON && fullStyleFocused) {
-//         focusAllowsHum = true;
-//         console.log('[FontLoad] resuming hum & smooth-swings');
-//         resumeLoops();
-//       }
-//     });
-// });
 
 // SmoothSwing and swing sounds
 let swingSpeed = 0;
@@ -568,7 +560,7 @@ function pickLoopBuffers(key) {
   if (custom.length > 0 && currentFontName !== "Default") {
     return custom;
   }
-  // either Default font, or custom empty + fallback enabled
+  // Either Default font, or custom empty + fallback enabled
   if (currentFontName === "Default" || useDefaultFontFallback) {
     return defaultFontSoundBuffers[key] || [];
   }
@@ -612,7 +604,7 @@ function playRandomEffect(effectName, isAllowed = true) {
   const customBufs = (customFontSoundBuffers[effectName] || [])
     .filter(b => b instanceof AudioBuffer);
 
-  // 2) default fallback only when allowed
+  // Default fallback only when allowed
   const defaultBufs = (currentFontName === "Default" || useDefaultFontFallback)
     ? (defaultFontSoundBuffers[effectName] || [])
     : [];
