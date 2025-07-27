@@ -178,22 +178,6 @@ fileInput.addEventListener('change', (e) => {
     .then(() => hideLoadingOverlay && hideLoadingOverlay());
 });
 
-//   Promise.all(promises)
-//     .catch(err => console.error("Error loading durations:", err))
-//     .then(() => {
-//       hideLoadingOverlay && hideLoadingOverlay();
-//       const fullStyleFocused =
-//         !current_focus ||
-//         current_focus_url === '$' ||
-//         (current_focus && current_focus.constructor.name === 'LayersClass');
-//       if (STATE_ON && fullStyleFocused) {
-//         focusAllowsHum = true;
-//         console.log('[FontLoad] resuming hum & smooth-swings');
-//         resumeLoops();
-//       }
-//     });
-// });
-
 // SmoothSwing and swing sounds
 let swingSpeed = 0;
 window.swingMotionPeak = 0;
