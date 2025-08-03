@@ -1,0 +1,908 @@
+
+/*
+ * Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com
+ * License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License)
+ * Copyright 2023 Fonticons, Inc.
+ */
+
+.fas,
+.fa-solid {
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  display: var(--fa-display, inline-block);
+  font-style: normal;
+  font-variant: normal;
+  line-height: 1;
+  text-rendering: auto; }
+
+.fas,
+.fa-solid {
+  font-family: 'Font Awesome 6 Free'; }
+
+.fa-right-from-bracket::before {
+  content: "\f2f5"; }
+
+.fa-copy::before {
+  content: "\f0c5"; }
+
+.fa-up-right-and-down-left-from-center::before {
+  content: "\f424"; }
+
+.fa-layer-group::before {
+  content: "\f5fd"; }
+
+.fa-list::before {
+  content: "\f03a"; }
+
+.fa-arrows-rotate::before {
+  content: "\f021"; }
+
+.fa-save::before {
+  content: "\f0c7"; }
+
+.fa-cog::before {
+  content: "\f013"; }
+
+.fa-volume-high::before {
+  content: "\f028"; }
+
+.fa-volume-off::before {
+  content: "\f026"; }
+
+.fa-solid {
+  font-weight: 900; }
+
+@font-face {
+  font-family: 'Font Awesome 6 Free';
+  font-style: normal;
+  font-weight: 900;
+  font-display: block;
+  src: url("/fontawesome-free-6.4.0-web/webfonts/fa-solid-900.woff2") format("woff2"),
+       url("/fontawesome-free-6.4.0-web/webfonts/fa-solid-900.ttf") format("truetype"); }
+
+/* Make page elements like buttons and whitespace non-selectable with drag box */
+* {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Box sizing helps keep buttons uniform in
+size when padding and margins may change */
+* {
+  margin: 0px;
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  box-sizing: border-box;
+}
+
+/* Dark mode styles */
+
+/* Whole page */
+.dark-mode {
+  background-color: #202020;
+  color: white !important;
+  color-scheme: dark !important;
+}
+
+/* Do Selected Effect, Expand, and Layerize */
+.dark-mode .page-left .button-off,
+.dark-mode .page-left .button-off:hover {
+  background-color: #777;
+  color: darkgray;
+   box-shadow: 0 0 0 1px transparent;
+}
+
+/* Other buttons */
+.dark-mode button,
+.dark-mode input[type="button"] {
+  background-color: #777;
+  color: #fff;
+  border: 1px solid transparent;
+}
+.dark-mode button:hover,
+.dark-mode input[type="button"]:hover {
+  background-color: #9F9F9F;
+}
+.dark-mode .settings-panel button{
+  background-color: steelblue;
+}
+.dark-mode button:active,
+.dark-mode .settings-panel button:active,
+.dark-mode input[type="button"]:active {
+  background-color: steelblue;
+}
+.dark-mode .settings-panel button:hover {
+ background-color: lightsteelblue;
+}
+.dark-mode .settings-panel label input[type="checkbox"] {
+  accent-color: steelblue;
+}
+.dark-mode button.submit-button {
+  background-color: forestgreen;
+}
+
+/* Power and Rotate latching buttons */
+.dark-mode .page-left .button-latched,
+.dark-mode .page-left .button-latched:hover {
+  background-color: steelblue;
+}
+
+/* Lockup and More Effects dropdown menus */
+.dark-mode select {
+  background-color: #777;
+  color: #fff;
+  border: 1px solid transparent;
+  padding: 1px;
+}
+.dark-mode select:hover {
+  background-color: #9F9F9F;
+}
+
+.dark-mode .variant-alt-container {
+  background-color: steelblue;
+  color: white;
+}
+.dark-mode .sound-ribbon-container {
+  background-color: steelblue;
+}
+.dark-mode .sound-ribbon-btn {
+  border: 1px solid black;
+}
+.dark-mode .sound-ribbon-btn:active {
+  background-color: dodgerblue;
+  color: black;
+}
+
+.dark-mode .textbox {
+  background-color: #333;
+  color: white;
+}
+.dark-mode .settings-panel {
+  border: 3px solid #ccc;
+  background: #777;
+  color: black;
+}
+
+/* Tabs */
+.dark-mode .tab {
+  background-color: #333;
+}
+.dark-mode .tab button:hover {
+  background-color: #9F9F9F;
+  box-shadow: 0 0 3px 1px transparent;
+}
+.dark-mode .tab button.active {
+  background-color: steelblue;
+}
+.dark-mode .tab button.disabled {
+  background-color: #777;
+  color: #bbb;
+  cursor: not-allowed;
+}
+
+/* Structured View style arguments borders */
+.dark-mode .structured-view .selected-area-container {
+  background-color: steelblue;
+}
+.dark-mode .pp-container {
+  border-color: white;
+  border-width: 1px;
+}
+
+.dark-mode .pp-container .running {
+  border-color: chartreuse;
+  box-shadow: 0 6px 24px #333;
+}
+
+/* Popup Window */
+.dark-mode .popup-window {
+  border: 3px solid #ccc;
+  background: #777;
+}
+
+.dark-mode .header-container {
+  background-color: #333;
+}
+
+.dark-mode .wavlen-global-label.disabled {
+  color: #444 !important;
+}
+.dark-mode .wavlen-global-label.disabled input {
+  background-color: #555;
+  color: #bbb;
+}
+
+/* Non-dark mode styles */
+
+body {
+  margin-top: -15px;
+  margin-bottom: 0;
+  overflow: hidden;
+}
+#start-overlay {
+  display: none;
+  position: fixed;
+  z-index: 99999;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  color: #fff;
+  font-size: 2em;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  cursor: pointer;
+}
+#start-overlay > .start-overlay-box {
+  margin: auto;
+  border: 2px solid yellow;
+  border-radius: 12px;
+  padding: 34px 38px 22px 38px;
+  display: inline-block;
+  background: rgba(0,0,0,0.72);
+  box-shadow: 0 4px 24px #0008;
+}
+#start-overlay > div {
+  margin: auto;
+}
+
+.start-overlay-sub {
+  font-size: 0.6em;
+}
+.loading-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  font-size: 1.5em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  text-align: center;
+}
+
+.main-container {
+  display: flex;
+  flex-direction: row;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.page-left {
+  min-width: 200px;
+  width: 65vw;
+  max-width: 90vw;
+  overflow: auto;
+  resize: none;
+  padding: 10px;
+}
+
+#page_left_top,
+.page-left-top {
+  display: flex;
+  flex-direction: column;
+}
+
+/*  Full-screen toolbar  */
+/*  control-buttons on the left  */
+#page_left_top:fullscreen #control-buttons,
+#page_left_top:-webkit-full-screen #control-buttons {
+  position: static;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.2em;
+  z-index: 1000;
+  margin: 0;
+}
+
+#page_left_top:fullscreen .controls,
+#page_left_top:-webkit-full-screen .controls {
+  position: static;
+  margin: 0;
+}
+
+#page_left_top:fullscreen .controls-row,
+#page_left_top:-webkit-full-screen .controls-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  width: 100%;
+  gap: 1em;
+  position: static;
+  margin-top: 1em;
+  order: -1;
+}
+#page_left_top:fullscreen .sound-ribbon-container,
+#page_left_top:-webkit-full-screen .sound-ribbon-container {
+  margin-left: 1em;
+}
+
+#page_left_top:fullscreen #ENLARGE_BUTTON,
+#page_left_top:-webkit-full-screen #ENLARGE_BUTTON {
+  display: none;
+}
+/* Show the Fullscreen/Exit button at top-right in FS mode */
+#page_left_top:fullscreen #FULLSCREEN_BUTTON,
+#page_left_top:-webkit-full-screen #FULLSCREEN_BUTTON {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 1001;
+}
+
+#canvas-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: stretch;
+  overflow: hidden;
+}
+
+#ENLARGE_BUTTON {
+  position: absolute;
+  bottom: 40px;
+  right: 20px;
+  z-index: 10;
+}
+
+/* This keeps the More Effects menu and
+the Do Selected Effect button together */
+.more-menu-container {
+  white-space: nowrap;
+}
+/* Do Selected Effect, Expand, and Layerize */
+.page-left .button-off,
+.page-left .button-off:hover {
+  background-color: lightgray;
+  color: darkgray;
+  box-shadow: 0 0 2px 1px transparent;
+  cursor: not-allowed;
+}
+
+/* Drop Downs menus */
+select {
+  background-color: #eee;
+  color: black;
+  border-radius: 5px;
+  padding: .2%;
+  font-size: .8em;
+  cursor: pointer;
+}
+select:hover {
+  box-shadow: 0 0 2px 1px dodgerblue;
+}
+/* Settings Panel buttons
+need to be here to not override Other Buttons below */
+/* Center only the Restore Defaults button */
+.settings-panel .restore-defaults-btn {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: #A1D1F3;
+  color: black;
+  border: 1px solid black;
+}
+
+.settings-panel button:hover {
+  background-color: dodgerblue;
+}
+.settings-panel button.close-settings {
+  position: absolute;
+  top: 0px;
+  right: 5px;
+  padding: 0px 4px;
+  font-weight: bold;
+  background-color: Red;
+}
+/* Other buttons */
+button,
+input[type="button"] {
+  display: inline-block;
+  background-color: #eee;
+  color: black;
+  border-radius: 3px;
+  padding: 3px;
+  margin-block: 5px;
+  font-size: 14px;
+  border: 1px solid #bbb;
+  font-weight: normal;
+  transition: box-shadow 0.1s ease;
+}
+button:hover,
+input[type="button"]:hover {
+  box-shadow: 0 0 2px 1px dodgerblue;
+}
+button:active,
+input[type="button"]:active {
+  background-color: dodgerblue;
+}
+button.submit-button {
+  background-color: limegreen;
+  border: 1px solid green;
+}
+button.submit-button:active {
+  background-color: dodgerblue;
+}
+/*//////////// SafeguardInputs PR ///////////////*/
+/*Guard against NaN in value inputs */
+input.invalid {
+  border: 2px dashed #000;
+  background-color: red;
+}
+input.nofocus:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Power and Rotate latching buttons */
+.page-left .button-latched,
+.page-left .button-latched:hover {
+  background-color: #A1D1F3;
+}
+
+/* Variant and Alt adjusters */
+.variant-alt-container {
+  background: #A1D1F3;
+  font-size: 16px;
+  border: 1px solid black;
+  border-radius: 4px;
+  display: inline-block;
+  padding-inline: 4px;
+  margin-bottom: 5px;
+}
+.variant-label {
+  margin-left: 3px;
+}
+.variant-alt-controls {
+  display: inline-flex;
+  align-items: center;
+}
+.variant-slider {
+  -webkit-appearance: none;
+  width: 65px;
+  height: 10px;
+  margin: 3px 3px;
+  margin-top: 5px;
+  cursor: pointer;
+}
+/* Thumb handle styling for Chrome, Safari, and other WebKit-based browsers */
+.variant-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  background: dodgerblue;
+  width: 14px;
+  height: 14px;
+  border-radius: 20%;
+  border: 1px solid #333;
+  margin-top: -2px;
+}
+/* Thumb handle styling for Firefox */
+.variant-slider::-moz-range-thumb {
+  background: dodgerblue;
+  width: 14px;
+  height: 14px;
+  border-radius: 20%;
+  border: 1px solid #333;
+}
+/* Thumb handle styling for Internet Explorer and Edge */
+.variant-slider::-ms-thumb {
+  background: dodgerblue;
+  width: 14px;
+  height: 14px;
+  border-radius: 20%;
+  border: 1px solid #333;
+}
+.alt-label {
+  margin-left: 8px;
+  margin-right: 3px;
+}
+
+/* Sound controls */
+.sound-ribbon-container {
+  background: #A1D1F3;
+  font-size: 16px;
+  border: 1px solid black;
+  border-radius: 4px;
+  display: inline-block;
+  flex-wrap: wrap;
+  align-items: center;
+  max-width: fit-content;
+  margin-bottom: 5px;
+}
+.sound-ribbon-label {
+  display: inline-block;
+  align-items: center;
+  margin-right: 14px;
+  margin-left: 5px;
+  margin-top: 5px;
+  gap: 4px;
+}
+.sound-ribbon-label input[type="checkbox"] {
+  accent-color: dodgerblue;
+  margin-right: 5px;
+  box-shadow: 0 0 0 1px black;
+}
+.sound-ribbon-select {
+  font-size: 15px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid black;
+  background: #ddd;
+  height: 26px;
+}
+/* Variant / Alt and Sound Controls */
+.controls {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.error-message {
+  color: red;
+  font-weight: bold;
+}
+/* Blade Style text box */
+.textbox {
+  background-color: #eee;
+  font-size: 14px;
+  width: 100%;
+  min-width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+/* History Tab content */
+#history_tabcontent .history-btn {
+  background: #e0e0e0;
+  border: 1px solid #aaa;
+  margin-bottom: 2px;
+  margin-right: 4px;
+  font-size: 13px;
+}
+
+/* Valid: Highlighted (blue) */
+#history_tabcontent .history-btn-valid {
+  background: #A1D1F3;
+}
+.dark-mode #history_tabcontent .history-btn-valid {
+  background: steelblue;
+}
+/* Invalid: Dimmed (gray) */
+#history_tabcontent .history-btn-invalid {
+  background: #eee;
+  color: #aaa;
+  border-color: #bbb;
+  opacity: 0.65;
+}
+
+.settings-panel.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.settings-panel{
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: black;
+  border: 3px solid #888;
+  background: #ddd;
+  padding: 36px;
+  padding-left: 30px;
+  border-radius: 9px;
+  box-shadow: 6px 10px 10px rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease-in-out;
+  z-index: 1000;
+}
+
+.settings-panel label {
+  display: flex;
+  align-items: center;
+}
+.settings-panel label input[type="checkbox"] {
+  accent-color: #A1D1F3;
+  margin-right: 8px;
+}
+.settings-section,
+.sound-section {
+  margin-bottom: 10px;
+}
+.settings-panel .settings-header-label {
+  text-align: center;
+  margin: 0 auto;
+  display: block;
+  color: #333;
+  font-size: 22px;
+}
+.settings-section-label {
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+  border-bottom: 2px solid #888;
+  padding-bottom: 5px;
+}
+
+.sound-section-label {
+  font-size: 12px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+  border-bottom: 2px solid #888;
+  padding-bottom: 5px;
+}
+/*////////////// Add Sound PR ///////////*/
+
+.wavlen-controls {
+  display: block;
+  margin-top: 5px;
+}
+
+.wavlen-row {
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 100%;
+}
+
+.wavlen-global-label {
+  display: block;
+  margin-top: 5px;
+}
+.wavlen-value {
+  margin-left: 5px;
+}
+
+.wavlen-global-label.disabled {
+  color: #aaa !important;
+  opacity: 0.7;
+  pointer-events: none;
+}
+.wavlen-global-label.disabled input {
+  background-color: #eee;
+  color: #888;
+  cursor: not-allowed;
+}
+
+/* Style the tab */
+.tab {
+  overflow: hidden;
+  border: 1px solid #ccc;
+  background-color: #f1f1f1;
+}
+
+/* Style the buttons that are used to open the tab content */
+.tab button {
+  background-color: inherit;
+  float: left;
+  border: none;
+  margin: unset;
+  outline: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 0px;
+
+  transition: 0.1s ease;
+}
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background-color: #ddd;
+  box-shadow: 0 0 3px 1px transparent;
+}
+/* Create an active/current tablink class */
+.tab button.active {
+  background-color: #A1D1F3;
+}
+.tab button.disabled {
+  background-color: lightgray;
+  color: darkgray;
+  box-shadow: 0 0 0 1px transparent;
+  cursor: not-allowed;
+}
+
+/* Style the tab content */
+.tabcontent {
+  display: none;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-top: none;
+}
+.tabcontent .btn {
+  border-radius: 5px;
+}
+.rgb-tabcontent {
+  color: black;
+}
+.custom-color {
+  background: #ccc;
+  text-align: center;
+  position: relative;
+}
+.rgb-tabcontent .btn {
+  border-radius: 16px;
+  width: 125px;
+}
+.rgb-tabcontent .custom-color .color-picker {
+  width: 100px;
+}
+
+.splitter {
+  width: 6px;
+  min-width: 8px;
+  background: #ddd;
+  cursor: ew-resize;
+  user-select: none;
+  position: relative;
+  z-index: 2;
+  height: 100vh;
+}
+
+.splitter::after {
+  content: '';
+  display: block;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 18px;
+  transform: translate(-50%, -50%);
+  background:
+    radial-gradient(circle, black 70%, transparent 71%) 0 2px,
+    radial-gradient(circle, black 70%, transparent 71%) 0 8px,
+    radial-gradient(circle, black 70%, transparent 71%) 0 14px;
+  background-repeat: no-repeat;
+  background-size: 4px 4px;
+}
+.page-right {
+  flex: 1 1 0;
+  min-width: 400px;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.structured-view {
+  position: sticky;
+  top: 50px;
+  width: 100%;
+  height: calc(100vh - 50px);
+/*  overflow-y: scroll;*/
+  overflow-y: auto;
+  padding-bottom: 35px;
+  box-sizing: border-box;
+}
+.structured-view-label {
+  display: flex;
+  font-size: 110%;
+  font-weight: bold;
+  padding-top: 9px;
+  padding-bottom: 5px;
+  justify-content: space-around;
+}
+.structured-view .selected-area-container {
+  background-color: #A1D1F3;
+}
+/* Fat font in Structured View */
+.pp span {
+  padding-left: 6px;
+  font-weight: 600;
+}
+/* Structured View style arguments borders */
+.pp-container {
+  border-color: gray;
+  border-style: solid;
+  border-width: 3px;
+  padding: 2px;
+  padding-right: 20px;
+}
+.pp-content {
+  margin-left: 1em;
+}
+/* Chartreuse highlighted borders */
+.running {
+  border-color: chartreuse;
+  box-shadow: 0 4px 12px #777;
+}
+
+/* Structured View Layer buttons
+Add, Delete, Move Up, Move Down */
+.extra-buttons {
+  margin: 3px;
+  line-height: 1.0em;
+  font-size: 16px;
+}
+
+/* header */
+.header-title {
+  min-width: 180px;
+  font-size: 16px;
+}
+.header-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #eee;
+  height: 25px;
+  padding: 2px 15px;
+}
+.other-sites {
+  float: right;
+  padding-right: 10px;
+  margin-left: 35px;
+}
+.header-links {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 100px;
+}
+.header-links a img {
+  height: 16px;
+  width: 16px;
+  margin-right: 5px;
+}
+.header-links a:hover {
+  color: #000;
+}
+
+/* Popup Window */
+.popup-window.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.popup-window {
+  font-weight: 500;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 30%;
+  color: black;
+  border: 3px solid #888;
+  background: #ddd;
+  padding: 20px;
+  text-align: center;
+  border-radius: 9px;
+  box-shadow: 6px 10px 10px rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease-in-out;
+  z-index: 9999;
+}
+
+.popup-window button {
+  background-color: steelblue;
+  color: black;
+  border-radius: 5px;
+  padding: 3px 35px;
+  font-size: 20px;
+  font-weight: bold;
+  border: 1px solid black;
+  cursor: pointer;
+}
+.popup-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9998;
+}
+.popup-overlay.show {
+  display: block;
+}
