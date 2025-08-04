@@ -171,6 +171,7 @@ var OLD_MOVE_MATRIX = default_move_matrix();
 var MOUSE_POSITIONS = [];
 var IN_FRAME = false;
 var BLADE_ANGLE = 0.0;
+let HOME_POS = false;
 
 function mouse_speed(t1, t2) {
   var dx = MOUSE_POSITIONS[t1+0]-MOUSE_POSITIONS[t2+0];
@@ -182,6 +183,7 @@ function mouse_speed(t1, t2) {
 
 function mouse_move(e) {
   if (mouseswingsState.get()) return;
+  HOME_POS = false;
   IN_FRAME = true;
   resizeCanvasAndCamera();
 //////////// Fullscreen PR ///////////
@@ -271,7 +273,8 @@ function get_swing_accel() {
 
 function mouse_leave(e) {
 //  console.log("Mouse leave!");
-  MOVE_MATRIX = default_move_matrix();
+  // MOVE_MATRIX = default_move_matrix();
+  HOME_POS = true;
   MOUSE_POSITIONS = [];
   IN_FRAME = false;
   resizeCanvasAndCamera();
@@ -8217,6 +8220,35 @@ var timeFactor = 1.0;
 var bad_fps = 0;
 var good_fps = 0;
 
+// var popupIdentifier;
+// var popupWindow = FIND("popup_window");
+// var popupOverlay = FIND("popup_overlay");
+
+// function showPopupMessage(message, currentPopup) {
+//   popupIdentifier = currentPopup;
+//   var checkbox = FIND("dont_show_again");
+//   checkbox.checked = localStorage.getItem(popupIdentifier) === "false";
+
+//   if (localStorage.getItem(popupIdentifier) === "false") {
+//     console.log(popupIdentifier + " is disabled.");
+//   } else {
+//     FIND("popup_message").innerHTML = message;
+//     popupWindow.classList.add("show");
+//     popupOverlay.classList.add("show");
+//   }
+// }
+
+// function dismissPopupMessage() {
+//   popupWindow.classList.remove("show");
+//   popupOverlay.classList.remove("show");
+// }
+
+// function DontShowAgain(checkboxState) {
+//   checkboxState = !checkboxState;
+//   localStorage.setItem(popupIdentifier, checkboxState);
+//   console.log("Saving " + popupIdentifier + " " + checkboxState);
+// }
+
 var pixels;
 var AA = 1;
 var AA_STEP_SIZE = 1;
@@ -9695,7 +9727,6 @@ var colorsortState = new SavedStateBool("colorsort", false, (on) => {
   updateRgbTabContent();
 });
 
-var graflexState = new SavedStateBool("graflex", true, (on) => { compile(); });
 var mouseswingsState = new SavedStateBool("mouseswings", false, (on) => {});
 var autoswingState = new SavedStateBool("autoswing", true, (on) => {});
 var inhiltState = new SavedStateBool("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
