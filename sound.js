@@ -142,8 +142,8 @@ fileInput.addEventListener('change', (e) => {
 });
 
 // SmoothSwing and swing sounds
-const swingThreshold       = 280;  // deg/s threshold to trigger a swing effect
-const slashThreshold       = 5000; // deg/s² acceleration threshold to trigger a slash
+const swingThreshold       = 240;  // deg/s threshold to trigger a swing effect
+const slashThreshold       = 4000; // deg/s² acceleration threshold to trigger a slash
 const swingLowerThreshold  = swingThreshold * 0.5; // deg/s reset threshold after a swing
 
 let lastSwingUpdate        = 0;    // last timestamp (ms) when swing was updated
@@ -702,7 +702,10 @@ function endLockupLoop(effectType, endEffectName, shouldClear) {
 }
 
 function resumeLoops() {
-  if (STATE_ON && focusAllowsHum) startHum();
+  if (STATE_ON && focusAllowsHum) {
+    startHum();
+    updateSmoothSwingGains();
+  }
   if (window.currentLockupType && !window.lockupLoopSrc) startLockupLoop(window.currentLockupType, true);
 }
 
