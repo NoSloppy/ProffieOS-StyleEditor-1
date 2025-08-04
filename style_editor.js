@@ -1,13 +1,9 @@
-var gl = null;
-var shaderProgram = null;
 var t = 0.0;
-
 var width;
 var height;
-var dpr = window.devicePixelRatio || 1;
-const canvas = document.getElementById("canvas_id"); 
-var enlargeCanvas = false;
-
+//////////// Fullscreen PR ///////////
+// Fullscreen things
+const canvas = FIND("canvas_id");
 const pageLeftTop = FIND("page_left_top");
 
 function FIND(id) {
@@ -111,6 +107,31 @@ class Matrix {
     ret.set(2,3,z);
     return ret;
   }
+//////////// indents and line returns PR ///////////
+
+  static fromValues(a, b, c, d,
+                  e, f, g, h,
+                  i, j, k, l,
+                  m, n, o, p) {
+      var ret = new Matrix(4, 4);
+      ret.values[0] = a;
+      ret.values[1] = b;
+      ret.values[2] = c;
+      ret.values[3] = d;
+      ret.values[4] = e;
+      ret.values[5] = f;
+      ret.values[6] = g;
+      ret.values[7] = h;
+      ret.values[8] = i;
+      ret.values[9] = j;
+      ret.values[10] = k;
+      ret.values[11] = l;
+      ret.values[12] = m;
+      ret.values[13] = n;
+      ret.values[14] = o;
+      ret.values[15] = p;
+      return ret;
+  }
 
   tostr() {
     var ret = "{";
@@ -126,8 +147,23 @@ class Matrix {
   }
 };
 
+function default_rotation_matrix() {
+    var ret = Matrix.mktranslate(0.0, 0.0, 0.0);
+//    ret  = ret.mult(Matrix.mkzrot(Math.PI/2.0));
+//    ret  = ret.mult(Matrix.mkxrot(Math.PI/2.0));
+    return ret;
+}
+
 function default_move_matrix() {
-  return Matrix.mktranslate(-0.023, 0.0, -0.12);
+//    var ret = Matrix.mktranslate(0.0, 0.0, 0.0);
+//  return Matrix.mktranslate(0.0, 1.6, -200.0);
+//    var ret = Matrix.mktranslate(-0.023, 0.0, -0.12);
+
+    //    ret  = ret.mult(Matrix.mkxrot(Math.PI/2.0));
+    var ret = default_rotation_matrix();
+   ret = ret.mult(Matrix.mktranslate(0.0, 0.0, -8.0));
+    return ret;
+    
 }
 
 var MOVE_MATRIX = default_move_matrix();
@@ -135,6 +171,7 @@ var OLD_MOVE_MATRIX = default_move_matrix();
 var MOUSE_POSITIONS = [];
 var IN_FRAME = false;
 var BLADE_ANGLE = 0.0;
+let HOME_POS = false;
 
 function mouse_speed(t1, t2) {
   var dx = MOUSE_POSITIONS[t1+0]-MOUSE_POSITIONS[t2+0];
@@ -146,29 +183,24 @@ function mouse_speed(t1, t2) {
 
 function mouse_move(e) {
   if (mouseswingsState.get()) return;
+  HOME_POS = false;
   IN_FRAME = true;
+  resizeCanvasAndCamera();
+//////////// Fullscreen PR ///////////
+  var rect = canvas.getBoundingClientRect();
+  var w = rect.right - rect.left;
+  var h = rect.bottom - rect.top;
+  var d = min(h, w);
 
-  const canvas = FIND("canvas_id");
-  const rect   = canvas.getBoundingClientRect();
-  const w      = rect.right - rect.left;
-  const h      = rect.bottom - rect.top;
-  const d = Math.min(h, w);
-
-  let x;
-  if (document.fullscreenElement === pageLeftTop || enlargeCanvas) {
-    x = (e.clientX - (rect.left + rect.right) / 2) / d * 2.2;  // Fullscreen/Enlarge 
-  } else {
-    x = (e.clientX - (rect.left + rect.right) / 2) / d * 1.8;  // Normal
-  }
-
+  let x= (e.clientX - (rect.left + rect.right) / 2) / d * 2.5;
   let y;
-  if (document.fullscreenElement === pageLeftTop) {
-    y = (e.clientY - (rect.top + rect.bottom) / 2) / d * 0.75; // Fullscreen, slightly less.
-  } else {  // y already accounted for for enlarge.
+  if (document.fullscreenElement === pageLeftTop || window.enlargeCanvas) {
+    y = (e.clientY - (rect.top + rect.bottom) / 2) / d * 1.5;
+   } else {
     y = (e.clientY - (rect.top + rect.bottom) / 2) / d;
   }
 
-  const now    = actual_millis();
+  var now = actual_millis();
   MOUSE_POSITIONS = MOUSE_POSITIONS.concat([x* 10000, y * 10000, now])
   while (MOUSE_POSITIONS.length > 0 && now - MOUSE_POSITIONS[2] > 100) {
     MOUSE_POSITIONS = MOUSE_POSITIONS.slice(3);
@@ -178,19 +210,28 @@ function mouse_move(e) {
   if (e.shiftKey) {
     MOVE_MATRIX = default_move_matrix();
   } else {
-    BLADE_ANGLE=-y;
-    MOVE_MATRIX = Matrix.mkzrot(Math.PI/2.0).mult(Matrix.mkxrot(-y)).mult(Matrix.mkzrot(y));
+    var SCALE = 100.0;
+    BLADE_ANGLE = -y;
 
-    MOVE_MATRIX = Matrix.mkyrot(Math.PI/2.0)
-    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(1.0, 0.04, 0.0));
-    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mkyrot(-x/8));
-    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(-1.0, 0.0, 0.0));
-    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mkzrot(-y));
-    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(-0.17, 0.0, 0.0));
+    const PIVOT_OFFSET_X = 0.5;  // pivot at grip
+    const swing = x * 20;
+
+    MOVE_MATRIX = default_rotation_matrix();
+    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mkyrot(Math.PI / 2.0));
+    let yOffset = -0.04;
+    if (window.enlargeCanvas && !window.fullscreenActive) {
+      yOffset = -0.10;
+    }
+    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(PIVOT_OFFSET_X * SCALE, yOffset * SCALE, 0.0));
+    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mkyrot(-x / 3));
+    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mkzrot(y));
+    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(-PIVOT_OFFSET_X * SCALE, 0.0, 0.0));
+    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(-0.17 * SCALE, 0.0, 0.0));
+    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(0, 0, swing));
   }
 //  console.log(MOVE_MATRIX.values);
 
-
+//////////// SOUND2 PR ///////////
   // SmoothSwing updates
   lastSwingSpeed = get_swing_speed();
   lastSwingUpdate = Date.now();
@@ -198,9 +239,8 @@ function mouse_move(e) {
   //   `[SwingDebug][mouse_move] lastSwingSpeed=${lastSwingSpeed.toFixed(1)}, ` +
   //   `lastSwingUpdate=${lastSwingUpdate}`
   // );
-    triggerAccentEvent(lastSwingSpeed);
+  triggerAccentEvent(lastSwingSpeed);
 }
-//////////// BC ///////////
 
 function get_swing_speed() {
   var now = actual_millis();
@@ -232,83 +272,21 @@ function get_swing_accel() {
 }
 
 function mouse_leave(e) {
-  console.log("Mouse leave!");
-  MOVE_MATRIX = default_move_matrix();
+//  console.log("Mouse leave!");
+  // MOVE_MATRIX = default_move_matrix();
+  HOME_POS = true;
   MOUSE_POSITIONS = [];
   IN_FRAME = false;
-  // fadeAndStop('smoothLoopL', 300);
-  // fadeAndStop('smoothLoopH', 300);
-  //   console.log(`[mouse_leave] STOPPING smoothswings..`);
+  resizeCanvasAndCamera();
 }
 
 function compile() {
-  // Create a shader that samples a 2D image.
-  var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-  gl.shaderSource(vertexShader,
-                  FIND("vertex_shader").textContent);
-  gl.compileShader(vertexShader);
-
-  var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-  var shader_code = FIND("fragment_shader").textContent;
-
-  variables = [
-    "#define AA " + AA,
-  ];
-//  shader_code = shader_code.replace("$FUNCTION$", current_style.gencode());
-  shader_code = shader_code.replace("$VARIABLES$", variables.join("\n"));
-  if (graflexState.get()) {
-    shader_code = shader_code.replace("$HILT$", FIND("hilt_graflex").textContent);
-  } else {
-    shader_code = shader_code.replace("$HILT$", FIND("hilt_cylinder").textContent);
-  }
-  // console.log(shader_code);
-
-  gl.shaderSource(fragmentShader, shader_code);
-  gl.compileShader(fragmentShader);
-  if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
-
-    var v = shader_code.split("\n");
-    for (var i = 0; i < v.length; i++) {
-      console.log( (i+1) + ": " + v[i]);
-  }
-    throw "Could not compile shader:\n\n" + gl.getShaderInfoLog(fragmentShader);
-  }
-
-  shaderProgram = gl.createProgram();
-  gl.attachShader(shaderProgram, vertexShader);
-  gl.attachShader(shaderProgram, fragmentShader);
-  gl.linkProgram(shaderProgram);
-  if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-    throw "Could not link the shader program!\n\n" + gl.getProgramInfoLog(shaderProgram);
-  }
-  gl.useProgram(shaderProgram);
-
+  // reinitialize render if required
 }
 
 var varnum = 0;
 var variables = [];
 var vartypes = {};
-
-function genvar(t) {
-  varnum++;
-  var variable = "u_" + varnum;
-  variables.push( "uniform " + t + " " + variable + ";");
-  vartypes[variable] = t;
-  return variable;
-}
-
-function setvar(variable, val) {
-  // console.log(variable + " = " + val);
-  if (vartypes[variable] == "float") {
-    gl.uniform1f(gl.getUniformLocation(shaderProgram, variable),  val);
-    return;
-  }
-  if (vartypes[variable] == "int") {
-    gl.uniform1i(gl.getUniformLocation(shaderProgram, variable),  val);
-    return;
-  }
-  console.log("SETVAR ERROR " + variable);
-}
 
 class MyError {
   constructor(desc) {
@@ -805,6 +783,7 @@ function AddEnum(enum_type, name, value) {
   enum_type.value_to_name[value] = name;
   window[name] = value;
   AddIdentifier(name, function() { return new enum_type(value); });
+//////////// Logging PR ///////////////
   // console.log(" ENUM " + name + " = " + value);
 }
 
@@ -822,6 +801,7 @@ class EnumBuilder {
     this.last_value = value;
     this.value_to_name[value] = name;
     window[name] = value;
+//////////// Logging PR ///////////////
     // console.log(" ENUM " + name + " = " + value);
   }
   addToTab(tab, common_prefix) {
@@ -855,7 +835,6 @@ class EnumBuilder {
           return ret;
         }
 
-
         var ret = this.gencomment() + this.value;
         if (this.constructor.value_to_name[this.value]) {
           ret = this.constructor.prefix + this.constructor.value_to_name[this.value];
@@ -879,8 +858,9 @@ class EnumBuilder {
     }
   }
 }
+//////////// Add Accent Swing and Slash to EFFECT ENUM, categorize list.PR ///////////////
 
-EFFECT_ENUM_BUILDER = new EnumBuilder("EFFECT");
+const EFFECT_ENUM_BUILDER = new EnumBuilder("EFFECT");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_NONE", 0);
 EFFECT_ENUM_BUILDER.addValue("EFFECT_CLASH");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_STAB");
@@ -913,7 +893,7 @@ EFFECT_ENUM_BUILDER.addValue("EFFECT_VOLUME_LEVEL");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_POWERSAVE");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_BLADEIN");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_BLADEOUT");
-
+// Other
 EFFECT_ENUM_BUILDER.addValue("EFFECT_ON");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_OFF");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_OFF_CLASH");
@@ -949,6 +929,7 @@ EFFECT_ENUM_BUILDER.addValue("EFFECT_JAM");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_UNJAM");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_PLI_ON");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_PLI_OFF");
+////////// Add DESTRUCT PR /////////////////
 EFFECT_ENUM_BUILDER.addValue("EFFECT_DESTRUCT");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_BOOM");
 // Mini game effects
@@ -977,13 +958,11 @@ EFFECT_ENUM_BUILDER.addValue("EFFECT_SD_CARD_NOT_FOUND");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_ERROR_IN_BLADE_ARRAY");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_ERROR_IN_FONT_DIRECTORY");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_FONT_DIRECTORY_NOT_FOUND");
-
 // Menu effects
 EFFECT_ENUM_BUILDER.addValue("EFFECT_MENU_CHANGE");
-
 EFFECT_ENUM_BUILDER.build();
 
-LOCKUP_ENUM_BUILDER = new EnumBuilder("LOCKUP_TYPE", "SaberBase::");
+const LOCKUP_ENUM_BUILDER = new EnumBuilder("LOCKUP_TYPE", "SaberBase::");
 LOCKUP_ENUM_BUILDER.addValue("LOCKUP_NONE", 0);
 LOCKUP_ENUM_BUILDER.addValue("LOCKUP_NORMAL");
 LOCKUP_ENUM_BUILDER.addValue("LOCKUP_DRAG");
@@ -993,7 +972,7 @@ LOCKUP_ENUM_BUILDER.addValue("LOCKUP_MELT");
 LOCKUP_ENUM_BUILDER.addValue("LOCKUP_LIGHTNING_BLOCK");
 LOCKUP_ENUM_BUILDER.build();
 
-ArgumentName_ENUM_BUILDER = new EnumBuilder("ArgumentName");
+const ArgumentName_ENUM_BUILDER = new EnumBuilder("ArgumentName");
 ArgumentName_ENUM_BUILDER.addValue("BASE_COLOR_ARG", 1);
 ArgumentName_ENUM_BUILDER.addValue("ALT_COLOR_ARG", 2);
 ArgumentName_ENUM_BUILDER.addValue("STYLE_OPTION_ARG", 3);
@@ -1034,7 +1013,7 @@ ArgumentName_ENUM_BUILDER.addValue("IGNITION_OPTION2_ARG", 37);
 ArgumentName_ENUM_BUILDER.addValue("RETRACTION_OPTION2_ARG", 38);
 ArgumentName_ENUM_BUILDER.build();
 
-//////////// BC ///////////
+//////////// SOUND1 PR ///////////
 // Map each EFFECT constant → Proffie sound key (folder or file prefix)
 const EFFECT_SOUND_MAP = {
   [EFFECT_NONE]:             null,        // no sound
@@ -1052,13 +1031,13 @@ const EFFECT_SOUND_MAP = {
   [EFFECT_DRAG_END]:         "enddrag",
   [EFFECT_LOCKUP_BEGIN]:     "bgnlock",
   [EFFECT_LOCKUP_END]:       "endlock",
-  // Pseudo-events for sound playback / possible future use
+  // Pseudo-events for lockup bgn/end sound playback / possible future ProffieOS use
   [EFFECT_MELT_BEGIN]:       "bgnmelt",
   [EFFECT_MELT_END]:         "endmelt",
   [EFFECT_LB_BEGIN]:         "bgnlb",
   [EFFECT_LB_END]:           "endlb",
-  [EFFECT_CHANGE]:           "ccchange",
 
+  [EFFECT_CHANGE]:           "ccchange",
   [EFFECT_BATTERY_LEVEL]:    "battlevl",
   [EFFECT_VOLUME_LEVEL]:     "volup",
   [EFFECT_POWERSAVE]:        "dim",
@@ -1075,7 +1054,6 @@ const EFFECT_SOUND_MAP = {
   [EFFECT_END_BATTLE_MODE]:  "bmend",
   [EFFECT_BEGIN_AUTO_BLAST]: "blstbgn",
   [EFFECT_END_AUTO_BLAST]:   "blstend",
-
 
   [EFFECT_TRANSITION_SOUND]: "tr",
   [EFFECT_SOUND_LOOP]:       "trloop",
@@ -1096,7 +1074,54 @@ const EFFECT_SOUND_MAP = {
   [EFFECT_DESTRUCT]:         "destruct",
   [EFFECT_BOOM]:             "boom"
 };
-//////////// BC ///////////
+
+// Parse the style and return a Set containing all EFFECTs and LOCKUPs (including via macros)
+function getAllowedEventsFromStyleText() {
+  var style = FIND("style");
+  let text = style.value || "";
+  // Strip block comments: /* … */
+  text = text.replace(/\/\*[\s\S]*?\*\//g, "");
+  // Strip line comments: //
+  text = text.replace(/\/\/.*$/gm, "");
+
+  const allowed = new Set();
+
+  // Literal matches
+  const consts = text.match(/\b(EFFECT|LOCKUP)_[A-Z_]+\b/g) || [];
+  for (const c of new Set(consts)) {
+    if (window[c] !== undefined) {
+      allowed.add(window[c]);
+    }
+  }
+
+  // Map macros to their EFFECTs and LOCKUPs
+  const macroMap = {
+    ResponsiveClashL:     EFFECT_CLASH,
+    ResponsiveStabL:      EFFECT_STAB,
+    ResponsiveBlastL:     EFFECT_BLAST,
+    ResponsiveBlastWaveL: EFFECT_BLAST,
+    ResponsiveBlastFadeL: EFFECT_BLAST,
+
+    ResponsiveLockupL:    [EFFECT_LOCKUP_BEGIN,   EFFECT_LOCKUP_END,   LOCKUP_NORMAL],
+    ResponsiveDragL:      [EFFECT_DRAG_BEGIN,     EFFECT_DRAG_END,     LOCKUP_DRAG],
+    ResponsiveMeltL:      [EFFECT_MELT_BEGIN,     EFFECT_MELT_END,     LOCKUP_MELT],
+    ResponsiveLightningBlockL:[EFFECT_LB_BEGIN,   EFFECT_LB_END,       LOCKUP_LIGHTNING_BLOCK],
+
+    InOutTrL:             [EFFECT_IGNITION,       EFFECT_RETRACTION],
+  };
+
+  for (var macro in macroMap) {
+    if (text.indexOf(macro + "<") !== -1) {
+      var val = macroMap[macro];
+      if (Array.isArray(val)) {
+        val.forEach(function(v) { allowed.add(v); });
+      } else {
+        allowed.add(val);
+      }
+    }
+  }
+  return allowed;
+}
 
 function effect_to_argument(effect) {
   switch (effect + 0) {
@@ -1117,99 +1142,6 @@ function lockup_to_argument(effect) {
   }
   return undefined;
 }
-
-//////////// BC ///////////
-/**
- * Read the current style textarea and return a Set of EFFECT_* IDs
- * that are actually referenced (either literally or via macros).
- */
-function getAllowedEffectsFromStyleText() {
-  const sty = FIND("style");
-  let text = sty?.value || "";
-  // Strip block comments: /* … */
-  text = text.replace(/\/\*[\s\S]*?\*\//g, "");
-  // Strip line comments: //
-  text = text.replace(/\/\/.*$/gm, "");  const allowed = new Set();
-
-  // Any literal EFFECT_XXX constant in the text
-  const consts = text.match(/\bEFFECT_[A-Z_]+\b/g) || [];
-  for (const c of new Set(consts)) {
-    if (window[c] !== undefined) {
-      allowed.add(window[c]);
-    }
-  }
-
-  // Known macros → their EFFECTs
-  const macroMap = {
-    ResponsiveClashL:        EFFECT_CLASH,
-    ResponsiveStabL:         EFFECT_STAB,
-    ResponsiveBlastL:        EFFECT_BLAST,
-    ResponsiveBlastWaveL:    EFFECT_BLAST,
-    ResponsiveBlastFadeL:     EFFECT_BLAST,
-
-    ResponsiveLockupL:       [EFFECT_LOCKUP_BEGIN,   EFFECT_LOCKUP_END],
-    ResponsiveDragL:         [EFFECT_DRAG_BEGIN,     EFFECT_DRAG_END],
-    ResponsiveMeltL:         [EFFECT_MELT_BEGIN,     EFFECT_MELT_END],
-    ResponsiveLightningBlockL:[EFFECT_LB_BEGIN,       EFFECT_LB_END],
-
-    InOutTrL:                [EFFECT_IGNITION,       EFFECT_RETRACTION],
-  };
-
-  for (let [macro, val] of Object.entries(macroMap)) {
-    if (text.includes(macro + "<")) {
-      if (Array.isArray(val)) {
-        val.forEach(v => allowed.add(v));
-      } else if (val != null) {
-        allowed.add(val);
-      }
-    }
-  }
-  // Also include lockup begin/end events for any literal LOCKUP_* in the style
-  getAllowedLockupsFromStyleText().forEach(lockupType => {
-    const evts = lockups_to_event[lockupType];
-    if (evts) {
-      evts.forEach(evt => allowed.add(evt));
-    }
-  });
-
-  return allowed;
-}
-
-function getAllowedLockupsFromStyleText() {
-  const sty = FIND("style");
-  let text = sty?.value || "";
-  // Strip block comments: /* … */
-  text = text.replace(/\/\*[\s\S]*?\*\//g, "");
-  // Strip line comments: //
-  text = text.replace(/\/\/.*$/gm, "");
-
-  const allowed = new Set();
-
-  // Direct matches: LOCKUP_NORMAL, LOCKUP_MELT, etc.
-  const lockups = text.match(/\bLOCKUP_[A-Z_]+\b/g) || [];
-  for (const c of new Set(lockups)) {
-    if (window[c] !== undefined) {
-      allowed.add(window[c]);
-    }
-  }
-
-  // Macro usage detection
-  const macroLockupMap = {
-    ResponsiveLockupL: LOCKUP_NORMAL,
-    ResponsiveDragL: LOCKUP_DRAG,
-    ResponsiveMeltL: LOCKUP_MELT,
-    ResponsiveLightningBlockL: LOCKUP_LIGHTNING_BLOCK
-  };
-
-  for (let macro in macroLockupMap) {
-    if (text.includes(macro + "<")) {
-      allowed.add(macroLockupMap[macro]);
-    }
-  }
-  return allowed;
-}
-
-//////////// BC ///////////
 
 class FUNCTION  extends STYLE {
   getType() { return "FUNCTION"; }
@@ -1297,14 +1229,6 @@ function ClickColor() {
   var B = FixColor(color_button.value.substr(5,2));
   SetTo("Rgb16<"+R+","+G+","+B+">");
 }
-
-//var qlinks = "<b>Colors</b> <input type=color id=COLOR value='#ff0000' onclick='ClickColor()' />";
-//var effect_links = "<b>Effects:</b>";
-//var layer_links = "";
-//var effect_type_links = "<b>Effect Types:</b>";
-//var template_links = "<b>Templates:</b>";
-//var function_links = "<b>Functions:</b>";
-//var transition_links = "<b>Transitions:</b>";
 
 var effect_links = [];
 var layer_links = [];
@@ -1394,7 +1318,7 @@ class RgbClass extends STYLE {
     H += angle / 16384.0;
     return new RgbClass(f(5+H, C, MAX), f(3+H, C, MAX), f(1+H, C, MAX));
   }
-
+//////////// Because....vite PR ///////////
   argify(state) {
     if (state.color_argument) {
       var ret = RgbArg_(ArgumentName(state.color_argument), this);
@@ -1576,7 +1500,7 @@ class LayersClass extends STYLE {
 function Layers(BASE, Layer1, Layer2) {
   return new LayersClass(Array.from(arguments));
 }
-
+//////////// indents and line returns PR ///////////
 function enc(s) {
   return s.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
@@ -1635,6 +1559,7 @@ function AddHistory(name, type) {
   var label = name;
   if (label.length > 80) label = label.slice(0,78) + "...";
   name = name.split("\n").join(" ").split("   ").join(" ").split("  ").join(" ").split("< ").join("<");
+//////////// History PR ///////////
   // Add data-type and new class
   var btn = "<input type='button' class='history-btn' data-type='" + type + "' onclick='SetToAndFormat(\"" + name + "\", event)' value='" + enc(label) + "'>\n";
   history_html = btn + history_html.replace(btn, "");
@@ -1678,6 +1603,7 @@ function mkcolorbutton(name, r, g, b) {
   g = mapcolor(g);
   b = mapcolor(b);
   var hsl = rgbToHsl(r, g, b);
+//////////// Logging PR ///////////////
   // console.log("mkcolorbutton:name="+name+"  rgb="+r+","+g+","+b+"    hsl="+hsl[0]+","+hsl[1]+","+hsl[2]+"  ");
   var sortString;
   if (hsl[1] == 0.0) {
@@ -1726,6 +1652,7 @@ AddLayer("BrownNoiseFlickerL<Magenta, Int<50>>");
 AddEffect("ColorChange<TrInstant, Red, Green, Blue>");
 AddEffect("ColorSelect<Variation, TrInstant, Red, Green, Blue>");
 AddFunction("IntSelect<Variation, 0, 8192,32768>");
+//////////// indents and line returns PR ///////////
 AddEffect("ColorCycle<Blue, 0, 1, Cyan, 100, 3000, 5000>");
 AddEffect("ColorSequence<500, Red, Green, Blue>");
 AddEffect("EffectSequence<EFFECT_CLASH, Red, Green, Blue>");
@@ -1998,6 +1925,7 @@ var MAGENTA = Rgb(255,0,255);
 var WHITE = Rgb(255,255,255);
 var BLACK = Rgb(0,0,0);
 var OrangeRed = Rgb(255,14,0);
+//////////// indents and line returns PR ///////////
 
 //--
 class RainbowClass extends STYLE {
@@ -2021,6 +1949,7 @@ function Rainbow() {
 }
 
 var STATE_ON = 0;
+//////////// SOUND1 PR ///////////
 var STATE_WAIT_FOR_ON = 0;
 // 1 = lockup
 // 2 = drag
@@ -2031,6 +1960,18 @@ var STATE_ROTATE = 0;
 var STATE_NUM_LEDS = 144;
 
 var handled_lockups = {};
+
+// For logging
+const LOCKUP_TYPE_NAMES = {
+  1: "LOCKUP_NORMAL",
+  2: "LOCKUP_DRAG",
+  3: "LOCKUP_LIGHTNING_BLOCK",
+  4: "LOCKUP_MELT"
+};
+
+function lockupNameFromValue(val) {
+  return LOCKUP_TYPE_NAMES[val] || val;
+}
 
 function IsHandledLockup(lockup_type) {
   return current_style.__handled_lockups[lockup_type];
@@ -3316,6 +3257,7 @@ function AddClash() {
 function AddStab() {
   blade.addEffect(EFFECT_STAB, 1.0);
 }
+//////////// Add swing button, boot and newfont to menu PR ///////////
 function AddSwing() {
   blade.addEffect(EFFECT_ACCENT_SWING, Math.random() * 0.7 + 0.2);
 }
@@ -3932,6 +3874,7 @@ class Blade {
     return STATE_NUM_LEDS;
   }
   addEffect(type, location) {
+//////////// Logging PR ///////////////
     // Use actual effect name for console logging clarity.
     const effectName = Object.keys(window).find(
       key => window[key] === type && key.indexOf("EFFECT_") === 0) || type;
@@ -3946,69 +3889,70 @@ class Blade {
   }
 };
 
+//////////// SOUND1 PR ///////////////
 // blade.addEffect override
 const origAddEffect = Blade.prototype.addEffect;
 
-Blade.prototype.addEffect = function(type, location, manual = false) {
+Blade.prototype.addEffect = function(type, location) {
   type = Number(type);
-
-  // Log incoming effect + raw style text
-  // let soundName = EFFECT_SOUND_MAP[type] || "(no sound mapping)";
-  // console.log(`addEffect() → type=${type}, soundName='${soundName}'`);
-  // console.log("Style textarea:\n", FIND("style").value);
-
   // Run the original so visuals still trigger
   origAddEffect.call(this, type, location);
 
-    // Auto-follow DESTRUCT → BOOM
-    if (type === EFFECT_DESTRUCT) {
+  // Auto-follow DESTRUCT → BOOM
+  if (type === EFFECT_DESTRUCT) {
+    setTimeout(() => {
+      const idx = lastPlayedSoundIndex['destruct'];
+      const rawDur = customFontSoundDurations['destruct']?.[idx];
+      const dur = (typeof rawDur === 'number' && rawDur > 50) ? rawDur : 500;
       setTimeout(() => {
-        const idx = lastPlayedSoundIndex['destruct'];
-        const rawDur = customFontSoundDurations['destruct']?.[idx];
-        const dur = (typeof rawDur === 'number' && rawDur > 50) ? rawDur : 500;
-        setTimeout(() => {
-          this.addEffect(EFFECT_BOOM, location);
-        }, dur);
-      }, 10);
-    }
+        this.addEffect(EFFECT_BOOM, location);
+      }, dur);
+    }, 10);
+  }
 
- // Recompute allowed set and log it
-  const allowedByStyle = getAllowedEffectsFromStyleText();
-  // console.log("Allowed effects parsed from textarea:",
-  //   Array.from(allowedByStyle).map(
-  //     v => (EFFECT_ENUM_BUILDER.value_to_name[v] || v).replace(/^EFFECT_/, '')
-  //   )
-  // );
-
+  const allowedByStyle = new Set(
+    Array.from(getAllowedEventsFromStyleText())
+      .filter(x =>
+        EFFECT_ENUM_BUILDER.value_to_name.hasOwnProperty(x) ||
+        LOCKUP_ENUM_BUILDER.value_to_name.hasOwnProperty(x)
+      )
+  );
   const BEGIN_EFFECT_MAP = {
     [EFFECT_LOCKUP_BEGIN]: "bgnlock",
     [EFFECT_DRAG_BEGIN]:   "bgndrag",
     [EFFECT_MELT_BEGIN]:   "bgnmelt",
     [EFFECT_LB_BEGIN]:     "bgnlb"
   };
-if (BEGIN_EFFECT_MAP[type]) {
-  if (allowedByStyle.has(type)) {
-    // Do Selected Effect triggered
-    if (manual || window.lockupLoopSrc) playRandomEffect(BEGIN_EFFECT_MAP[type], true);
+  if (BEGIN_EFFECT_MAP[type]) {
+    const lockupType = lockupTypeForEffect(type);
+    if (allowedByStyle.has(lockupType)) {
+      // Triggered by Do Selected Effect button
+      if (window.lockupLoopSrc) playRandomEffect(BEGIN_EFFECT_MAP[type], true);
+      // Triggered by Lockup chooser dropdow
+      if (!window.lockupLoopSrc) startLockupLoop(type);
+    }
+    return;
   }
-  // Lockup chooser triggered
-  if (!manual && !window.lockupLoopSrc && allowedByStyle.has(type)) startLockupLoop(type);
-  return;
-}
 
-  const END_EFFECT_MAP = {
-    [EFFECT_LOCKUP_END]: "endlock",
-    [EFFECT_DRAG_END]:   "enddrag",
-    [EFFECT_MELT_END]:   "endmelt",
-    [EFFECT_LB_END]:     "endlb"
-  };
-if (END_EFFECT_MAP[type]) {
-  // If being called because we are forcibly clearing a lockup (i.e. not allowedByStyle anymore),
-  // always end the lockup loop (even if sound is denied by style)
-  const forceEnd = !allowedByStyle.has(type) && window.lockupLoopSrc;
-  endLockupLoop(type, (allowedByStyle.has(type) || forceEnd) ? END_EFFECT_MAP[type] : null, true);
-  return;
-}
+    const END_EFFECT_MAP = {
+      [EFFECT_LOCKUP_END]: "endlock",
+      [EFFECT_DRAG_END]:   "enddrag",
+      [EFFECT_MELT_END]:   "endmelt",
+      [EFFECT_LB_END]:     "endlb"
+    };
+    // if (END_EFFECT_MAP[type]) {
+// needed this for some reason, now not...?
+    //   // If being called because we are forcibly ending a lockup with "Stop"
+    //   // always end the lockup loop (even if sound is denied by style)
+    //   const forceEnd = !allowedByStyle.has(type) && window.lockupLoopSrc;
+    //   endLockupLoop(type, (allowedByStyle.has(type) || forceEnd) ? END_EFFECT_MAP[type] : null, true);
+    //   return;
+    // }
+    if (END_EFFECT_MAP[type]) {
+      // Always play the end sound for lockup ends, regardless of allowedByStyle
+      endLockupLoop(type, END_EFFECT_MAP[type], true);
+      return;
+    }
 
   const allowedByFocus = (!current_focus || current_focus.constructor.name === 'LayersClass');
 
@@ -4261,6 +4205,7 @@ class InOutHelperLClass extends MACRO {
 function InOutHelperL(EX, O, AD) {
   return new InOutHelperLClass(EX, O, AD);
 }
+//////////// indents and line returns PR ///////////
 
 class InOutHelperXClass extends MACRO {
   constructor(T, EXTENSION, OFF_COLOR, ALLOW_DISABLE) {
@@ -4648,8 +4593,9 @@ class InOutTrLClass extends STYLE {
     this.add_arg("IN_TR", "TRANSITION", "OUT-IN transition");
     this.add_arg("OFF", "COLOR", "Color when off", BLACK.DOCOPY());
     this.add_arg("ALLOW_DISABLE", "INT", "allow disable?", 1);
+//////////// No re-ignition on focusout PR ///////////////
+    // Only triggers ignition on a real on/off change (not just a focus event).
     this.on_ = STATE_ON;
-    // Track so that focusing back to full style doesn't re-trigger ignition.
     this._last_state = STATE_ON;
     this.out_active_ = false;
     this.in_active_ = false;
@@ -4886,7 +4832,7 @@ class ReverseTimeClass extends MACRO {
 function ReverseTime(MILLIS) {
   return new ReverseTimeClass(MILLIS);
 }
-
+//////////// indents and line returns PR ///////////
 class TrInstantClass extends TRANSITION {
   constructor() {
     super("Instant transition");
@@ -5297,6 +5243,7 @@ class TrWipeInSparkTipClass extends MACRO {
 
 function TrWipeInSparkTip(C, M, S) { return new TrWipeInSparkTipClass(C, M, S); }
 
+//////////// indents and line returns PR ///////////
 class TrWaveXClass extends TRANSITION {
   constructor(COLOR, FADEOUT_MS, WAVE_SIZE, WAVE_MS, WAVE_CENTER) {
     super("Wave travelling outwards.", arguments);
@@ -5491,7 +5438,7 @@ class TrConcatClass extends TRANSITION {
   done() {
     return this.pos_ >= this.ARGS.length;
   }
-  
+
   run(blade) {
     if (this.done()) return;
     if (this.c1p != -1) this.ARGS[this.c1p].run(blade);
@@ -5796,7 +5743,7 @@ class TrDoEffectAlwaysClass extends MACRO {
 function TrDoEffectAlways(TRANSITION, EFFECT, WAVNUM, LOCATION) {
   return new TrDoEffectAlwaysClass(TRANSITION, EFFECT, WAVNUM, LOCATION);
 }
-
+//////////// indents and line returns PR ///////////
 class TrDoEffectXClass extends TRANSITION {
   constructor(TRANSITION, EFFECT, WAVNUM, LOCATION) {
     super("Do effect", arguments);
@@ -6020,6 +5967,7 @@ function Bump(P, F) {
   return new BumpClass(P, F);
 }
 
+//////////// indents and line returns PR ///////////
 class ChangeSlowlyClass extends FUNCTION {
   constructor(F, SPEED) {
     super("Changes F by no more than SPEED values per second.", arguments);
@@ -6471,6 +6419,7 @@ class WavLenClass extends FUNCTION {
     super("Length of associated wav file in MS", arguments);
     this.add_arg("EFFECT", "EFFECT", "Which effect to get the length of.", EFFECT(EFFECT_NONE));
   }
+//////////////// WAVLEN PR /////////////////
   // WavLen value can be set in settings panel
   setLength(value) {
     this.wavlenValue = value;
@@ -6760,6 +6709,7 @@ class SyncAltToVarianceFClass extends FUNCTION {
     if (VAR == this.last_ && Alt() == this.last_) return;
     if (this.last_ == 0x7fffffff) {
       console.log("SYNC FIRST");
+//////////// SafeguardInputs PR ///////////////
       FIND("ALT_VALUE").value = VAR;
     } else if (VAR != this.last_) {
       if (isNaN(VAR)) VAR = 0;
@@ -6771,6 +6721,7 @@ class SyncAltToVarianceFClass extends FUNCTION {
       VAR = Alt();
       if (isNaN(VAR)) VAR = 0;
       console.log("SYNC VAR: " + VAR);
+//////////// SafeguardInputs PR ///////////////
       FIND("VARIANT_VALUE").value = VAR;
     }
     this.last_ = VAR;
@@ -7993,6 +7944,7 @@ AddIdentifier("ViolentViolet", Rgb.bind(null, 55, 0, 255));
 
 class Parser {
   constructor(str, classes, identifiers) {
+//////////// Logging PR ///////////////
     // console.log("PARSING: " + str);
     this.str = str;
     this.pos = 0;
@@ -8268,38 +8220,154 @@ var timeFactor = 1.0;
 var bad_fps = 0;
 var good_fps = 0;
 
-var popupIdentifier;
-var popupWindow = FIND("popup_window");
-var popupOverlay = FIND("popup_overlay");
+// var popupIdentifier;
+// var popupWindow = FIND("popup_window");
+// var popupOverlay = FIND("popup_overlay");
 
-function showPopupMessage(message, currentPopup) {
-  popupIdentifier = currentPopup;
-  var checkbox = FIND("dont_show_again");
-  checkbox.checked = localStorage.getItem(popupIdentifier) === "false";
+// function showPopupMessage(message, currentPopup) {
+//   popupIdentifier = currentPopup;
+//   var checkbox = FIND("dont_show_again");
+//   checkbox.checked = localStorage.getItem(popupIdentifier) === "false";
 
-  if (localStorage.getItem(popupIdentifier) === "false") {
-    console.log(popupIdentifier + " is disabled.");
-  } else {
-    FIND("popup_message").innerHTML = message;
-    popupWindow.classList.add("show");
-    popupOverlay.classList.add("show");
-  }
-}
+//   if (localStorage.getItem(popupIdentifier) === "false") {
+//     console.log(popupIdentifier + " is disabled.");
+//   } else {
+//     FIND("popup_message").innerHTML = message;
+//     popupWindow.classList.add("show");
+//     popupOverlay.classList.add("show");
+//   }
+// }
 
-function dismissPopupMessage() {
-  popupWindow.classList.remove("show");
-  popupOverlay.classList.remove("show");
-}
+// function dismissPopupMessage() {
+//   popupWindow.classList.remove("show");
+//   popupOverlay.classList.remove("show");
+// }
 
-function DontShowAgain(checkboxState) {
-  checkboxState = !checkboxState;
-  localStorage.setItem(popupIdentifier, checkboxState);
-  console.log("Saving " + popupIdentifier + " " + checkboxState);
-}
+// function DontShowAgain(checkboxState) {
+//   checkboxState = !checkboxState;
+//   localStorage.setItem(popupIdentifier, checkboxState);
+//   console.log("Saving " + popupIdentifier + " " + checkboxState);
+// }
 
 var pixels;
 var AA = 1;
 var AA_STEP_SIZE = 1;
+
+// returns Float32Array with 3 * num_pixel values
+function getSaberColors() {
+    var now_actual_millis = actual_millis();
+    var delta_actual_millis = now_actual_millis - last_actual_millis;
+    last_actual_millis = now_actual_millis;
+    
+    var delta_us = delta_actual_millis * time_factor
+    last_micros = current_micros;
+    current_micros_internal += delta_us;
+    current_micros = current_micros_internal
+    if (current_micros - last_micros > 1000000/45) {
+        bad_fps ++;
+        if (good_fps) good_fps--;
+    } else {
+        if (bad_fps) bad_fps --;
+        good_fps++;
+    }
+    if (benchmarkState.get()) {
+        if (bad_fps > 20) {
+            if (AA_STEP_SIZE < 0) AA_STEP_SIZE-=1; else AA_STEP_SIZE=-1;
+            AA+=AA_STEP_SIZE;
+            if (AA < 1) AA = 1;
+            compile();
+            bad_fps = 0;
+            FIND("error_message").innerHTML = "AA="+AA;
+        }
+        if (good_fps > 20) {
+            if (AA_STEP_SIZE > 0) AA_STEP_SIZE+=1; else AA_STEP_SIZE=1;
+            AA+=AA_STEP_SIZE;
+            compile();
+            good_fps = 0;
+            FIND("error_message").innerHTML = "AA="+AA;
+        }
+    }
+    var num_leds = blade.num_leds()
+    if (!pixels || pixels.length != num_leds * 3) {
+        pixels = new Float32Array(num_leds * 3);
+    }
+    var S = current_style;
+    if (S != last_style) {
+        last_style = S;
+        if (S.getType) {
+            S.set_right_side(current_focus || style_tree)
+            if (S.getType() == "TRANSITION") {
+              S = TransitionLoop(Rgb(0,0,0), TrConcat(TrDelay(500), Rgb(255,0,0), S, Rgb(0,0,255), TrInstant()));
+            }
+            if (S.getType() == "FUNCTION") {
+              S = Mix(S, Rgb(0,0,0), Rgb(255,255,255));
+            }
+        }
+        show_style = S;
+    } else {
+        S = show_style;
+    }
+    numTick++;
+    if (S.getColor && S.getType && S.getType() == "COLOR" && numTick > framesPerUpdate) {
+        numTick = 0;
+        S.run(blade);
+        for (var i = 0; i < num_leds; i++) {
+            var c = S.getColor(i);
+            pixels[i*3 + 0] = c.r / 2;
+            pixels[i*3 + 1] = c.g / 2;
+            pixels[i*3 + 2] = c.b / 2;
+        }
+        if (last_micros != 0) {
+            current_micros += delta_us / 2;
+        }
+        if (framesPerUpdate == 0) {
+            S.run(blade);
+        }
+        for (var i = 0; i < num_leds; i++) {
+            var c = S.getColor(i);
+            pixels[i*3 + 0] += c.r / 2;
+            pixels[i*3 + 1] += c.g / 2;
+            pixels[i*3 + 2] += c.b / 2;
+        }
+        S.update_displays();
+    }
+    t += 1;
+    return pixels;
+}
+
+function getSaberMove() {
+  var rotation = MOVE_MATRIX;
+  if (STATE_ROTATE) {
+    var u_value = (new Date().getTime() - rotate_start) / 3000.0;
+    var rotation = default_move_matrix();
+    rotation = rotation.mult(Matrix.mkyrot(u_value));
+    rotation = rotation.mult(Matrix.mkzrot(u_value / 7.777));
+
+  } else {
+    if (0) {
+      OLD_MOVE_MATRIX = default_move_matrix();
+      rotation = default_move_matrix();
+      rotation = rotation.mult(Matrix.mkzrot(0.2));
+    }
+    rotate_start = new Date().getTime();
+//    rotation = default_move_matrix();
+  }
+  OLD_MOVE_MATRIX = rotation;
+//  rotation = rotation.mult(Matrix.mkzrot(Math.PI));
+//  rotation = rotation.mult(Matrix.mkxrot(Math.PI));
+ //  rotation = rotation.mult(Matrix.mkyrot(Math.PI*3.0/2.0));
+//  rotation = rotation.mult(Matrix.mkyrot(Math.PI/2.0));
+ //  rotation = rotation.mult(Matrix.mkzrot(-Math.PI/2.0));
+    //  rotation = rotation.mult(Matrix.mkyrot(-Math.PI/2.0));
+    rotation = Matrix.fromValues(
+        0.0, -1.0, 0.0, 0.0,
+        0.0, 0.0, -1.0, 0.0,
+        1.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 1.0).mult(rotation);
+    rotation = rotation.mult(Matrix.mkyrot(Math.PI/2.0));
+    rotation = rotation.mult(Matrix.mktranslate(0.0, 0.0, -250.0));
+  return rotation;
+}
 
 function drawScene() {
   var now_actual_millis = actual_millis();
@@ -8333,13 +8401,8 @@ function drawScene() {
         good_fps = 0;
         FIND("error_message").innerHTML = "AA="+AA;
      }
-  } else {
-    if (bad_fps > 10 && graflexState.get()) {
-      showPopupMessage("Struggling to render hilt model.<br>Switching to simpler design.<br>To re-enable Graflex model, go to Settings.", "graflexPopup");
-      graflexState.set(false);
-    }
   }
-  num_leds = blade.num_leds()
+  var num_leds = blade.num_leds()
   if (!pixels || pixels.length < num_leds * 4 * 2) {
      pixels = new Uint8Array(num_leds * 4 * 2);
   }
@@ -8364,7 +8427,7 @@ function drawScene() {
     numTick = 0;
     S.run(blade);
     for (var i = 0; i < num_leds; i++) {
-        c = S.getColor(i);
+        var c = S.getColor(i);
         pixels[i*4 + 0] = Math.round(c.r * 255);
         pixels[i*4 + 1] = Math.round(c.g * 255);
         pixels[i*4 + 2] = Math.round(c.b * 255);
@@ -8377,7 +8440,7 @@ function drawScene() {
       S.run(blade);
     }
     for (var i = 0; i < num_leds; i++) {
-        c = S.getColor(i);
+        var c = S.getColor(i);
         pixels[i*4 + 0 + num_leds * 4] = Math.round(c.r * 255);
         pixels[i*4 + 1 + num_leds * 4] = Math.round(c.g * 255);
         pixels[i*4 + 2 + num_leds * 4] = Math.round(c.b * 255);
@@ -8385,30 +8448,9 @@ function drawScene() {
     }
     S.update_displays();
   }
-  // TODO: Generate mipmaps, then adjust level based on distance from blade
-  gl.texImage2D(
-      gl.TEXTURE_2D,
-      0,                 // level
-      gl.RGBA,           // internalFormat
-      num_leds, 2,       // width, height
-      0,                 // border
-      gl.RGBA,           // source format
-      gl.UNSIGNED_BYTE,  // source type
-      pixels);
 
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  /// three.js animation stuff here!!
 
-  // Draw these textures to the screen, offset by 1 pixel increments
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  // Modified to canvas.width and height for fullscreen recovery.
-  gl.viewport(0, 0, canvas.width, canvas.height);
-  gl.clearColor(0.0, 1.0, 0.0, 1.0);
-  gl.clear(gl.COLOR_BUFFER_BIT);
-
-  // gl.viewport(0, 0, canvas.width,  canvas.height);  // redundant?
   var rotation = MOVE_MATRIX;
   if (STATE_ROTATE) {
     var u_value = (new Date().getTime() - rotate_start) / 3000.0;
@@ -8424,15 +8466,7 @@ function drawScene() {
     }
     rotate_start = new Date().getTime();
   }
-  gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_time"),
-               (new Date().getTime() - start) / 1000.0);
-  gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_width"), width);
-  gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_height"), height);
-
-  gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "u_move_matrix"), false, rotation.values);
-  gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "u_old_move_matrix"), false, OLD_MOVE_MATRIX.values);
   OLD_MOVE_MATRIX = rotation;
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
   t += 1;
 }
@@ -8501,6 +8535,7 @@ function ReplaceCurrentFocus(str) {
   }
   var type = "COLOR";
   var classname = "Style";
+//////////// History PR ///////////
 
   if (current_style) {
     type = current_style.getType();
@@ -8525,7 +8560,7 @@ function ReplaceCurrentFocus(str) {
 }
 
 function highlightHistoryButtons(validType) {
-  console.log('highlightHistoryButtons called with type:', validType);
+  // console.log('highlightHistoryButtons called with type:', validType);
   const allButtons = document.querySelectorAll('#history_tabcontent .history-btn');
   allButtons.forEach(btn => {
     btn.classList.remove('history-btn-valid', 'history-btn-invalid');
@@ -8536,7 +8571,9 @@ function highlightHistoryButtons(validType) {
     }
   });
 }
+//////////// History PR ///////////
 
+//////////// Resolve empty WavLen<> PR ///////////
 // This replaces any empty WavLen<> in a TransitionEffectL with WavLen<EFFECT_XXXX>
 function autoBindWavLen(styleString) {
   let out = '';
@@ -8635,7 +8672,25 @@ function autoBindWavLenInOutTrL(styleString) {
   }
   return out;
 }
-//////////// BC ///////////
+
+// Prevent retriggering effects after re-parse (clicking Submit, or outermost bracket)
+function PreventTransitionRetrigger(style, bladeObj, index = {v:0}) {
+  if (style.constructor.name === "TransitionEffectLClass") {
+    for (const e of bladeObj.GetEffects()) {
+      if (e.type === style.EFFECT.getInteger(0)) {
+        style.effect_.last_detected_ = e.start_micros;
+        break;
+      }
+    }
+  }
+  if (Array.isArray(style.args)) {
+    for (const child of style.args) {
+      index.v++;
+      PreventTransitionRetrigger(child, bladeObj, index);
+    }
+  }
+}
+
 function Run() {
   var sty = FIND("style");
   var err = FIND("error_message");
@@ -8643,6 +8698,7 @@ function Run() {
   var originalStr = sty.value;
   var str = originalStr;
 
+//////////// Resolve empty WavLen<> PR ///////////
   // Only run autoBind if there is an empty WavLen<> placeholder
   const emptyWavLenRegex = /WavLen\s*<\s*>/;
   if (emptyWavLenRegex.test(str)) {
@@ -8658,9 +8714,14 @@ function Run() {
   err.innerHTML = "";
   try {
     current_style = parser.parse();
+    PreventTransitionRetrigger(current_style, blade);
   }
   catch(e) {
+    console.log(e);
+    console.log(e.stack);
+    console.log(typeof(e));
     if (typeof(e) == "string") {
+//////////// indents and line returns PR ///////////
       err.innerHTML = e;
       sty.focus();
       sty.setSelectionRange(parser.pos, parser.pos);
@@ -8689,13 +8750,16 @@ function Run() {
     } else {
       throw e;
     }
+//////////// indents and line returns PR ///////////
   }
   ReplaceCurrentFocus(str);
   compile();
+//////////// Lockup Dropdown tweaks PR ///////////
   STATE_LOCKUP = LOCKUP_NONE;
   updateLockupDropdown();
 
   if (current_style.argstring) {
+//////////// missing semicolon PR ///////////
     FIND("ARGSTR").value = "builtin 0 1 " + current_style.argstring;
     ArgStringChanged();
   }
@@ -8753,6 +8817,7 @@ function ArgChanged(ARG) {
   var N = ArgumentName_ENUM_BUILDER.value_to_name[ARG];
   var tag = FIND("ARGSTR_"+N);
   setARG(ARG, tag.value);
+//////////// Logging PR ///////////////
   console.log("Updated " + N + " : " + tag.value)
 }
 
@@ -8761,6 +8826,7 @@ function IncreaseArg(ARG, I) {
   var tag = FIND("ARGSTR_"+N);
   tag.value = parseInt(tag.value) + I;
   setARG(ARG, tag.value);
+//////////// Logging PR ///////////////
   console.log("Updated " + N + " : " + tag.value)
 }
 
@@ -8781,7 +8847,8 @@ function PopState(event) {
 }
 
 function SetTo(str) {
-  console.log("Style SetTo:\n", str);
+//////////// Logging PR ///////////////
+  // console.log("Style SetTo:\n", str);
   var old = FIND("style").value;
   var url = new URL(window.location.href);
   url.searchParams.set("S", str);
@@ -8795,6 +8862,7 @@ function SetTo(str) {
   Run();
 }
 
+////////////////  TAB MANIA PR /////////////////
 function SetToAndFormat(str, event) {
   var parser = new Parser(str, classes, identifiers);
   var style = parser.parse();
@@ -8808,20 +8876,26 @@ function SetToAndFormat(str, event) {
     enableTabs();
   }
 }
+////////////////  TAB MANIA PR /////////////////
 
 function FocusOnLow(id) {
   console.log("FOCUSON: " + id);
-  const style = style_ids[id];
+  var style = style_ids[id];
+//////////// Logging PR ///////////////
   console.log("style_ids[" + id + "] =", style);
   current_focus = style;
   var container = FIND("X"+id);
   console.log(container);
+//////////// CSS PR ///////////////
+  // MOVED TO CSS container.style.backgroundColor = 'lightblue';
   pp_is_url++;
-  const url = style.pp();
+  var url = style.pp();
   pp_is_url--;
-  console.log("pp URL =", url);
+//////////// Logging PR ///////////////
+  // console.log("pp URL =", url);
   current_focus_url = url;
   SetTo(url);
+//////////// SOUND1 PR ///////////////
   FocusCheck();
   return true;
 }
@@ -8831,6 +8905,7 @@ function FocusOn(id, event) {
   FocusOnLow(id);
 }
 
+//////////// SOUND1 PR ///////////////
 function FocusCheck() {
   // Detect whether this is the top-level in structured view.
   const outerMostBracket = (!current_focus || (current_focus.constructor.name === "LayersClass"));
@@ -8860,7 +8935,7 @@ function ClickRotate() {
 var power_button = FIND("POWER_BUTTON");
 /*
 Compute delay for triggering ignition/postoff.
-For ignition delay, use preon sound duration.
+For ignition delay, use preon sound duration (or global WavLen value)
 For POSTOFF delay, use IN_TR total time.
 */
 function ClickPower() {
@@ -8870,63 +8945,57 @@ function ClickPower() {
   }
   ClickPower._debounced = true;
   setTimeout(() => { ClickPower._debounced = false; }, 400);
+  console.log("POWER");
   stopAllLoops(200, true);  // Power button used: clear lockup state
 
   STATE_LOCKUP=0;
   updateLockupDropdown();
-  console.log("POWER");
 
-  function igniteAndStartHum() {
-    requestAnimationFrame(updateSmoothSwingGains)
-    blade.addEffect(EFFECT_IGNITION, Math.random() * 0.7 + 0.2);
-    setTimeout(() => {
-      // Only start hum if still powered on!
-      // FocusCheck();
-      if (focusAllowsHum) {
-        startHum();
-      } else {
-        console.log('[STATE_WAIT_FOR_ON] Power turned off before ignition; or Not focused full. not starting hum.');
-      }
-    }, 200);  // pseudo ProffieOSHumDelay hardcoded
-  }
-
-  // if (!STATE_ON && !STATE_WAIT_FOR_ON) {
-  //   STATE_WAIT_FOR_ON = true;
-  //   const buffers = pickLoopBuffers('preon');
-  // console.log('ClickPower DEBUG: soundOn=', soundOn, 'buffers:', buffers);    let ignitionDelay = 0;
-  //   if (buffers.length) {
-  //     blade.addEffect(EFFECT_PREON, 0.0);
-  //     const idx = lastPlayedSoundIndex['preon'];
-  //     ignitionDelay = Math.round(buffers[idx].duration * 1000);
-  //     console.log(`Delaying ignition by ${ignitionDelay} ms (preon.wav length)`);
-  //   }
-  //   setTimeout(() => {
-  //     STATE_WAIT_FOR_ON = false;
-  //     STATE_ON = true;
-  //     igniteAndStartHum();
-  //   }, ignitionDelay);
-  //     power_button.classList.toggle("button-latched", true);
-  // } else {
   if (!STATE_ON && !STATE_WAIT_FOR_ON) {
     STATE_WAIT_FOR_ON = true;
-    const buffers = pickLoopBuffers('preon');
+    const preonBuffers = pickLoopBuffers('preon');
     let ignitionDelay = 0;
-    let idx = lastPlayedSoundIndex['preon'];
-    if (typeof idx !== 'number' || idx >= buffers.length) idx = 0;
-    if (buffers[idx]) {
+    if (preonBuffers.length) {
       blade.addEffect(EFFECT_PREON, 0.0);
-      ignitionDelay = Math.round(buffers[idx].duration * 1000);
+      let idx = lastPlayedSoundIndex['preon'];
+      if (typeof idx !== 'number' || idx >= preonBuffers.length) idx = 0;
+      ignitionDelay = Math.round(preonBuffers[idx].duration * 1000);
       console.log(`Delaying ignition by ${ignitionDelay} ms (preon.wav length)`);
     }
 
-    setTimeout(() => {
+    // Store ignition timer for possible cancellation
+    if (ClickPower._pendingIgnite) clearTimeout(ClickPower._pendingIgnite);
+    ClickPower._pendingIgnite = setTimeout(() => {
       STATE_WAIT_FOR_ON = false;
       STATE_ON = true;
-      igniteAndStartHum();
+      // Ignite and start hum
+      requestAnimationFrame(updateSmoothSwingGains)
+      blade.addEffect(EFFECT_IGNITION, Math.random() * 0.7 + 0.2);
+      setTimeout(() => {
+        // Only start hum if still powered on!
+        if (focusAllowsHum) {
+          startHum();
+        } else {
+          console.log('[ClickPower] Not focused full. not starting hum.');
+        }
+      }, 200);  // pseudo ProffieOSHumDelay hardcoded
+
+      ClickPower._pendingIgnite = null;
     }, ignitionDelay);
 
     power_button.classList.toggle("button-latched", true);
 
+  } else if (STATE_WAIT_FOR_ON) {
+    // User turned OFF during preon: cancel ignition!
+    if (ClickPower._pendingIgnite) {
+      clearTimeout(ClickPower._pendingIgnite);
+      ClickPower._pendingIgnite = null;
+    }
+    STATE_WAIT_FOR_ON = false;
+    STATE_ON = false;
+    power_button.classList.toggle("button-latched", false);
+    console.log('[ClickPower().STATE_WAIT_FOR_ON] Power turned off during preon. Just returning to OFF state.');
+    return;
   } else {
     STATE_ON = 0;
     power_button.classList.toggle("button-latched", false);
@@ -8966,67 +9035,64 @@ lockups_to_event[LOCKUP_DRAG]            = [ EFFECT_DRAG_BEGIN, EFFECT_DRAG_END 
 lockups_to_event[LOCKUP_MELT]            = [EFFECT_MELT_BEGIN, EFFECT_MELT_END];
 lockups_to_event[LOCKUP_LIGHTNING_BLOCK] = [EFFECT_LB_BEGIN, EFFECT_LB_END];
 
+// Reverse mapping bgn->lockup
+function lockupTypeForEffect(effect) {
+  for (const lockupType in lockups_to_event) {
+    if (lockups_to_event[lockupType][0] === effect) {
+      return Number(lockupType);  // make sure it’s a number
+    }
+  }
+  return undefined;
+}
+
 function OnLockupChange() {
   console.log("OnLockupChange");
   var select = FIND("LOCKUP");
   var old = STATE_LOCKUP;
   STATE_LOCKUP = window[select.value];
   window.currentLockupType = STATE_LOCKUP;
+
+  // Check: If choosing a lockup that’s NOT allowed, bail and reset
+    const allowedLockups = new Set(
+    Array.from(getAllowedEventsFromStyleText())
+      .filter(x => LOCKUP_ENUM_BUILDER.value_to_name.hasOwnProperty(x))
+  );
+
+  if (STATE_LOCKUP !== LOCKUP_NONE && !allowedLockups.has(STATE_LOCKUP)) {
+    console.log("No", lockupNameFromValue(STATE_LOCKUP), "in the blade style, resetting dropdown.");
+    STATE_LOCKUP = LOCKUP_NONE;
+    window.currentLockupType = null;
+    select.value = "LOCKUP_NONE";
+    updateLockupDropdown();
+    return;
+  }
   updateLockupDropdown();
+  // Trigger bgnlock
   if (STATE_LOCKUP && lockups_to_event[STATE_LOCKUP]) {
     blade.addEffect(lockups_to_event[STATE_LOCKUP][0], Math.random() * 0.7 + 0.2);
+  // "Stop" chosen, trigger endlock
   } else if (old && lockups_to_event[old]) {
     blade.addEffect(lockups_to_event[old][1], Math.random() * 0.7 + 0.2);
   }
 }
 
 function updateLockupDropdown() {
-  // console.log("[LockupDropdown] ▶ update called; STATE_LOCKUP =", STATE_LOCKUP);
   const lockupSelect = FIND("LOCKUP");
   lockupSelect.innerHTML = "";
 
   // Get allowed lockup types from style code
-  const allowedLockups = getAllowedLockupsFromStyleText();
-  // console.log("[LockupDropdown]    allowedLockups =", Array.from(allowedLockups));
-
-// THIS WORKS if we want to play the endlock when refocusing off a selected lockup layer.
-// but maybe it should just stop playing instead ?
-// // Auto‐end any running lockup if its layer is no longer allowed
-// const prevBeginEvt = window.currentLockupType;
-// console.log(
-//   "[LockupDropdown] ▶ prevBeginEvt=", prevBeginEvt,
-//   "allowedLockups=", Array.from(allowedLockups)
-// );
-// // figure out which lockup enum originally drove that begin‐event
-// let prevEnum, endEvt;
-// for (const [lk, [b,e]] of Object.entries(lockups_to_event)) {
-//   if (b === prevBeginEvt) {
-//     prevEnum = Number(lk);
-//     endEvt   = e;
-//     break;
-//   }
-// }
-// if (prevEnum != null && !allowedLockups.has(prevEnum)) {
-//   console.log("[LockupDropdown] ⚡ auto‐ending lockup enum", prevEnum);
-//   const END_EFFECT_MAP = {
-//     [EFFECT_LOCKUP_END]:   "endlock",
-//     [EFFECT_DRAG_END]:     "enddrag",
-//     [EFFECT_MELT_END]:     "endmelt",
-//     [EFFECT_LB_END]:       "endlb"
-//   };
-//   // directly kill the loop and play its end‐sound
-//   endLockupLoop(prevBeginEvt, END_EFFECT_MAP[endEvt], true);
-//   // clear both state vars so dropdown & audio agree
-//   STATE_LOCKUP = LOCKUP_NONE;
-//   window.currentLockupType = null;
-// }
+  const allowedLockups = new Set(
+    Array.from(getAllowedEventsFromStyleText())
+      .filter(x => LOCKUP_ENUM_BUILDER.value_to_name.hasOwnProperty(x))
+  );
 
 // Silently stop loop if no lockup is selected
 if ((!STATE_LOCKUP || STATE_LOCKUP === LOCKUP_NONE) && window.lockupLoopSrc) {
-  try { window.lockupLoopSrc.stop(); window.lockupLoopSrc.disconnect(); } catch (_) {}
+  window.lockupLoopSrc.stop();
+  window.lockupLoopSrc.disconnect();
   window.lockupLoopSrc = null;
   if (window.lockupGainNode) {
-    try { window.lockupGainNode.disconnect(); } catch (_) {}
+    window.lockupGainNode.disconnect();
     window.lockupGainNode = null;
   }
   window.currentLockupType = null;
@@ -9049,8 +9115,12 @@ if ((!STATE_LOCKUP || STATE_LOCKUP === LOCKUP_NONE) && window.lockupLoopSrc) {
       [LOCKUP_LIGHTNING_BLOCK]: "LOCKUP_LIGHTNING_BLOCK"
     };
 
+    const outerMostBracket = (!current_focus || (current_focus.constructor.name === "LayersClass"));
+    let optionsAdded = 0;
     for (const lockupType of [LOCKUP_NORMAL, LOCKUP_DRAG, LOCKUP_MELT, LOCKUP_LIGHTNING_BLOCK]) {
-      if (allowedLockups.has(lockupType)) {
+      // If at top-level, show ALL lockups.
+      // If focused in, show ONLY the selected lockup.
+      if (outerMostBracket || allowedLockups.has(lockupType)) {
         lockupSelect.appendChild(new Option(
           lockupLabels[lockupType],
           lockupTypeNames[lockupType]
@@ -9257,7 +9327,6 @@ function DoArgify() {
 }
 
 ////////////////  TAB MANIA PR /////////////////
-
 // Tab mania.
 const allTabs = ["color", "rgb", "layer", "function", "transition", "effect", "lockup_type", "arguments", "example"];  // don't include History or argString
 // The "color group" are the 3 tabs that contain valid replacements for a COLOR.
@@ -9297,6 +9366,7 @@ function sortByName() {
 }
 
 function updateRgbTabContent() {
+  let sortedRgbLinks;
   if (colorsortState.get()) {
     console.log("Sort colors by Name");
     sortedRgbLinks = sortByName();
@@ -9328,20 +9398,20 @@ window.addEventListener("load", function () {
   }, 0);
 });
 
+// Have non-applicable tabs be disabled, similar to how History works.
 function ActivateTab(tab, fromStructuredView = false) {
   if (!FIND(tab + "_tab")) {
     console.log("No such tab");
     return;
   }
+  // Get all elements with class="tabcontent" and hide them
+  const tabcontent = document.querySelectorAll('.tabcontent');
+  tabcontent.forEach(tc => tc.style.display = "none");
 
-  // Hide all tab contents
-  const tabcontents = document.querySelectorAll('.tabcontent');
-  tabcontents.forEach(tc => tc.style.display = "none");
-
-  // Remove active/disabled from all tabs
+  // Get all elements with class="tablinks" and make available.
   const tablinks = document.querySelectorAll('.tablinks');
   tablinks.forEach(btn => {
-    btn.classList.remove("active", "disabled");
+    btn.className = btn.className.replace(" active", "").replace(" disabled", "");
     btn.disabled = false;
   });
 
@@ -9373,11 +9443,9 @@ function ActivateTab(tab, fromStructuredView = false) {
     }
   });
 }
-
 ////////////////  TAB MANIA PR /////////////////
 
 ////////////// Recent EFFECTS PR ///////////
-
 const menu = FIND('more_effects_menu');
 const do_selected_button = FIND('do_selected');
 let recentEffects = [EFFECT_NONE];
@@ -9385,8 +9453,6 @@ const MAX_RECENTS = 5;
 
 // Get the menu and button elements
 function rebuildMoreEffectsMenu() {
-  const menu = FIND('more_effects_menu');
-  const do_selected_button = FIND('do_selected');
   const currentValue = typeof selectedValue !== 'undefined'
     ? selectedValue
     : menu.value;
@@ -9466,9 +9532,8 @@ function rebuildMoreEffectsMenu() {
         case EFFECT_FIRE:
         case EFFECT_CLIP_IN:
         case EFFECT_CLIP_OUT:
-//////////  PR /////////////////
+////////// Add DESTRUCT PR /////////////////
         case EFFECT_DESTRUCT:
-//////////  PR /////////////////
         case EFFECT_RELOAD:
         case EFFECT_MODE:
         case EFFECT_RANGE:
@@ -9493,6 +9558,7 @@ function rebuildMoreEffectsMenu() {
       }
     }
   }
+
   // Add the sub-groups to the main menu
   menu.appendChild(recentEffectsMenu);
   menu.appendChild(generalEffectsMenu);
@@ -9502,31 +9568,16 @@ function rebuildMoreEffectsMenu() {
   menu.appendChild(errorMessagesMenu);
 
   // After populating options, set initial button state based on selection
-  if (menu.value !== '') {
-    do_selected_button.disabled = false;
-    do_selected_button.className = "button-on";
-    do_selected_button.onclick = function() {
-      AddClickedEffect();
-    };
-  } else {
-    do_selected_button.disabled = true;
-    do_selected_button.onclick = null;
-    do_selected_button.className = "button-off";
-  }
+  // If the selected value is not the default, enable the button and set its action
+  updateDoSelectedButtonState(menu, do_selected_button);
 }
 
 // What to do when preview saber area is clicked
 function AddClickedEffect() {
-  const menu = FIND('more_effects_menu');
-  const do_selected_button = FIND('do_selected');
   const raw = menu.value;
   const type = Number(raw);
   const effectName = EFFECT_SOUND_MAP[type] || raw;
 
-  // console.log("🖱️ Manual trigger:", { type, effectName });
-  // console.log("   customFontSounds:", customFontSounds[effectName]);
-  // console.log("   customFontSoundDurations:", customFontSoundDurations[effectName]);
-  // console.log("   lastPlayedSoundIndex:", lastPlayedSoundIndex[effectName]);
   // Update recents
   if (type && !recentEffects.includes(type)) {
     recentEffects.unshift(type);
@@ -9540,30 +9591,36 @@ function AddClickedEffect() {
   if (do_selected_button.disabled) {
     AddClash();
   } else {
-    blade.addEffect(type, 0.0, true);
+    blade.addEffect(type, 0.0,);
+  }
+}
+
+function updateDoSelectedButtonState(menu, button) {
+  if (menu.value !== "") {
+    button.disabled = false;
+    button.className = "button-on";
+    button.onclick   = AddClickedEffect;
+  } else {
+    button.disabled = true;
+    button.onclick   = null;
+    button.className = "button-off";
   }
 }
 
 menu.addEventListener('change', function() {
-  if (menu.value !== '') {
-    do_selected_button.disabled = false;
-    do_selected_button.className = "button-on";
-    do_selected_button.onclick = function() {
-      AddClickedEffect();
-    };
-  } else {
-    do_selected_button.disabled = true;
-    do_selected_button.onclick = null;
-    do_selected_button.className = "button-off";
-  }
+  updateDoSelectedButtonState(menu, do_selected_button);
 });
+////////////// Recent EFFECTS PR ///////////
+
+//////////// SafeguardInputs PR ///////////////
+const settingsPanel  = FIND('settings_panel');
+const settingsButton = FIND('SETTINGS_BUTTON');
 
 function toggleSettingsPanel() {
   if (document.querySelector('input.invalid')) {
     console.log('*** INVALID INPUT - Not closing panel.');
     return;
   }
-  const settingsPanel = FIND('settings_panel');
   settingsPanel.classList.toggle('show');
 }
 
@@ -9573,16 +9630,13 @@ document.body.addEventListener('click', function(e) {
     console.log('*** INVALID INPUT - Not closing panel.');
     return;
   }
-  const settingsPanel = FIND('settings_panel');
-  const settingsButton = FIND('SETTINGS_BUTTON');
-  if (
-    settingsPanel.classList.contains('show') &&
-    !settingsPanel.contains(e.target) &&
-    e.target !== settingsButton
-  ) {
+  if (settingsPanel.classList.contains('show') &&
+      !settingsPanel.contains(e.target) &&
+      e.target !== settingsButton) {
     settingsPanel.classList.remove('show');
   }
 });
+//////////// SafeguardInputs PR ///////////////
 
 // Call the onPageLoad function when the page is loaded
 window.addEventListener('DOMContentLoaded', onPageLoad);
@@ -9673,7 +9727,6 @@ var colorsortState = new SavedStateBool("colorsort", false, (on) => {
   updateRgbTabContent();
 });
 
-var graflexState = new SavedStateBool("graflex", true, (on) => { compile(); });
 var mouseswingsState = new SavedStateBool("mouseswings", false, (on) => {});
 var autoswingState = new SavedStateBool("autoswing", true, (on) => {});
 var inhiltState = new SavedStateBool("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
@@ -9690,6 +9743,7 @@ wavlenInput.addEventListener("focusout", function(e) {
   }
 });
 
+//////////////// SOUND2 PR /////////////////
 var soundOnState = new SavedStateBool("sound", true, (on) => {
   soundOn = on;
   const icon = FIND("sound-toggle-icon");
@@ -9716,10 +9770,11 @@ var useFontWavLenState = new SavedStateBool("use_font_wavlen", true, (on, prev) 
   handleWavLenControls();
   if (on && !prev) wavlenState.set(500);
 });
+//////////////// SOUND2 PR /////////////////
 
-var origD;
+//////////// Fullscreen PR ///////////
 // Create n textures of about 1MB each.
-function initGL() {
+function SetupRendering() {
   // Clear existing tab links and tab bodies before populating
   var tabLinksElement = FIND("TABLINKS");
   var tabBodiesElement = FIND("TABBODIES");
@@ -9761,63 +9816,67 @@ function initGL() {
   A += "</table\n";
   AddTabContent("arg_string", A);
 
-  if(window.devicePixelRatio !== undefined) {
-    dpr = window.devicePixelRatio;
-  } else {
-    dpr = 1;
+//////////// Fullscreen PR ///////////
+  window.renderer.setPixelRatio( window.devicePixelRatio || 1 );
+
+  var str = new URL(window.location.href).searchParams.get("S");
+  if (!str) {
+    str = "Layers<Red,InOutTrL<TrWipeX<WavLen<EFFECT_IGNITION>>,TrWipeInX<WavLen<EFFECT_RETRACTION>>,Pulsing<ElectricViolet,Black,2000>>,ResponsiveLockupL<White,TrInstant,TrFade<100>,Int<26000>>,ResponsiveLightningBlockL<White>,ResponsiveMeltL<Mix<TwistAngle<>,Red,Yellow>>,ResponsiveDragL<White>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_CLASH>>,AliceBlue,TrInstant>,EFFECT_CLASH>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_STAB>>,Cyan,TrInstant>,EFFECT_STAB>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_BLAST>>,Aquamarine,TrInstant>,EFFECT_BLAST>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_FORCE>>,Azure,TrInstant>,EFFECT_FORCE>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_BOOT>>,Bisque,TrInstant>,EFFECT_BOOT>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_NEWFONT>>,Black,TrInstant>,EFFECT_NEWFONT>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_PREON>>,BlanchedAlmond,TrInstant>,EFFECT_PREON>,TransitionEffectL<TrConcat<TrWipeInX<WavLen<EFFECT_IGNITION>>,BlinkingL<Chartreuse,Int<200>,Int<500>>,TrInstant>,EFFECT_IGNITION>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_RETRACTION>>,BlinkingL<Coral,Int<200>,Int<500>>,TrInstant>,EFFECT_RETRACTION>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_POSTOFF>>,Blue,TrInstant>,EFFECT_POSTOFF>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_DRAG_BEGIN>>,Cornsilk,TrInstant>,EFFECT_DRAG_BEGIN>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_DRAG_END>>,Cyan,TrInstant>,EFFECT_DRAG_END>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_LOCKUP_BEGIN>>,DarkOrange,TrInstant>,EFFECT_LOCKUP_BEGIN>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_LOCKUP_END>>,DeepPink,TrInstant>,EFFECT_LOCKUP_END>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_MELT_BEGIN>>,DeepSkyBlue,TrInstant>,EFFECT_MELT_BEGIN>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_MELT_END>>,FloralWhite,TrInstant>,EFFECT_MELT_END>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_LB_BEGIN>>,GhostWhite,TrInstant>,EFFECT_LB_BEGIN>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_LB_END>>,Green,TrInstant>,EFFECT_LB_END>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_CHANGE>>,GreenYellow,TrInstant>,EFFECT_CHANGE>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_BATTERY_LEVEL>>,HoneyDew,TrInstant>,EFFECT_BATTERY_LEVEL>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_VOLUME_LEVEL>>,HotPink,TrInstant>,EFFECT_VOLUME_LEVEL>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_POWERSAVE>>,Ivory,TrInstant>,EFFECT_POWERSAVE>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_BLADEIN>>,LavenderBlush,TrInstant>,EFFECT_BLADEIN>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_BLADEOUT>>,LemonChiffon,TrInstant>,EFFECT_BLADEOUT>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_ACCENT_SWING>>,LightCyan,TrInstant>,EFFECT_ACCENT_SWING>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_ACCENT_SLASH>>,Blue,TrInstant>,EFFECT_ACCENT_SLASH>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_SPIN>>,LightSalmon,TrInstant>,EFFECT_SPIN>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_ON>>,LightYellow,TrInstant>,EFFECT_ON>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_OFF>>,Magenta,TrInstant>,EFFECT_OFF>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_OFF_CLASH>>,MintCream,TrInstant>,EFFECT_OFF_CLASH>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_FAST_ON>>,MistyRose,TrInstant>,EFFECT_FAST_ON>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_FAST_OFF>>,Moccasin,TrInstant>,EFFECT_FAST_OFF>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_QUOTE>>,NavajoWhite,TrInstant>,EFFECT_QUOTE>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_NEXT_QUOTE>>,Orange,TrInstant>,EFFECT_NEXT_QUOTE>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_TRACK>>,OrangeRed,TrInstant>,EFFECT_TRACK>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_SECONDARY_IGNITION>>,PapayaWhip,TrInstant>,EFFECT_SECONDARY_IGNITION>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_SECONDARY_RETRACTION>>,PeachPuff,TrInstant>,EFFECT_SECONDARY_RETRACTION>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_INTERACTIVE_PREON>>,Pink,TrInstant>,EFFECT_INTERACTIVE_PREON>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_INTERACTIVE_BLAST>>,Red,TrInstant>,EFFECT_INTERACTIVE_BLAST>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_BEGIN_BATTLE_MODE>>,SeaShell,TrInstant>,EFFECT_BEGIN_BATTLE_MODE>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_END_BATTLE_MODE>>,Snow,TrInstant>,EFFECT_END_BATTLE_MODE>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_BEGIN_AUTO_BLAST>>,SpringGreen,TrInstant>,EFFECT_BEGIN_AUTO_BLAST>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_END_AUTO_BLAST>>,SteelBlue,TrInstant>,EFFECT_END_AUTO_BLAST>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_CLASH_UPDATE>>,Tomato,TrInstant>,EFFECT_CLASH_UPDATE>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_ALT_SOUND>>,White,TrInstant>,EFFECT_ALT_SOUND>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_TRANSITION_SOUND>>,Yellow,TrInstant>,EFFECT_TRANSITION_SOUND>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_SOUND_LOOP>>,ElectricPurple,TrInstant>,EFFECT_SOUND_LOOP>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_STUN>>,ElectricViolet,TrInstant>,EFFECT_STUN>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_FIRE>>,ElectricLime,TrInstant>,EFFECT_FIRE>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_CLIP_IN>>,Amber,TrInstant>,EFFECT_CLIP_IN>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_CLIP_OUT>>,CyberYellow,TrInstant>,EFFECT_CLIP_OUT>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_RELOAD>>,CanaryYellow,TrInstant>,EFFECT_RELOAD>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_MODE>>,PaleGreen,TrInstant>,EFFECT_MODE>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_RANGE>>,Flamingo,TrInstant>,EFFECT_RANGE>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_EMPTY>>,VividViolet,TrInstant>,EFFECT_EMPTY>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_FULL>>,PsychedelicPurple,TrInstant>,EFFECT_FULL>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_JAM>>,HotMagenta,TrInstant>,EFFECT_JAM>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_UNJAM>>,BrutalPink,TrInstant>,EFFECT_UNJAM>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_PLI_ON>>,NeonRose,TrInstant>,EFFECT_PLI_ON>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_PLI_OFF>>,VividRaspberry,TrInstant>,EFFECT_PLI_OFF>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_DESTRUCT>>,HaltRed,TrInstant>,EFFECT_DESTRUCT>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_BOOM>>,MoltenCore,TrInstant>,EFFECT_BOOM>>";
   }
+  FIND("style").value = str;
 
-  width = window.innerWidth * 2 / 3;
-  height = window.innerHeight / 3;
-  let normalHeight = height;
-  canvas.width = width * dpr;
-  canvas.height = height * dpr;
-  origD = Math.min(width, height);
+  Run();
+  DoLayerize();
+  resizeCanvasAndCamera();
+//////////// Fullscreen PR ///////////
 
-  FIND('ENLARGE_BUTTON').onclick = function() {
-    enlargeCanvas = !enlargeCanvas;
-    this.innerText = enlargeCanvas ? 'Reduce' : 'Enlarge';
-    if (enlargeCanvas) {
-      height = window.innerHeight / 2.2;
-    } else {
-      height = normalHeight;
-    }
-    canvas.height = height * dpr;
-    canvas.style.height = height + 'px';
-  };
+  // Start the event loop.
+  tick();
+}
 
-  FIND('FULLSCREEN_BUTTON').onclick = function() {
-    if (!document.fullscreenElement) {
-      pageLeftTop.requestFullscreen();
-    } else {
-      document.exitFullscreen();
-    }
-  };
-
-  document.addEventListener("fullscreenchange", function() {
-    const fullscreenButton = FIND("FULLSCREEN_BUTTON");
-    fullscreenButton.innerText = document.fullscreenElement
-      ? "Exit Fullscreen"
-      : "Fullscreen";
-
-    if (!document.fullscreenElement) {
-      // Exited fullscreen: restore enlarge or normal
-      if (enlargeCanvas) {
-        height = window.innerHeight / 2.2;
-      } else {
-        height = normalHeight;
-      }
-      canvas.height = height * dpr;
-      canvas.style.height = height + 'px';
-    } else {
-      // Entered fullscreen: set to normal height
-      height = normalHeight;
-      canvas.height = height * dpr;
-      canvas.style.height = height + 'px';
-    }
-    origD = Math.min(canvas.width, canvas.height);
+function onPageLoad() {
+  SetupRendering();
+  rebuildMoreEffectsMenu();
+  structuredView = FIND("structured_view");
+  all_saved_states.forEach(state => {
+    state.onload();
   });
 
+  // Welcome click for unlocking audio
+  const startOverlay = FIND('start-overlay');
+  startOverlay.style.display = 'flex';
+  startOverlay.onclick = function () {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    startOverlay.style.display = 'none';
+  };
+
+  window.addEventListener('resize', resizeCanvasAndCamera);
+}
+
+////////////// Resize PR ///////////
+
+
+FIND('ENLARGE_BUTTON').onclick = function() {
+  window.enlargeCanvas = !window.enlargeCanvas;
+  this.innerText = window.enlargeCanvas ? 'Reduce' : 'Enlarge';
+  resizeCanvasAndCamera();
+};
+
+FIND('FULLSCREEN_BUTTON').onclick = function() {
+  if (!document.fullscreenElement) {
+    pageLeftTop.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+};
+
+document.addEventListener("fullscreenchange", function() {
+  window.fullscreenActive = !!document.fullscreenElement;
+  FIND("FULLSCREEN_BUTTON").innerText = window.fullscreenActive
+    ? "Exit Fullscreen"
+    : "Fullscreen";
+  resizeCanvasAndCamera();
+});
 
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape' && document.fullscreenElement) {
@@ -9825,48 +9884,9 @@ function initGL() {
     }
   });
 
-  gl = canvas.getContext("experimental-webgl", {colorSpace: "srgb", antialias:false});
-
-  if (!gl) {
-    throw "Unable to fetch WebGL rendering context for Canvas";
-  }
-
-  var str = new URL(window.location.href).searchParams.get("S");
-  if (!str) {
-    str = "Layers<Red,InOutTrL<TrWipeX<WavLen<EFFECT_IGNITION>>,TrWipeInX<WavLen<EFFECT_RETRACTION>>>,ResponsiveLockupL<White,TrInstant,TrFade<100>,Int<26000>>,ResponsiveLightningBlockL<White>,ResponsiveMeltL<Mix<TwistAngle<>,Red,Yellow>>,ResponsiveDragL<White>,TransitionEffectL<TrConcat<TrWipe<100>,AliceBlue,TrDelayX<WavLen<EFFECT_CLASH>>>,EFFECT_CLASH>,TransitionEffectL<TrConcat<TrWipe<100>,Cyan,TrDelayX<WavLen<EFFECT_STAB>>>,EFFECT_STAB>,TransitionEffectL<TrConcat<TrWipe<100>,Aquamarine,TrDelayX<WavLen<EFFECT_BLAST>>>,EFFECT_BLAST>,TransitionEffectL<TrConcat<TrWipe<100>,Azure,TrDelayX<WavLen<EFFECT_FORCE>>>,EFFECT_FORCE>,TransitionEffectL<TrConcat<TrWipe<100>,Bisque,TrDelayX<WavLen<EFFECT_BOOT>>>,EFFECT_BOOT>,TransitionEffectL<TrConcat<TrWipe<100>,Black,TrDelayX<WavLen<EFFECT_NEWFONT>>>,EFFECT_NEWFONT>,TransitionEffectL<TrConcat<TrWipe<100>,BlanchedAlmond,TrDelayX<WavLen<EFFECT_PREON>>>,EFFECT_PREON>,TransitionEffectL<TrConcat<TrWipe<100>,Chartreuse,TrDelayX<WavLen<EFFECT_IGNITION>>>,EFFECT_IGNITION>,TransitionEffectL<TrConcat<TrWipe<100>,Coral,TrDelayX<WavLen<EFFECT_RETRACTION>>>,EFFECT_RETRACTION>,TransitionEffectL<TrConcat<TrWipe<100>,Blue,TrDelayX<WavLen<EFFECT_POSTOFF>>>,EFFECT_POSTOFF>,TransitionEffectL<TrConcat<TrWipe<100>,Cornsilk,TrDelayX<WavLen<EFFECT_DRAG_BEGIN>>>,EFFECT_DRAG_BEGIN>,TransitionEffectL<TrConcat<TrWipe<100>,Cyan,TrDelayX<WavLen<EFFECT_DRAG_END>>>,EFFECT_DRAG_END>,TransitionEffectL<TrConcat<TrWipe<100>,DarkOrange,TrDelayX<WavLen<EFFECT_LOCKUP_BEGIN>>>,EFFECT_LOCKUP_BEGIN>,TransitionEffectL<TrConcat<TrWipe<100>,DeepPink,TrDelayX<WavLen<EFFECT_LOCKUP_END>>>,EFFECT_LOCKUP_END>,TransitionEffectL<TrConcat<TrWipe<100>,DeepSkyBlue,TrDelayX<WavLen<EFFECT_MELT_BEGIN>>>,EFFECT_MELT_BEGIN>,TransitionEffectL<TrConcat<TrWipe<100>,FloralWhite,TrDelayX<WavLen<EFFECT_MELT_END>>>,EFFECT_MELT_END>,TransitionEffectL<TrConcat<TrWipe<100>,GhostWhite,TrDelayX<WavLen<EFFECT_LB_BEGIN>>>,EFFECT_LB_BEGIN>,TransitionEffectL<TrConcat<TrWipe<100>,Green,TrDelayX<WavLen<EFFECT_LB_END>>>,EFFECT_LB_END>,TransitionEffectL<TrConcat<TrWipe<100>,GreenYellow,TrDelayX<WavLen<EFFECT_CHANGE>>>,EFFECT_CHANGE>,TransitionEffectL<TrConcat<TrWipe<100>,HoneyDew,TrDelayX<WavLen<EFFECT_BATTERY_LEVEL>>>,EFFECT_BATTERY_LEVEL>,TransitionEffectL<TrConcat<TrWipe<100>,HotPink,TrDelayX<WavLen<EFFECT_VOLUME_LEVEL>>>,EFFECT_VOLUME_LEVEL>,TransitionEffectL<TrConcat<TrWipe<100>,Ivory,TrDelayX<WavLen<EFFECT_POWERSAVE>>>,EFFECT_POWERSAVE>,TransitionEffectL<TrConcat<TrWipe<100>,LavenderBlush,TrDelayX<WavLen<EFFECT_BLADEIN>>>,EFFECT_BLADEIN>,TransitionEffectL<TrConcat<TrWipe<100>,LemonChiffon,TrDelayX<WavLen<EFFECT_BLADEOUT>>>,EFFECT_BLADEOUT>,TransitionEffectL<TrConcat<TrWipe<100>,LightCyan,TrDelayX<WavLen<EFFECT_ACCENT_SWING>>>,EFFECT_ACCENT_SWING>,TransitionEffectL<TrConcat<TrWipe<100>,Blue,TrDelayX<WavLen<EFFECT_ACCENT_SLASH>>>,EFFECT_ACCENT_SLASH>,TransitionEffectL<TrConcat<TrWipe<100>,LightSalmon,TrDelayX<WavLen<EFFECT_SPIN>>>,EFFECT_SPIN>,TransitionEffectL<TrConcat<TrWipe<100>,LightYellow,TrDelayX<WavLen<EFFECT_ON>>>,EFFECT_ON>,TransitionEffectL<TrConcat<TrWipe<100>,Magenta,TrDelayX<WavLen<EFFECT_OFF>>>,EFFECT_OFF>,TransitionEffectL<TrConcat<TrWipe<100>,MintCream,TrDelayX<WavLen<EFFECT_OFF_CLASH>>>,EFFECT_OFF_CLASH>,TransitionEffectL<TrConcat<TrWipe<100>,MistyRose,TrDelayX<WavLen<EFFECT_FAST_ON>>>,EFFECT_FAST_ON>,TransitionEffectL<TrConcat<TrWipe<100>,Moccasin,TrDelayX<WavLen<EFFECT_FAST_OFF>>>,EFFECT_FAST_OFF>,TransitionEffectL<TrConcat<TrWipe<100>,NavajoWhite,TrDelayX<WavLen<EFFECT_QUOTE>>>,EFFECT_QUOTE>,TransitionEffectL<TrConcat<TrWipe<100>,Orange,TrDelayX<WavLen<EFFECT_NEXT_QUOTE>>>,EFFECT_NEXT_QUOTE>,TransitionEffectL<TrConcat<TrWipe<100>,OrangeRed,TrDelayX<WavLen<EFFECT_TRACK>>>,EFFECT_TRACK>,TransitionEffectL<TrConcat<TrWipe<100>,PapayaWhip,TrDelayX<WavLen<EFFECT_SECONDARY_IGNITION>>>,EFFECT_SECONDARY_IGNITION>,TransitionEffectL<TrConcat<TrWipe<100>,PeachPuff,TrDelayX<WavLen<EFFECT_SECONDARY_RETRACTION>>>,EFFECT_SECONDARY_RETRACTION>,TransitionEffectL<TrConcat<TrWipe<100>,Pink,TrDelayX<WavLen<EFFECT_INTERACTIVE_PREON>>>,EFFECT_INTERACTIVE_PREON>,TransitionEffectL<TrConcat<TrWipe<100>,Red,TrDelayX<WavLen<EFFECT_INTERACTIVE_BLAST>>>,EFFECT_INTERACTIVE_BLAST>,TransitionEffectL<TrConcat<TrWipe<100>,SeaShell,TrDelayX<WavLen<EFFECT_BEGIN_BATTLE_MODE>>>,EFFECT_BEGIN_BATTLE_MODE>,TransitionEffectL<TrConcat<TrWipe<100>,Snow,TrDelayX<WavLen<EFFECT_END_BATTLE_MODE>>>,EFFECT_END_BATTLE_MODE>,TransitionEffectL<TrConcat<TrWipe<100>,SpringGreen,TrDelayX<WavLen<EFFECT_BEGIN_AUTO_BLAST>>>,EFFECT_BEGIN_AUTO_BLAST>,TransitionEffectL<TrConcat<TrWipe<100>,SteelBlue,TrDelayX<WavLen<EFFECT_END_AUTO_BLAST>>>,EFFECT_END_AUTO_BLAST>,TransitionEffectL<TrConcat<TrWipe<100>,Tomato,TrDelayX<WavLen<EFFECT_CLASH_UPDATE>>>,EFFECT_CLASH_UPDATE>,TransitionEffectL<TrConcat<TrWipe<100>,White,TrDelayX<WavLen<EFFECT_ALT_SOUND>>>,EFFECT_ALT_SOUND>,TransitionEffectL<TrConcat<TrWipe<100>,Yellow,TrDelayX<WavLen<EFFECT_TRANSITION_SOUND>>>,EFFECT_TRANSITION_SOUND>,TransitionEffectL<TrConcat<TrWipe<100>,ElectricPurple,TrDelayX<WavLen<EFFECT_SOUND_LOOP>>>,EFFECT_SOUND_LOOP>,TransitionEffectL<TrConcat<TrWipe<100>,ElectricViolet,TrDelayX<WavLen<EFFECT_STUN>>>,EFFECT_STUN>,TransitionEffectL<TrConcat<TrWipe<100>,ElectricLime,TrDelayX<WavLen<EFFECT_FIRE>>>,EFFECT_FIRE>,TransitionEffectL<TrConcat<TrWipe<100>,Amber,TrDelayX<WavLen<EFFECT_CLIP_IN>>>,EFFECT_CLIP_IN>,TransitionEffectL<TrConcat<TrWipe<100>,CyberYellow,TrDelayX<WavLen<EFFECT_CLIP_OUT>>>,EFFECT_CLIP_OUT>,TransitionEffectL<TrConcat<TrWipe<100>,CanaryYellow,TrDelayX<WavLen<EFFECT_RELOAD>>>,EFFECT_RELOAD>,TransitionEffectL<TrConcat<TrWipe<100>,PaleGreen,TrDelayX<WavLen<EFFECT_MODE>>>,EFFECT_MODE>,TransitionEffectL<TrConcat<TrWipe<100>,Flamingo,TrDelayX<WavLen<EFFECT_RANGE>>>,EFFECT_RANGE>,TransitionEffectL<TrConcat<TrWipe<100>,VividViolet,TrDelayX<WavLen<EFFECT_EMPTY>>>,EFFECT_EMPTY>,TransitionEffectL<TrConcat<TrWipe<100>,PsychedelicPurple,TrDelayX<WavLen<EFFECT_FULL>>>,EFFECT_FULL>,TransitionEffectL<TrConcat<TrWipe<100>,HotMagenta,TrDelayX<WavLen<EFFECT_JAM>>>,EFFECT_JAM>,TransitionEffectL<TrConcat<TrWipe<100>,BrutalPink,TrDelayX<WavLen<EFFECT_UNJAM>>>,EFFECT_UNJAM>,TransitionEffectL<TrConcat<TrWipe<100>,NeonRose,TrDelayX<WavLen<EFFECT_PLI_ON>>>,EFFECT_PLI_ON>,TransitionEffectL<TrConcat<TrWipe<100>,VividRaspberry,TrDelayX<WavLen<EFFECT_PLI_OFF>>>,EFFECT_PLI_OFF>,TransitionEffectL<TrConcat<TrWipe<100>,HaltRed,TrDelayX<WavLen<EFFECT_DESTRUCT>>>,EFFECT_DESTRUCT>,TransitionEffectL<TrConcat<TrWipe<100>,MoltenCore,TrDelayX<WavLen<EFFECT_BOOM>>>,EFFECT_BOOM>>";
-  }
-  FIND("style").value = str;
-
-  Run();
-  DoLayerize();
-
-  // Bind a vertex buffer with a single triangle
-  var buffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  var bufferData = new Float32Array([
-       -1.0, -1.0, 1.0, -1.0, -1.0,  1.0, 1.0, 1.0]);
-  gl.bufferData(gl.ARRAY_BUFFER, bufferData, gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(shaderProgram.a_position);
-  gl.vertexAttribPointer(shaderProgram.a_position, 2, gl.FLOAT, false, 0, 0);
-
-  var texture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-
-  // Start the event loop.
-  tick();
-}
-
-function onPageLoad() {
-  initGL();
-  updateLockupDropdown();
-  rebuildMoreEffectsMenu();
-  structuredView = FIND("structured_view");
-  all_saved_states.forEach(state => {
-    state.onload();
-  });
 
 const pageLeft = document.querySelector('.page-left');
-const splitter = document.getElementById('splitter');
+const splitter = FIND('splitter');
 
 let isDragging = false;
 let startX = 0;
@@ -9902,15 +9922,6 @@ document.addEventListener('mouseup', () => {
   }
 });
 
-  // Welcome click for unlocking audio
-  const startOverlay = document.getElementById('start-overlay');
-  startOverlay.style.display = 'flex';
-  startOverlay.onclick = function () {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    startOverlay.style.display = 'none';
-  };
-}
-
 function handleSettings(checkbox) {
   var state = state_by_checkbox.get(checkbox);
   state.set(!state.get());
@@ -9919,7 +9930,7 @@ function handleSettings(checkbox) {
 // User can choose one or the other
 function handleWavLenControls() {
   var wavlenLabel = document.querySelector('.wavlen-global-label');
-  var wavlenInput = document.getElementById('WAVLEN_VALUE');
+  var wavlenInput = FIND('WAVLEN_VALUE');
 
   if (useFontWavLenState.get()) {
     wavlenLabel.classList.add('disabled');

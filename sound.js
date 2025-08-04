@@ -1,229 +1,179 @@
-// Preload defaultFontSounds + buffers + durations
-let defaultFontSounds = {};
+// Default font data loaded from GitHub
 const defaultFontSoundBuffers   = {};
 const defaultFontSoundDurations = {};
 const defaultFontSoundFilenames = {};
-const customFontSoundBuffers = {};
-let customFontSoundDurations = {};
-const customFontSoundFilenames = {};
-let customFontSounds = {};
-let currentFontName = "Default";
-let useDefaultFontFallback = false;
-// Track which index was played for each effect (noRepeatRandom() use)
-const lastPlayedSoundIndex = {};
-let soundOn = true;
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-const volumeSlider = document.getElementById('VOLUME_SLIDER');
-const volumeValue = document.getElementById('VOLUME_VALUE');
-let globalVolume = Number(volumeSlider.value) / 100;
+// Custom font data, user-loaded
+const customFontSoundBuffers    = {};
+const customFontSoundDurations  = {};
+const customFontSoundFilenames  = {};
 
-// master gain for global volume
-const masterGain = audioCtx.createGain();
-masterGain.gain.value = globalVolume;
+// State tracking
+let currentFontName             = "Default";
+let useDefaultFontFallback      = false;  // Checkbox
+const lastPlayedSoundIndex      = {};
+
+// Audio setup
+let soundOn                     = true;  // Checkbox
+const audioCtx                  = new (window.AudioContext || window.webkitAudioContext)();
+const masterGain                = audioCtx.createGain();
+const volumeSlider              = FIND('VOLUME_SLIDER');
+const volumeValue               = FIND('VOLUME_VALUE');
+let globalVolume                = volumeSlider.value / 100;
+masterGain.gain.value           = globalVolume;
 masterGain.connect(audioCtx.destination);
 
-let lockupGainNode = null;
-let lockupLoopSrc  = null;
-let lockupEndBuffer = null;
+// Lockup/loop sources
+let lockupGainNode              = null;
+let lockupLoopSrc               = null;
+let lockupEndBuffer             = null;
 
-let activeOneShots = [];
-let focusAllowsHum = true;
+// Active sounds and state
+let activeOneShots              = [];
+let focusAllowsHum              = true;
+
 // Load default font.
 fetch('default_font_urls.txt')
   .then(r => r.text())
   .then(text => {
-    const urls = text.split('\n').map(l => l.trim()).filter(Boolean);
+    text.split('\n')
+      .map(line => line.trim())
+      .filter(Boolean)
+      .forEach(url => {
+        const m = url.match(/([a-z]+)[0-9]*\.wav$/i);
+        if (!m) return;
+        const effect = m[1].toLowerCase();
 
-    // Group URLs by effect name
-    urls.forEach(url => {
-      const m = url.match(/([a-z]+)[0-9]*\.wav$/i);
-      if (!m) return;
-      const effect = m[1].toLowerCase();
-      defaultFontSounds[effect] ||= [];
-      defaultFontSounds[effect].push(url);
-    });
+        defaultFontSoundBuffers  [effect] ||= [];
+        defaultFontSoundDurations[effect] ||= [];
+        defaultFontSoundFilenames[effect] ||= [];
 
-    // For each effect, create buffer + duration slots
-    for (const [effect, urlList] of Object.entries(defaultFontSounds)) {
-      defaultFontSoundBuffers[effect]   = [];
-      defaultFontSoundDurations[effect] = [];
-      defaultFontSoundFilenames[effect]  = [];
+        const idx = defaultFontSoundFilenames[effect].length;
+        defaultFontSoundFilenames[effect][idx] = url.split('/').pop();
 
-      urlList.forEach((url, idx) => {
         fetch(url)
           .then(r => r.arrayBuffer())
           .then(data => audioCtx.decodeAudioData(data))
           .then(buffer => {
-            // store decoded AudioBuffer into default maps
             defaultFontSoundBuffers[effect][idx]   = buffer;
-            // store duration
-            const dur = Math.round(buffer.duration * 1000);
-            defaultFontSoundDurations[effect][idx] = dur;
-            // track filename
-            defaultFontSoundFilenames[effect][idx] = url.split('/').pop();
-
-            console.log(`Default font: ${defaultFontSoundFilenames[effect][idx]} - duration ${dur} ms`);
+            defaultFontSoundDurations[effect][idx] = Math.round(buffer.duration * 1000);
+//            console.log(`Default font: ${defaultFontSoundFilenames[effect][idx]} - duration ${defaultFontSoundDurations[effect][idx]} ms`);
           })
-          .catch(err => console.error(`Error loading default sound ${url}:`, err));
+          .catch(err => console.error(`Error loading ${url}:`, err));
       });
-    }
   })
   .catch(err => console.error("Could not load default_font_urls.txt:", err));
 
-volumeSlider.addEventListener('input', function() {
-  volumeValue.textContent = this.value;
-  globalVolume = Number(this.value) / 100;
-
-  // Update master volume
-  masterGain.gain.value = globalVolume;
-
-  // Update smoothswing volumes relative to global
-  if (window.smoothLoopL && window.smoothLoopL.gainNode)
-    window.smoothLoopL.gainNode.gain.value = lastSmoothGainL * globalVolume;
-  if (window.smoothLoopH && window.smoothLoopH.gainNode)
-    window.smoothLoopH.gainNode.gain.value = lastSmoothGainH * globalVolume;
-});
-
-function showLoadingOverlay() {
-  const loadingOverlay = document.createElement('div');
-  loadingOverlay.id = 'loading_overlay';
-  loadingOverlay.className = 'loading-overlay';
-  loadingOverlay.innerText = 'Loading, please stand by…';
-  document.body.appendChild(loadingOverlay);
-}
-
-function hideLoadingOverlay() {
-  const loadingOverlay = document.getElementById('loading_overlay');
-  if (loadingOverlay) document.body.removeChild(loadingOverlay);
-  if (window.lockupLoopSrc) {
-    endLockupLoop(window.currentLockupType, null, false);
-  }
-  resumeLoops();
-}
-
-const chooseLocalFontBtn = document.getElementById('choose_local_font');
-const fileInput          = document.getElementById('files');
-const localFontName      = document.getElementById('local_font_name');
+const chooseLocalFontBtn = FIND('choose_local_font');
+const fileInput          = FIND('files');
 
 chooseLocalFontBtn.addEventListener('click', () => {
-  fileInput.value = '';
+  fileInput.value = "";
   fileInput.click();
 });
 
-// Load custom font.
+// Load custom font
 fileInput.addEventListener('change', (e) => {
-  const files = e.target.files;
-  if (!files || files.length === 0) {
-    // user hit “Cancel” — do nothing, keep current font
-    return;
-  }
+  const files = Array.from(e.target.files || []);
+  if (!files.length) return;           // user cancelled
 
   showLoadingOverlay();
 
-  selectedFiles = Array.from(files);
+  // Determine folder / font name
   const folderName = files[0].webkitRelativePath
     ? files[0].webkitRelativePath.split('/')[0]
     : files[0].name;
-
-  // Set the button's label to the folder name
-  document.getElementById('choose_local_font_label').textContent = folderName;
+  FIND('choose_local_font_label').textContent = folderName;
   currentFontName = folderName;
-  // Reset to defaults (so fallback is always there)
-  customFontSounds = {};
-  // Wipe out any old custom mappings
-  Object.keys(customFontSoundBuffers).forEach(e => delete customFontSoundBuffers[e]);
-  Object.keys(customFontSoundDurations).forEach(e => delete customFontSoundDurations[e]);
-  Object.keys(customFontSoundFilenames).forEach(e => delete customFontSoundFilenames[e]);
 
-  const promises = [];
+  // Clear out any old custom data
+  Object.keys(customFontSoundBuffers).forEach(effect => {
+    delete customFontSoundBuffers[effect];
+    delete customFontSoundDurations[effect];
+    delete customFontSoundFilenames[effect];
+  });
 
-  for (const file of selectedFiles) {
+  // Build an array of Promises—one per file—to decode & stash buffers
+  const loadPromises = files.map(file => {
     const m = file.name.match(/^([a-z]+)[0-9]*\.wav$/i);
-    if (!m) continue;
+    // skip non-wav or unrecognized
+    if (!m) return Promise.resolve();
+
     const effect = m[1].toLowerCase();
-
-    customFontSounds[effect] ||= [];
-    customFontSoundDurations[effect] = customFontSoundDurations[effect] || [];
-    const idx = customFontSounds[effect].length;
-    customFontSounds[effect].push(file);
-    customFontSoundDurations[effect][idx] = null;
+    customFontSoundBuffers  [effect] ||= [];
+    customFontSoundDurations[effect] ||= [];
     customFontSoundFilenames[effect] ||= [];
+
+    // Next index for this effect
+    const idx = customFontSoundFilenames[effect].length;
     customFontSoundFilenames[effect][idx] = file.name;
-    if (!customFontSoundBuffers[effect]) customFontSoundBuffers[effect] = [];
-    customFontSoundBuffers[effect][idx] = null;
 
-    const reader = new FileReader();
-    reader.onload = ev => {
-      audioCtx.decodeAudioData(ev.target.result)
-        .then(buffer => {
-          customFontSoundBuffers[effect][idx] = buffer;
-          const dur = Math.round(buffer.duration * 1000);
-          customFontSoundDurations[effect][idx] = dur;
-          console.log(`Custom font: ${folderName} ${file.name} - duration ${dur} ms`);
-        })
-        .catch(err => console.error("Decode error:", err));
-    };
-    reader.readAsArrayBuffer(file);
+    return new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        audioCtx.decodeAudioData(reader.result)
+          .then(buffer => {
+            customFontSoundBuffers[effect][idx]   = buffer;
+            const dur = Math.round(buffer.duration * 1000);
+            customFontSoundDurations[effect][idx] = dur;
+            console.log(`Custom font: ${folderName} ${file.name} – ${dur} ms`);
+            resolve();
+          })
+          .catch(err => {
+            console.error(`Decode error for ${file.name}:`, err);
+            resolve();
+          });
+      };
+      reader.onerror = err => {
+        console.error(`FileReader error for ${file.name}:`, err);
+        resolve();
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  });
 
-    promises.push(
-      getAudioFileDuration(file).then(ms => {
-        customFontSoundDurations[effect][idx] = ms;
-      })
-    );
-  }
-
-  Promise.all(promises)
-    .catch(err => console.error("Error loading durations:", err))
-    .then(() => hideLoadingOverlay && hideLoadingOverlay());
+  // When loading finishes, hide overlay
+  Promise.all(loadPromises)
+    .then(() => hideLoadingOverlay())
+    .catch(err => {
+      console.error("Error loading custom font files:", err);
+      hideLoadingOverlay();
+    });
 });
 
 // SmoothSwing and swing sounds
-let swingSpeed = 0;
-window.swingMotionPeak = 0;
-window.swingMotionActive = false;
-window.swingLastEffect = 0;
+const swingThreshold       = 280;  // deg/s threshold to trigger a swing effect
+const slashThreshold       = 5000; // deg/s² acceleration threshold to trigger a slash
+const swingLowerThreshold  = swingThreshold * 0.5; // deg/s reset threshold after a swing
 
-const swingThreshold = 280;
-const slashThreshold = 5000;
-const effectCooldown = 250; // ms
-const swingLowerThreshold = swingThreshold * 0.5;
-
-let lastSwingUpdate = 0;
-let lastSwingSpeed = 0;
-
-let lastSmoothGainL = 0;
-let lastSmoothGainH = 0;
-let smoothswingIdle = false;
+let lastSwingUpdate        = 0;    // last timestamp (ms) when swing was updated
+let lastSwingSpeed         = 0;    // rotation speed recorded at last update
 
 // Accel/slash state
-let lastAccelSpeed = 0;
-let lastAccelTime  = performance.now();
-let swingTriggered = false;
+let lastAccelSpeed         = 0;    // previous speed for acceleration computation
+let lastAccelTime          = performance.now(); // last timestamp for accel calc
+let swingTriggered         = false;// prevents retriggering while above threshold
 
 // SmoothSwing V2 rotating‐buffer files
-const swinglFiles = defaultFontSoundBuffers['swingl'] || [];
-const swinghFiles = defaultFontSoundBuffers['swingh'] || [];
-let currentFileIdx = 0;
+const swinglFiles          = defaultFontSoundBuffers['swingl'] || []; // L channel buffers
+const swinghFiles          = defaultFontSoundBuffers['swingh'] || []; // H channel buffers
+let currentFileIdx         = 0;    // rotating index into swinglFiles/swinghFiles
 
 // SmoothSwing V2 rotating‐buffer state
-let swingMidpoint     = 0;
-const swingWidth      = 60;    // degrees of full crossfade window
-const swingSeparation = 180;   // degrees offset on each swap
-let lastMidTime       = performance.now();
-
+let swingMidpoint          = 0;    // current rotation midpoint for crossfade
+const swingWidth           = 60;   // degrees over which to crossfade L→H
+const swingSeparation      = 180;  // degrees before swapping L/H channels
 
 // Accent‐swing vs slash
-// Accent‐swing vs slash (acceleration‐based, with lower‐reset)
 function triggerAccentEvent(speed) {
   if (!STATE_ON) return;
-  // only the swing check is scaled for fullscreen; slash accel is constant
+  // Only the swing check is scaled for fullscreen; slash accel is constant
   const dynSwingThreshold = document.fullscreenElement
     ? swingThreshold * 0.7
     : swingThreshold;
   const dynSlashAccelThr  = slashThreshold;
 
-  // compute accel (Δspeed / Δtime)
+  // Compute accel
   const nowMs = performance.now();
   const dt    = (nowMs - lastAccelTime) / 1000;    // seconds
   const accel = dt > 0
@@ -236,7 +186,7 @@ function triggerAccentEvent(speed) {
 
   if (speed > dynSwingThreshold) {
     if (!swingTriggered) {
-      // high‐accel -> slash, else swing
+      // High‐accel, do slash, else swing
       if (accel > dynSlashAccelThr) {
         blade.addEffect(EFFECT_ACCENT_SLASH, 0);
       } else {
@@ -245,188 +195,21 @@ function triggerAccentEvent(speed) {
       swingTriggered = true;
     }
   }
-  // only reset once we slow down past the lower threshold:
+  // Only reset once we slow down past the lower threshold:
   else if (speed <= swingLowerThreshold) {
     swingTriggered = false;
   }
 }
 
-// const updateSmoothSwingGains = (() => {
-//   const STALL_TIMEOUT    = 200;  // ms without a mouse_move → treat speed as 0
-//   const STOP_THRESHOLD   =   8;
-//   const START_THRESHOLD  =  12;
-//   const STOP_DEBOUNCE    = 50;  // ms you must stay ≤ STOP_THRESHOLD before stopping
-
-//   const SwingMin   =  15.0;
-//   const SwingLPeak =  100.0;
-//   const SwingMax   = 150.0;
-//   const rampTime   =   0.3;  // seconds for cross-fade
-
-//   let lastState   = 'stopped';
-//   let staleLogged = false;
-//   let belowSince  = null;
-
-//   function frame() {
-//     const nowMs = Date.now();
-//     const dt    = nowMs - lastSwingUpdate;
-//     let   speed = dt > STALL_TIMEOUT
-//                   ? (staleLogged ? 0 : (staleLogged = true, 0))
-//                   : (staleLogged = false, lastSwingSpeed);
-
-//     // —— debounce logic ——  
-//     let next = lastState;
-//     if (speed <= STOP_THRESHOLD) {
-//       if (belowSince === null) belowSince = nowMs;
-//       else if (nowMs - belowSince >= STOP_DEBOUNCE) {
-//         next = 'stopped';
-//       }
-//     } else {
-//       belowSince = null;
-//       if (speed >= START_THRESHOLD) {
-//         next = 'running';
-//       }
-//     }
-
-//     if (next !== lastState) {
-//       const t = new Date().toISOString().substr(11,8);
-//       if (next === 'stopped') {
-//         console.log(`[SmoothSwing] ✋ stroke ended @${t} (speed ${speed.toFixed(1)} ≤ ${STOP_THRESHOLD})`);
-//         fadeAndStop('smoothLoopL', 100);
-//         fadeAndStop('smoothLoopH', 100);
-//       } else {
-//         console.log(`[SmoothSwing] ↻ new swing pair @ speed ${speed.toFixed(1)}`);
-//         startAudioLoop('swingl','smoothLoopL',0,true);
-//         startAudioLoop('swingh','smoothLoopH',0,true);
-//       }
-//       lastState = next;
-//     }
-
-//     // — crossfade gains when running —
-//     if (lastState === 'running' && window.smoothLoopL && window.smoothLoopH) {
-//       let gainL = 0, gainH = 0;
-//       if (speed > SwingMin) {
-//         if      (speed < SwingLPeak) gainL = (speed - SwingMin)/(SwingLPeak - SwingMin);
-//         else if (speed < SwingMax)   gainL = (SwingMax   - speed)/(SwingMax   - SwingLPeak);
-
-//         if      (speed < SwingLPeak) gainH = 0;
-//         else if (speed < SwingMax)   gainH = (speed - SwingLPeak)/(SwingMax   - SwingLPeak);
-//         else                          gainH = 1;
-//       }
-
-//       gainL *= globalVolume;
-//       gainH *= globalVolume;
-
-//       const ct = audioCtx.currentTime;
-//       const gL = window.smoothLoopL.gainNode.gain;
-//       const gH = window.smoothLoopH.gainNode.gain;
-//       gL.cancelScheduledValues(ct);
-//       gL.setValueAtTime(gL.value, ct);
-//       gL.linearRampToValueAtTime(gainL, ct + rampTime);
-//       gH.cancelScheduledValues(ct);
-//       gH.setValueAtTime(gH.value, ct);
-//       gH.linearRampToValueAtTime(gainH, ct + rampTime);
-//     }
-
-//     if (STATE_ON) requestAnimationFrame(frame);
-//   }
-
-//   return frame;
-// })();
-
-
-// const updateSmoothSwingGains = (() => {
-//   const STALL_TIMEOUT    = 200;  // ms without a mouse_move → treat speed as 0
-//   const STOP_THRESHOLD   =   8;
-//   const START_THRESHOLD  =  12;
-//   const STOP_DEBOUNCE    = 50;  // ms you must stay ≤ STOP_THRESHOLD before stopping
-
-//   const SwingMin   =  15.0;
-//   const SwingLPeak =  100.0;
-//   const SwingMax   = 150.0;
-//   const rampTime   =   0.3;  // seconds for cross-fade
-
-//   let lastState   = 'stopped';
-//   let staleLogged = false;
-//   let belowSince  = null;
-
-//   function frame() {
-//     const nowMs = Date.now();
-//     const dt    = nowMs - lastSwingUpdate;
-//     let   speed = dt > STALL_TIMEOUT
-//                   ? (staleLogged ? 0 : (staleLogged = true, 0))
-//                   : (staleLogged = false, lastSwingSpeed);
-
-//     // —— debounce logic ——  
-//     let next = lastState;
-//     if (speed <= STOP_THRESHOLD) {
-//       if (belowSince === null) belowSince = nowMs;
-//       else if (nowMs - belowSince >= STOP_DEBOUNCE) {
-//         next = 'stopped';
-//       }
-//     } else {
-//       belowSince = null;
-//       if (speed >= START_THRESHOLD) {
-//         next = 'running';
-//       }
-//     }
-
-//     if (next !== lastState) {
-//       const t = new Date().toISOString().substr(11,8);
-//       if (next === 'stopped') {
-//         console.log(`[SmoothSwing] ✋ stroke ended @${t} (speed ${speed.toFixed(1)} ≤ ${STOP_THRESHOLD})`);
-//         fadeAndStop('smoothLoopL', 100);
-//         fadeAndStop('smoothLoopH', 100);
-//       } else {
-//         console.log(`[SmoothSwing] ↻ new swing pair @ speed ${speed.toFixed(1)}`);
-//         startAudioLoop('swingl','smoothLoopL',0,true);
-//         startAudioLoop('swingh','smoothLoopH',0,true);
-//       }
-//       lastState = next;
-//     }
-
-//     // — crossfade gains when running —
-//     if (lastState === 'running' &&
-//         window.smoothLoopL && window.smoothLoopH) {
-
-//       // clamp speed into [SwingMin … SwingMax]
-//       let s = Math.max(SwingMin, Math.min(speed, SwingMax));
-
-//       // compute normalized cross-fade factor 0→1 over the entire window
-//       let t = (s - SwingMin) / (SwingMax - SwingMin);
-
-//       // now L and H are perfect complements
-//       let gainL = (1 - t) * globalVolume;
-//       let gainH =         t  * globalVolume;
-
-//       // apply to your gainNodes exactly as before
-//       const now = audioCtx.currentTime;
-//       const gL  = window.smoothLoopL.gainNode.gain;
-//       const gH  = window.smoothLoopH.gainNode.gain;
-
-//       gL.cancelScheduledValues(now);
-//       gL.setValueAtTime(gL.value, now);
-//       gL.linearRampToValueAtTime(gainL, now + rampTime);
-
-//       gH.cancelScheduledValues(now);
-//       gH.setValueAtTime(gH.value, now);
-//       gH.linearRampToValueAtTime(gainH, now + rampTime);
-//     }
-
-//     if (STATE_ON) requestAnimationFrame(frame);
-//   }
-
-//   return frame;
-// })();
-
 const updateSmoothSwingGains = (() => {
-  const STALL_TIMEOUT    = 200;  // ms without a mouse_move → treat speed as 0
-  const STOP_THRESHOLD   =   8;  // deg/s → below this, we’ll stop (after debounce)
-  const START_THRESHOLD  =  12;  // deg/s → must exceed this to start
-  const STOP_DEBOUNCE    =  50;  // ms you must stay ≤ STOP_THRESHOLD before stopping
+  const STALL_TIMEOUT    = 200;  // ms without a mouse_move, treat speed as 0
+  const STOP_THRESHOLD   =   8;  // deg/s. Below this, we’ll stop (after debounce)
+  const START_THRESHOLD  =  12;  // deg/s. Must exceed this to start
+  const STOP_DEBOUNCE    =  50;  // ms required to stay ≤ STOP_THRESHOLD before stopping
 
-  const SwingLPeak = 60.0;    // also kept
-  const SwingMax   = 150.0;    // deg/s → at or above this, envelope = 1
-  const rampTime   =   0.3;    // seconds for the cross-fade ramp
+  const swingLPeak = 60.0;
+  const swingMax   = 150.0;    // deg/s. At or above this, envelope = 1
+  const rampTime   =   0.3;    // Seconds for the cross-fade ramp
 
   let lastState   = 'stopped';
   let staleLogged = false;
@@ -450,7 +233,7 @@ const updateSmoothSwingGains = (() => {
       speed = lastSwingSpeed;
     }
 
-    // Debounce logic: decide next state
+    // Debounce - decide next state
     let next = lastState;
     if (speed <= STOP_THRESHOLD) {
       if (belowSince === null) belowSince = nowMs;
@@ -460,13 +243,13 @@ const updateSmoothSwingGains = (() => {
       if (speed >= START_THRESHOLD) next = 'running';
     }
 
-    // On state change → start or stop loops
+    // On state change, start or stop loops
     if (next !== lastState) {
       if (next === 'stopped') {
         console.log(`[SmoothSwing] ✋ STOPPED (speed ${speed.toFixed(1)} ≤ ${STOP_THRESHOLD})`);
         fadeAndStop('smoothLoopL', 100);
         fadeAndStop('smoothLoopH', 100);
-      } else {
+      } else if (soundOn) {
         console.log(`[SmoothSwing] RUNNING (speed ${speed.toFixed(1)} ≥ ${START_THRESHOLD})`);
         const swingBufsL = pickLoopBuffers('swingl');
         const swingBufsH = pickLoopBuffers('swingh');
@@ -490,29 +273,25 @@ const updateSmoothSwingGains = (() => {
     }
 
     if (lastState === 'running' && window.smoothLoopL && window.smoothLoopH) {
-      // overall envelope: 0 at STOP_THRESHOLD → 1 at SwingMax
+      // overall envelope: 0 at STOP_THRESHOLD → 1 at swingMax
       const env = speed > STOP_THRESHOLD
-        ? Math.min((speed - STOP_THRESHOLD) / (SwingMax - STOP_THRESHOLD), 1)
+        ? min((speed - STOP_THRESHOLD) / (swingMax - STOP_THRESHOLD), 1)
         : 0;
       let gainL, gainH;
-      if (speed <= SwingLPeak) {
-        // FULL LOW until SwingLPeak
+      if (speed <= swingLPeak) {
+        // FULL LOW until swingLPeak
         gainL = env;
         gainH = 0;
-      } else if (speed >= SwingMax) {
-        // FULL HIGH above SwingMax
+      } else if (speed >= swingMax) {
+        // FULL HIGH above swingMax
         gainL = 0;
         gainH = env;
       } else {
-        // NARROW BLEND between SwingLPeak → SwingMax
-        const x = (speed - SwingLPeak) / (SwingMax - SwingLPeak);
+        // NARROW BLEND between swingLPeak → swingMax
+        const x = (speed - swingLPeak) / (swingMax - swingLPeak);
         gainL = (1 - x) * env;
         gainH = x         * env;
       }
-
-      // apply master volume
-      gainL *= globalVolume;
-      gainH *= globalVolume;
 
       const ct = audioCtx.currentTime;
       const gL = window.smoothLoopL.gainNode.gain;
@@ -533,8 +312,31 @@ const updateSmoothSwingGains = (() => {
   return frame;
 })();
 
+volumeSlider.addEventListener('input', function() {
+  volumeValue.textContent = this.value;
+  globalVolume = Number(this.value) / 100;
+  // Update master volume
+  masterGain.gain.value = globalVolume;
+});
 
-// Get duration (ms) from a File
+function showLoadingOverlay() {
+  const loadingOverlay = document.createElement('div');
+  loadingOverlay.id = 'loading_overlay';
+  loadingOverlay.className = 'loading-overlay';
+  loadingOverlay.innerText = 'Loading, please stand by…';
+  document.body.appendChild(loadingOverlay);
+}
+
+function hideLoadingOverlay() {
+  const loadingOverlay = FIND('loading_overlay');
+  if (loadingOverlay) document.body.removeChild(loadingOverlay);
+  if (window.lockupLoopSrc) {
+    endLockupLoop(window.currentLockupType, null, false);
+  }
+  resumeLoops();
+}
+
+// Get duration from font file
 function getAudioFileDuration(file) {
   return new Promise(resolve => {
     const url = URL.createObjectURL(file);
@@ -547,12 +349,30 @@ function getAudioFileDuration(file) {
   });
 }
 
+// Recursively sum all transition durations from any:
+// - WavLen<> that uses either font sound or global value
+// - MILLIS
+// - Nested args
+function sumTransitionDurations(node) {
+  if (!node) return 0;
+  const ctor = node.constructor.name;
+  if (ctor === 'WavLenClass') {
+    return Number(node.getInteger(0));
+  }
+  if (node.MILLIS) {
+    return Number(node.MILLIS.getInteger(0));
+  }
+  if (Array.isArray(node.args)) {
+    return node.args.reduce((sum, child) => sum + sumTransitionDurations(child), 0);
+  }
+  return 0;
+}
+
 function pickLoopBuffers(key) {
-  const custom = (customFontSoundBuffers[key] || []).filter(b => b instanceof AudioBuffer);
+  const custom = customFontSoundBuffers[key] || [];
   if (custom.length > 0 && currentFontName !== "Default") {
     return custom;
   }
-  // either Default font, or custom empty + fallback enabled
   if (currentFontName === "Default" || useDefaultFontFallback) {
     return defaultFontSoundBuffers[key] || [];
   }
@@ -590,13 +410,11 @@ function playEffectByType(effectType) {
 }
 
 function playRandomEffect(effectName, isAllowed = true) {
-  if (!soundOn) return;
   if (audioCtx.state === 'suspended') audioCtx.resume();
 
-  const customBufs = (customFontSoundBuffers[effectName] || [])
-    .filter(b => b instanceof AudioBuffer);
+  const customBufs  = customFontSoundBuffers[effectName]  || [];
 
-  // 2) default fallback only when allowed
+  // Default fallback only when allowed
   const defaultBufs = (currentFontName === "Default" || useDefaultFontFallback)
     ? (defaultFontSoundBuffers[effectName] || [])
     : [];
@@ -609,18 +427,7 @@ function playRandomEffect(effectName, isAllowed = true) {
       k => window[k] === effectName ||
            k.replace(/^EFFECT_/, '').toLowerCase() === effectName.toLowerCase()
     );
-    const id  = key ? ` (${key})` : "";
-    const msg = `No sound available for effect: "${effectName}"${id}.`;
-    console.error(msg);
-    const err = FIND("error_message");
-    if (err) {
-      err.innerHTML = msg;
-      err.style.color = "orange";
-      clearTimeout(window.errorMessageTimeout);
-      window.errorMessageTimeout = setTimeout(() => {
-        if (err.innerHTML === msg) err.innerHTML = "";
-      }, 3000);
-    }
+    showNoSoundMsg(effectName, key ? ` (${key})` : "");
     return;
   }
 
@@ -632,26 +439,26 @@ function playRandomEffect(effectName, isAllowed = true) {
 
   // Pick & play
   const fontLabel = currentFontName === "Default" ? "Default Font" : currentFontName;
-  const pickIndex = arr => {
-    const i = noRepeatRandom(arr.length, lastPlayedSoundIndex[effectName]);
-    lastPlayedSoundIndex[effectName] = i;
-    return i;
-  };
-
-  let buf, fname, dur;
+  let bufs, fnames, durs;
   if (customBufs.length > 0) {
-    const i = pickIndex(customBufs);
-    buf   = customBufs[i];
-    fname = customFontSoundFilenames[effectName]?.[i] || "(unknown)";
-    dur   = customFontSoundDurations   [effectName]?.[i] || 0;
+    bufs   = customBufs;
+    fnames = customFontSoundFilenames[effectName];
+    durs   = customFontSoundDurations[effectName];
   } else {
-    const i = pickIndex(defaultBufs);
-    buf   = defaultBufs[i];
-    fname = defaultFontSoundFilenames[effectName]?.[i] || "(unknown)";
-    dur   = defaultFontSoundDurations   [effectName]?.[i] || 0;
+    bufs   = defaultBufs;
+    fnames = defaultFontSoundFilenames[effectName];
+    durs   = defaultFontSoundDurations[effectName];
   }
 
-  console.log(`▶ ${fontLabel}: ** playing ${fname} – ${dur}ms`);
+  const idx = noRepeatRandom(bufs.length, lastPlayedSoundIndex[effectName]);
+  lastPlayedSoundIndex[effectName] = idx;
+
+  const buf   = bufs[idx];
+  const fname = fnames[idx];
+  const dur   = durs[idx];
+
+  console.log(`▶ ${fontLabel}: ** ${soundOn ? 'Playing' : 'Muted'} ${fname} – ${dur}ms`);
+  if (!soundOn) return;
   const src = audioCtx.createBufferSource();
   src.buffer = buf;
   const g = audioCtx.createGain(); g.gain.value = globalVolume;
@@ -662,6 +469,20 @@ function playRandomEffect(effectName, isAllowed = true) {
     activeOneShots = activeOneShots.filter(e => e.src !== src);
     g.disconnect();
   };
+}
+
+function showNoSoundMsg(effectName, idText = "") {
+  const msg = `No sound available for effect: "${effectName}"${idText}.`;
+  console.log(msg);
+  const err = FIND("error_message");
+  if (err) {
+    err.innerHTML = msg;
+    err.style.color = "orange";
+    clearTimeout(window.errorMessageTimeout);
+    window.errorMessageTimeout = setTimeout(() => {
+      if (err.innerHTML === msg) err.innerHTML = "";
+    }, 3000);
+  }
 }
 
 function stopLoop(refName) {
@@ -749,10 +570,6 @@ function stopAllOneShots(fadeTime = 150) {
 }
 
 function startAudioLoop(bufferKey, loopRefName, initialGain = 0, shouldLoop = true) {
-  console.debug(
-    `[SwingDebug][startAudioLoop] key=${bufferKey}, ref=${loopRefName}, ` +
-    `initialGain=${initialGain}, shouldLoop=${shouldLoop}`
-  );
   stopLoop(loopRefName);
 
   const startBuffers = pickLoopBuffers(bufferKey);
@@ -767,7 +584,6 @@ function startAudioLoop(bufferKey, loopRefName, initialGain = 0, shouldLoop = tr
 
 function startHum() {
   if (!soundOn) return;
-  console.log(`[startHum] __________ STARTING LOOPS`);
   startAudioLoop('hum',    'humAudio',    globalVolume, true);
 }
 
@@ -785,10 +601,19 @@ function startLockupLoop(lockupType, skipBgn = false) {
   window.currentLockupType = lockupType;
   if (!soundOn) return;
 
-
   const beginBuffers = pickLoopBuffers(b) || [];
   const loopBuffers  = pickLoopBuffers(l) || [];
-  if (!beginBuffers.length || !loopBuffers.length) return;
+  if (!beginBuffers.length || !loopBuffers.length) {
+    // Find lockup display name for the message
+    const lockupLabel = ({
+      [EFFECT_LOCKUP_BEGIN]: "Lockup",
+      [EFFECT_DRAG_BEGIN]:   "Drag",
+      [EFFECT_MELT_BEGIN]:   "Melt",
+      [EFFECT_LB_BEGIN]:     "Lightning Block"
+    })[lockupType] || lockupType;
+    showNoSoundMsg(lockupLabel, "");
+    return;
+  }
   lockupEndBuffer = (pickLoopBuffers(e) || [])[0] || null;
 
   const gainNode = audioCtx.createGain();
@@ -815,7 +640,7 @@ function startLockupLoop(lockupType, skipBgn = false) {
 }
 
 function endLockupLoop(effectType, endEffectName, shouldClear) {
-  // console.log("[Lockup] ▶ endLockupLoop called;", {
+  // console.log("******************** [Lockup] ▶ endLockupLoop called;", {
   //   effectType,
   //   endEffectName,
   //   shouldClear,
