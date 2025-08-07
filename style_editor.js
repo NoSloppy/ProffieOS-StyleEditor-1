@@ -207,9 +207,9 @@ function mouse_move(e) {
   }
 
 //  console.log("x = "+x+" y = "+y);
-  if (e.shiftKey) {
-    MOVE_MATRIX = default_move_matrix();
-  } else {
+  // if (e.shiftKey) {
+  //   MOVE_MATRIX = default_move_matrix();
+  // } else {
     var SCALE = 100.0;
     BLADE_ANGLE = -y;
 
@@ -228,7 +228,7 @@ function mouse_move(e) {
     MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(-PIVOT_OFFSET_X * SCALE, 0.0, 0.0));
     MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(-0.17 * SCALE, 0.0, 0.0));
     MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(0, 0, swing));
-  }
+  // }
 //  console.log(MOVE_MATRIX.values);
 
 //////////// SOUND2 PR ///////////
@@ -8675,6 +8675,7 @@ function autoBindWavLenInOutTrL(styleString) {
 
 // Prevent retriggering effects after re-parse (clicking Submit, or outermost bracket)
 function PreventTransitionRetrigger(style, bladeObj, index = {v:0}) {
+  if (!style) return;
   if (style.constructor.name === "TransitionEffectLClass") {
     for (const e of bladeObj.GetEffects()) {
       if (e.type === style.EFFECT.getInteger(0)) {
@@ -9010,12 +9011,19 @@ function ClickPower() {
       if (inout?.IN_TR) {
         // Recursively sum up all transition durations.
         const getDur = n => {
-          if (n.constructor && n.constructor.name === 'WavLenClass')
+          if (n.constructor && n.constructor.name === 'WavLenClass') {
             return Number(n.getInteger(0));
-          if (n.MILLIS)
+          }
+          if (n.MILLIS) {
             return Number(n.MILLIS.getInteger(0));
-          if (n.args)
-            return n.args.reduce((sum, a) => sum + getDur(a), 0);
+          }
+          if (n.args) {
+            if (!Array.isArray(n.args)) {
+              console.warn('getDur: Non-array args:', n, 'n.args:', n.args);
+            }
+            // Convert to array and reduce, always
+            return [...n.args].reduce((sum, a) => sum + getDur(a), 0);
+          }
           return 0;
         };
         styleDelay = getDur(inout.IN_TR);
