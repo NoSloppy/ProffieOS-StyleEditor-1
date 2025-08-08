@@ -9734,7 +9734,10 @@ var tipsState = new SavedStateBool("tips", true, (on) => {
 var colorsortState = new SavedStateBool("colorsort", false, (on) => {
   updateRgbTabContent();
 });
-
+var backgroundState = new SavedStateBool("background", true, (on) => {
+  window.showBackground = on;
+  if (window.bgPlane) window.bgPlane.visible = !!on;
+});
 var mouseswingsState = new SavedStateBool("mouseswings", false, (on) => {});
 var bladetrailsState = new SavedStateBool("bladetrails", true, (on) => { window.showBladeTrails = on; });
 var autoswingState = new SavedStateBool("autoswing", true, (on) => {});

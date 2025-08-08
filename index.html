@@ -4,24 +4,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <!-- This should show up in search engine results. -->
   <meta name="description" content="ProffieOS Style Editor: Customize your Proffieboard saber blade animations with this browser based tool.">
   <link rel="shortcut icon" type="image/png" href="./assets/SE_Favicon_BC-C5gxpSYq.png">
   <title>ProffieOS Style Editor</title>
 
 
-<!-- <div id="popup_window" class="popup-window">
-  <p id="popup_message"></p>
-  <button title="OK" onclick="dismissPopupMessage()">OK</button>
-  <br>
-  <label title="Don't show this again. Click 'Restore Defaults' in Settings to re-enable.">
-    <input type="checkbox" id="dont_show_again" name="dontshow" onclick="DontShowAgain(this.checked)">
-    <span>Don't show this again</span>
-  </label>
-</div>
-<div id="popup_overlay" class="popup-overlay"></div> -->
+<!-- Background image courtesy of 3D Artist Harold (TALON-3D) Okafor-Withers
+https://www.artstation.com/haroldokaforwithers
+https://www.renderhub.com/talon-3d
+https://www.cgtrader.com/designers/talon-3d -->
 
-  <script type="module" crossorigin src="./assets/index-FdkVII6V.js"></script>
+  <script type="module" crossorigin src="./assets/index-Bm3aJVhJ.js"></script>
   <link rel="stylesheet" crossorigin href="./assets/index-DhGx2wQC.css">
 </head>
 <body>
@@ -36,6 +29,7 @@
         <a href="https://www.soundfontnamingconverter.com/" target="_blank"><img src="https://www.soundfontnamingconverter.com/favicon.png" alt="SFNC logo"></a>
         <a href="https://www.fett263.com/" target="_blank"><img src="https://www.fett263.com//favicon.ico" alt="Fett263 logo"></a>
         <a href="https://www.facebook.com/groups/opensourcesabers/" target="_blank"><img src="https://www.facebook.com/favicon.ico" alt="Facebook logo"></a>
+        <a href="https://www.artstation.com/haroldokaforwithers/" target="_blank"><img src="https://www.artstation.com/favicon.ico" alt="ArtistPage logo"></a>
       </span>
     </div>
 
@@ -218,31 +212,35 @@ It is only an active button when applicable."
             <h4 class="settings-section-label" title="These settings apply to the whole page.">General:</h4>
             <label title="Toggles a Dark Mode look to this page.">
               <input type="checkbox" id="DARK_BUTTON" name="darkmode" onclick="handleSettings(this)">
-              <span>Dark Mode</span>
+              <span>Dark mode</span>
             </label>
             <label title="Toggles pop-up tooltips On or Off.">
               <input type="checkbox" id="TIPS_BUTTON" name="tooltips" onclick="handleSettings(this)">
-              <span >Tool Tips</span>
+              <span >Tool tips</span>
             </label>
             <label title="Toggle between sorting the Colors tab hue or by name.">
               <input type="checkbox" id="COLORSORT_BUTTON" name="colorsort" onclick="handleSettings(this)">
-              <span>Sort Colors by name</span>
+              <span>Sort Colors tab by name</span>
             </label>
           </section> <!-- settings-section General -->
 
           <section class="settings-section">
             <h4 class="settings-section-label" title="These settings apply to the blade preview above.">Blade Preview:</h4>
+            <label title="Toggles background image on or off.">
+              <input type="checkbox" id="BACKGROUND_BUTTON" name="background" onclick="handleSettings(this)">
+              <span>Show background image</span>
+            </label>
             <label title="Toggles the option for swinging around the preview blade above using mouse control.">
               <input type="checkbox" id="MOUSESWINGS_BUTTON" name="mouseswings" onclick="handleSettings(this)">
               <span>Disable mouse swings</span>
             </label>
             <label title="Show motion trails behind the blade in the preview.">
               <input type="checkbox" id="BLADETRAILS_BUTTON" name="bladetrails" onclick="handleSettings(this)">
-              <span>Show Blade Trails</span>
+              <span>Show blade swing trails</span>
             </label>
             <label title="Toggles automated swing emulation on the preview blade while at rest (ie: shown when using SwingSpeed<>). Swinging while hovering over the preview area always shows swing blade effects according to movements.">
               <input type="checkbox" id="AUTOSWING_BUTTON" name="autoswing" onclick="handleSettings(this)">
-              <span>Swing Emulation</span>
+              <span>Swing emulation</span>
             </label>
             <label title="Simulates In-Hilt LED blades, (no addressable pixel effects).">
               <input type="checkbox" id="INHILT_BUTTON" name="inhilt" onclick="handleSettings(this)">
@@ -250,7 +248,7 @@ It is only an active button when applicable."
             </label>
             <label title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement.">
               <input type="checkbox" id="SLOW_BUTTON" name="slow" onclick="handleSettings(this)">
-              <span>Slow</span>
+              <span>Slow-mo animations</span>
             </label>
           </section> <!-- settings-section Blade Preview -->
 
