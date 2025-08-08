@@ -9736,6 +9736,7 @@ var colorsortState = new SavedStateBool("colorsort", false, (on) => {
 });
 
 var mouseswingsState = new SavedStateBool("mouseswings", false, (on) => {});
+var bladetrailsState = new SavedStateBool("bladetrails", true, (on) => { window.showBladeTrails = on; });
 var autoswingState = new SavedStateBool("autoswing", true, (on) => {});
 var inhiltState = new SavedStateBool("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
 var slowState = new SavedStateBool("slow", false, (on) => { framesPerUpdate = on ? 10 : 0; time_factor = framesPerUpdate == 0 ? 1000 : (500/framesPerUpdate)});
