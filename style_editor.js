@@ -4,6 +4,11 @@ var height;
 //////////// Fullscreen PR ///////////
 // Fullscreen things
 const canvas = FIND("canvas_id");
+const pcbCanvas   = FIND('pcb_canvas');
+const previewType = FIND("previewType");
+const enlargeBtn  = FIND('ENLARGE_BUTTON');
+
+
 const pageLeftTop = FIND("page_left_top");
 
 function FIND(id) {
@@ -234,7 +239,7 @@ function mouse_move(e) {
 //////////// SOUND2 PR ///////////
   // SmoothSwing updates
   lastSwingSpeed = get_swing_speed();
-  lastSwingUpdate = Date.now();
+  lastSwingUpdate = performance.now();
   // console.debug(
   //   `[SwingDebug][mouse_move] lastSwingSpeed=${lastSwingSpeed.toFixed(1)}, ` +
   //   `lastSwingUpdate=${lastSwingUpdate}`
@@ -272,11 +277,11 @@ function get_swing_accel() {
 }
 
 function mouse_leave(e) {
-//  console.log("Mouse leave!");
-  // MOVE_MATRIX = default_move_matrix();
   HOME_POS = true;
   MOUSE_POSITIONS = [];
   IN_FRAME = false;
+  window.bladeTrailTransforms = [];
+  wasOverTrailThreshold = false;
   resizeCanvasAndCamera();
 }
 
@@ -312,6 +317,95 @@ class MyError {
   }
   valueOf() { return this.desc; }
 };
+
+var outerMostBracket = true;
+var current_focus_pp = "$";
+
+function style_base_check_detail(style) {
+  function isOpaque(c) { return c && c.a === 1.0; }
+  function isBlack(c)  { return isOpaque(c) && c.r === 0 && c.g === 0 && c.b === 0; }
+  function isOverlayNode(node) {
+    // Any class that ends with 'LClass' is a layer/overlay (e.g., InOutTrLClass, AlphaLClass, etc.)
+    return !!(node && node.constructor && /LClass$/.test(node.constructor.name));
+  }
+
+  // Non-Layers: must be solid at top level
+  if (!(style instanceof LayersClass)) {
+    const c = style.getColor(0);
+    if (!isOpaque(c)) {
+      return { ok:false, msg:"Style must be a solid color, not transparent." };
+    }
+    return { ok:true };
+  }
+
+  // Layers<...>
+  const baseNode = style.BASE;
+  const Ls = style.LAYERS || [];
+
+  let effectiveBaseColor = baseNode.getColor(0);
+  let startIndexForAbove = 0;
+
+  // If base is an overlay node, treat as transparent base; promote first non-overlay layer to base.
+  if (isOverlayNode(baseNode)) {
+    let idx = 0;
+    // skip overlays at the start
+    while (idx < Ls.length && isOverlayNode(Ls[idx])) idx++;
+    if (idx >= Ls.length) {
+      // no real color to promote -> still transparent at top level
+      return { ok:false, msg:"Style must be a solid color, not transparent." };
+    }
+    effectiveBaseColor = Ls[idx].getColor(0);
+    startIndexForAbove = idx + 1;
+  } else {
+    // legacy rule: drop fully transparent base (AlphaL<*, Int<0>> equivalent)
+    if (effectiveBaseColor && effectiveBaseColor.a === 0.0) {
+      // promote next entry as effective base (could still be overlay; handled below)
+      let idx = 0;
+      while (idx < Ls.length && isOverlayNode(Ls[idx])) idx++;
+      if (idx >= Ls.length) {
+        return { ok:false, msg:"Style must be a solid color, not transparent." };
+      }
+      effectiveBaseColor = Ls[idx].getColor(0);
+      startIndexForAbove = idx + 1;
+    }
+  }
+
+  // base must be solid
+  if (!isOpaque(effectiveBaseColor)) {
+    return { ok:false, msg:"Style must be a solid color, not transparent." };
+  }
+
+  // Count solids above base, ignoring overlays
+  let solidsAbove = 0;
+  for (let i = startIndexForAbove; i < Ls.length; i++) {
+    if (isOverlayNode(Ls[i])) continue;            // overlays don’t count
+    const lc = Ls[i].getColor(0);
+    if (isOpaque(lc)) solidsAbove++;
+  }
+
+  // BLACK carve-out: allow exactly one solid above black; otherwise none.
+  if (isBlack(effectiveBaseColor)) {
+    if (solidsAbove > 1) {
+      return { ok:false, msg:"Layers<> error: Only the base color may be solid." };
+    }
+  } else {
+    if (solidsAbove > 0) {
+      return { ok:false, msg:"Layers<> error: Only the base color may be solid." };
+    }
+  }
+
+  return { ok:true };
+}
+
+function style_base_check(style, errorElemId) {
+  const r = style_base_check_detail(style);
+  if (!r.ok && errorElemId) {
+    FIND(errorElemId).innerHTML = r.msg;
+    return false;
+  }
+  if (errorElemId) FIND(errorElemId).innerHTML = "";
+  return r.ok;
+}
 //////////// SafeguardInputs PR ///////////////
 function ValidateInput(e) {
   e.target.classList.remove('invalid');
@@ -1076,25 +1170,22 @@ const EFFECT_SOUND_MAP = {
 };
 
 // Parse the style and return a Set containing all EFFECTs and LOCKUPs (including via macros)
-function getAllowedEventsFromStyleText() {
-  var style = FIND("style");
-  let text = style.value || "";
-  // Strip block comments: /* … */
-  text = text.replace(/\/\*[\s\S]*?\*\//g, "");
-  // Strip line comments: //
-  text = text.replace(/\/\/.*$/gm, "");
+// This is for which SOUNDS are allowed.
+function getAllowedEventsFromText(text) {
+  // Strip comments first
+  text = (text || "")
+    .replace(/\/\*[\s\S]*?\*\//g, "")  // block comments
+    .replace(/\/\/.*$/gm, "");         // line comments
 
   const allowed = new Set();
 
-  // Literal matches
+  // Literal EFFECT_/LOCKUP_ constants
   const consts = text.match(/\b(EFFECT|LOCKUP)_[A-Z_]+\b/g) || [];
   for (const c of new Set(consts)) {
-    if (window[c] !== undefined) {
-      allowed.add(window[c]);
-    }
+    if (window[c] !== undefined) allowed.add(window[c]);
   }
 
-  // Map macros to their EFFECTs and LOCKUPs
+  // Macros → effects/lockups
   const macroMap = {
     ResponsiveClashL:     EFFECT_CLASH,
     ResponsiveStabL:      EFFECT_STAB,
@@ -1102,25 +1193,88 @@ function getAllowedEventsFromStyleText() {
     ResponsiveBlastWaveL: EFFECT_BLAST,
     ResponsiveBlastFadeL: EFFECT_BLAST,
 
-    ResponsiveLockupL:    [EFFECT_LOCKUP_BEGIN,   EFFECT_LOCKUP_END,   LOCKUP_NORMAL],
-    ResponsiveDragL:      [EFFECT_DRAG_BEGIN,     EFFECT_DRAG_END,     LOCKUP_DRAG],
-    ResponsiveMeltL:      [EFFECT_MELT_BEGIN,     EFFECT_MELT_END,     LOCKUP_MELT],
-    ResponsiveLightningBlockL:[EFFECT_LB_BEGIN,   EFFECT_LB_END,       LOCKUP_LIGHTNING_BLOCK],
+    ResponsiveLockupL:    [EFFECT_LOCKUP_BEGIN, EFFECT_LOCKUP_END, LOCKUP_NORMAL],
+    ResponsiveDragL:      [EFFECT_DRAG_BEGIN,   EFFECT_DRAG_END,   LOCKUP_DRAG],
+    ResponsiveMeltL:      [EFFECT_MELT_BEGIN,   EFFECT_MELT_END,   LOCKUP_MELT],
+    ResponsiveLightningBlockL:[EFFECT_LB_BEGIN, EFFECT_LB_END,     LOCKUP_LIGHTNING_BLOCK],
 
-    InOutTrL:             [EFFECT_IGNITION,       EFFECT_RETRACTION],
+    InOutTrL:             [EFFECT_IGNITION,     EFFECT_RETRACTION],
+    LockupL:              [LOCKUP_NORMAL, LOCKUP_DRAG, LOCKUP_LIGHTNING_BLOCK],
   };
 
   for (var macro in macroMap) {
-    if (text.indexOf(macro + "<") !== -1) {
+    if (hasMacro(text, macro)) {
       var val = macroMap[macro];
-      if (Array.isArray(val)) {
-        val.forEach(function(v) { allowed.add(v); });
-      } else {
-        allowed.add(val);
-      }
+      (Array.isArray(val) ? val : [val]).forEach(function(v){ allowed.add(v); });
     }
   }
   return allowed;
+}
+
+function hasMacro(text, name) {
+  const re = new RegExp("\\b" + name + "\\s*<");
+  return re.test(text);
+}
+
+// This is for which lockups are shown in the dropdown meny.
+function getAllowedLockupsFromText(text) {
+  // Strip comments
+  text = (text || "")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/\/\/.*$/gm, "");
+
+  const allowed = new Set();
+
+  // Literally lockup
+  const consts = text.match(/\bLOCKUP_(?:NORMAL|DRAG|MELT|LIGHTNING_BLOCK)\b/g) || [];
+  for (const c of new Set(consts)) if (window[c] !== undefined) allowed.add(window[c]);
+
+  // Lockup macros
+  if (hasMacro(text, "ResponsiveLockupL"))         allowed.add(LOCKUP_NORMAL);
+  if (hasMacro(text, "ResponsiveDragL"))           allowed.add(LOCKUP_DRAG);
+  if (hasMacro(text, "ResponsiveMeltL"))           allowed.add(LOCKUP_MELT);
+  if (hasMacro(text, "ResponsiveLightningBlockL")) allowed.add(LOCKUP_LIGHTNING_BLOCK);
+
+  // LockupL - allow all three lockups
+  if (hasMacro(text, "LockupL")) {
+    allowed.add(LOCKUP_NORMAL);
+    allowed.add(LOCKUP_DRAG);
+    allowed.add(LOCKUP_LIGHTNING_BLOCK);
+  }
+
+  // LockupTrL's specific lockup type.
+  const m = text.match(/LockupTrL\s*<[^>]*,\s*[^>]*,\s*[^>]*,\s*(?:SaberBase::)?(LOCKUP_(?:NORMAL|DRAG|MELT|LIGHTNING_BLOCK))/);
+  if (m && window[m[1]] !== undefined) allowed.add(window[m[1]]);
+
+  return allowed;
+}
+
+function getAllowedLockups() {
+  const text = (FIND("style").value || "");
+  const allowed = getAllowedLockupsFromText(text);
+
+  console.log("[Allowed lockups]:", Array.from(allowed));  // **************** DEBUG ONLY
+  return allowed;
+}
+
+function getAllowedEventsFromStyleText() {
+  var style = FIND("style");
+  return getAllowedEventsFromText(style.value || "");
+}
+
+function getAllowedEventsFromNode(node) {
+  // Make the focused part a string
+  const u = window.pp_is_url, v = window.pp_is_verbose;
+  window.pp_is_url = 0; window.pp_is_verbose = 0;
+  const html = (node && typeof node.pp === "function") ? node.pp() : "";
+  window.pp_is_url = u; window.pp_is_verbose = v;
+
+  // Strip tags and get the 3 entities we need
+  let text = html.replace(/<[^>]*>/g, "");
+  text = text.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+  // (Optional) text = text.replace(/\s+/g, " ").trim();
+
+  return getAllowedEventsFromText(text);
 }
 
 function effect_to_argument(effect) {
@@ -3928,7 +4082,7 @@ Blade.prototype.addEffect = function(type, location) {
     if (allowedByStyle.has(lockupType)) {
       // Triggered by Do Selected Effect button
       if (window.lockupLoopSrc) playRandomEffect(BEGIN_EFFECT_MAP[type], true);
-      // Triggered by Lockup chooser dropdow
+      // Triggered by Lockup chooser dropdown
       if (!window.lockupLoopSrc) startLockupLoop(type);
     }
     return;
@@ -3954,12 +4108,10 @@ Blade.prototype.addEffect = function(type, location) {
       return;
     }
 
-  const allowedByFocus = (!current_focus || current_focus.constructor.name === 'LayersClass');
-
   // Else, only play sound if it's in the textarea.
   const effectName = EFFECT_SOUND_MAP[type];
   if (effectName) {
-  const isAllowed = allowedByFocus || allowedByStyle.has(type);
+  const isAllowed = outerMostBracket || allowedByStyle.has(type);
   playRandomEffect(effectName, isAllowed);
   }
 };
@@ -4029,8 +4181,9 @@ var focus_catcher;
 var focus_trace = [undefined];
 
 function Focus(T) {
-  console.log("FOCUS=" + T);
-  console.log(T);
+//////////// Logging PR ///////////////
+//  console.log("FOCUS=" + T);
+//  console.log(T);
   focus_catcher = T;
   focus_trace = [T];
   return T;
@@ -8369,6 +8522,16 @@ function getSaberMove() {
   return rotation;
 }
 
+function buildPcbColors(numLeds, numBladeLeds, style) {
+  var arr = [];
+  for (var k = 0; k < numLeds; k++) {
+    var bladeIdx = Math.floor((k / numLeds) * numBladeLeds);
+    var c = style.getColor ? style.getColor(bladeIdx) : { r: 1, g: 1, b: 0 };
+    arr.push([Math.round(c.r * 255), Math.round(c.g * 255), Math.round(c.b * 255)]);
+  }
+  return arr;
+}
+
 function drawScene() {
   var now_actual_millis = actual_millis();
   var delta_actual_millis = now_actual_millis - last_actual_millis;
@@ -8406,6 +8569,9 @@ function drawScene() {
   if (!pixels || pixels.length < num_leds * 4 * 2) {
      pixels = new Uint8Array(num_leds * 4 * 2);
   }
+  window.bladeColors = window.bladeColors || [];
+  window.pcbColors   = window.pcbColors   || null;
+
   var S = current_style;
   if (S != last_style) {
     last_style = S;
@@ -8432,7 +8598,31 @@ function drawScene() {
         pixels[i*4 + 1] = Math.round(c.g * 255);
         pixels[i*4 + 2] = Math.round(c.b * 255);
         pixels[i*4 + 3] = 255;
+
+        // keep parallel-mode PCB sampling fed
+        window.bladeColors[i] = [pixels[i*4 + 0], pixels[i*4 + 1], pixels[i*4 + 2]];
     }
+
+    // Dedicated vs parallel PCB mapping
+    if (previewType.value === 'blade') {
+      window.pcbColors = null;
+    } else if (pcbdedicatedState.get()) {
+      var len = 0;
+      switch (previewType.value) {
+        case 'PCBa': len = 16; break;
+        case 'PCBb': len = 30; break;
+        case 'PCBc': len = 5;  break;
+        case 'PCBd': len = 6;  break;
+        case 'PCBe': len = 64; break;  // MTRX 64 pixel rectangular PCB
+        case 'PCBf': len = 69; break;  // MTRX 69 pixel round PCB
+        case 'PCBg': len = parseInt(FIND('pixelRingCount').value) || 6; break;
+      }
+      window.pcbColors = len ? buildPcbColors(len, num_leds, S) : null;
+    } else {
+      // PCB in parallel mode
+      window.pcbColors = null;
+    }
+
     if (last_micros != 0) {
       current_micros += delta_us / 2;
     }
@@ -8444,7 +8634,7 @@ function drawScene() {
         pixels[i*4 + 0 + num_leds * 4] = Math.round(c.r * 255);
         pixels[i*4 + 1 + num_leds * 4] = Math.round(c.g * 255);
         pixels[i*4 + 2 + num_leds * 4] = Math.round(c.b * 255);
-       pixels[i*4 + 3 + num_leds * 4] = 255;
+        pixels[i*4 + 3 + num_leds * 4] = 255;
     }
     S.update_displays();
   }
@@ -8471,9 +8661,14 @@ function drawScene() {
   t += 1;
 }
 
+
 function tick() {
   window.requestAnimationFrame(tick);
   drawScene();
+  // Update PCB preview in real time if visible
+  if (!pcbCanvas.classList.contains('hidden')) {
+    drawPCB();
+  }
 }
 
 var overall_string;
@@ -8486,7 +8681,9 @@ function ReplaceCurrentFocus(str) {
     pp_is_url++;
     pp_is_verbose++;
     var url = style_tree.pp();
-    console.log("FOCUS URL: " + url);
+    //console.log("FOCUS URL: " + url);
+    current_focus_pp = url;
+    outerMostBracket = (url === "$");
     pp_is_url--;
     pp_is_verbose--;
     current_focus.super_short_desc = false;
@@ -8716,6 +8913,17 @@ function Run() {
   try {
     current_style = parser.parse();
     PreventTransitionRetrigger(current_style, blade);
+    ReplaceCurrentFocus(str);
+
+    outerMostBracket = (!current_focus) || (current_focus_pp === "$");
+    if (outerMostBracket) {
+      if (!style_base_check(current_style, "error_message")) {
+        const parser2 = new Parser("BLACK", classes, identifiers);
+        current_style = parser2.parse();
+        compile();
+        return;
+      }
+    }
   }
   catch(e) {
     console.log(e);
@@ -8751,9 +8959,7 @@ function Run() {
     } else {
       throw e;
     }
-//////////// indents and line returns PR ///////////
   }
-  ReplaceCurrentFocus(str);
   compile();
 //////////// Lockup Dropdown tweaks PR ///////////
   STATE_LOCKUP = LOCKUP_NONE;
@@ -8883,16 +9089,17 @@ function FocusOnLow(id) {
   console.log("FOCUSON: " + id);
   var style = style_ids[id];
 //////////// Logging PR ///////////////
-  console.log("style_ids[" + id + "] =", style);
+  // console.log("style_ids[" + id + "] =", style);
   current_focus = style;
   var container = FIND("X"+id);
-  console.log(container);
+  //////////// Logging PR ///////////////
+  // console.log(container);
 //////////// CSS PR ///////////////
   // MOVED TO CSS container.style.backgroundColor = 'lightblue';
   pp_is_url++;
   var url = style.pp();
   pp_is_url--;
-//////////// Logging PR ///////////////
+/////////// Logging PR ///////////////
   // console.log("pp URL =", url);
   current_focus_url = url;
   SetTo(url);
@@ -8909,10 +9116,9 @@ function FocusOn(id, event) {
 //////////// SOUND1 PR ///////////////
 function FocusCheck() {
   // Detect whether this is the top-level in structured view.
-  const outerMostBracket = (!current_focus || (current_focus.constructor.name === "LayersClass"));
-  // console.log('[FocusCheck] outerMostBracket = ' + outerMostBracket);
+  //console.log("************ outerMostBracket", outerMostBracket ? "YES" : "NO");
+
   if (outerMostBracket) {
-    focusAllowsHum = true;
     if (STATE_ON) {
       // console.log("[FocusCheck] resumeLoops()");
       resumeLoops();
@@ -8920,7 +9126,6 @@ function FocusCheck() {
   } else {
     // console.log("[FocusCheck] stopAllLoops()");
     stopAllLoops(200, false);
-    focusAllowsHum = false;
   }
 }
 
@@ -8974,7 +9179,7 @@ function ClickPower() {
       blade.addEffect(EFFECT_IGNITION, Math.random() * 0.7 + 0.2);
       setTimeout(() => {
         // Only start hum if still powered on!
-        if (focusAllowsHum) {
+        if (outerMostBracket) {
           startHum();
         } else {
           console.log('[ClickPower] Not focused full. not starting hum.');
@@ -9060,13 +9265,8 @@ function OnLockupChange() {
   STATE_LOCKUP = window[select.value];
   window.currentLockupType = STATE_LOCKUP;
 
-  // Check: If choosing a lockup that’s NOT allowed, bail and reset
-    const allowedLockups = new Set(
-    Array.from(getAllowedEventsFromStyleText())
-      .filter(x => LOCKUP_ENUM_BUILDER.value_to_name.hasOwnProperty(x))
-  );
-
-  if (STATE_LOCKUP !== LOCKUP_NONE && !allowedLockups.has(STATE_LOCKUP)) {
+  // If choosing a lockup that’s NOT allowed, bail and reset
+  if (STATE_LOCKUP !== LOCKUP_NONE && !getAllowedLockups().has(STATE_LOCKUP)) {
     console.log("No", lockupNameFromValue(STATE_LOCKUP), "in the blade style, resetting dropdown.");
     STATE_LOCKUP = LOCKUP_NONE;
     window.currentLockupType = null;
@@ -9087,12 +9287,6 @@ function OnLockupChange() {
 function updateLockupDropdown() {
   const lockupSelect = FIND("LOCKUP");
   lockupSelect.innerHTML = "";
-
-  // Get allowed lockup types from style code
-  const allowedLockups = new Set(
-    Array.from(getAllowedEventsFromStyleText())
-      .filter(x => LOCKUP_ENUM_BUILDER.value_to_name.hasOwnProperty(x))
-  );
 
 // Silently stop loop if no lockup is selected
 if ((!STATE_LOCKUP || STATE_LOCKUP === LOCKUP_NONE) && window.lockupLoopSrc) {
@@ -9123,12 +9317,12 @@ if ((!STATE_LOCKUP || STATE_LOCKUP === LOCKUP_NONE) && window.lockupLoopSrc) {
       [LOCKUP_LIGHTNING_BLOCK]: "LOCKUP_LIGHTNING_BLOCK"
     };
 
-    const outerMostBracket = (!current_focus || (current_focus.constructor.name === "LayersClass"));
     let optionsAdded = 0;
     for (const lockupType of [LOCKUP_NORMAL, LOCKUP_DRAG, LOCKUP_MELT, LOCKUP_LIGHTNING_BLOCK]) {
       // If at top-level, show ALL lockups.
       // If focused in, show ONLY the selected lockup.
-      if (outerMostBracket || allowedLockups.has(lockupType)) {
+      if (getAllowedLockups().has(lockupType)) {
+      // if (outerMostBracket || getAllowedLockups().has(lockupType)) {
         lockupSelect.appendChild(new Option(
           lockupLabels[lockupType],
           lockupTypeNames[lockupType]
@@ -9254,11 +9448,20 @@ function Copy() {
     FIND("error_message").innerHTML = "Not a complete style.";
     return;
   }
+
+  // Refuse something transparent
   var color = current_style.getColor(0);
-  if (color.a != 1.0) {
+  if (!color || color.a !== 1.0) {
     FIND("error_message").innerHTML = "Style is transparent.";
     return;
   }
+
+  const cls = current_style && current_style.constructor && current_style.constructor.name;
+  if (cls && /LClass$/.test(cls)) {
+    FIND("error_message").innerHTML = "Style is transparent.";
+    return;
+  }
+
   var copyText = FIND("style");
   var argStr = '"' + ARGUMENTS.slice(3).join(" ") + '"';
   if (argStr == '""') argStr = "";
@@ -9782,6 +9985,9 @@ var useFontWavLenState = new SavedStateBool("use_font_wavlen", true, (on, prev) 
   handleWavLenControls();
   if (on && !prev) wavlenState.set(500);
 });
+var pcbdedicatedState = new SavedStateBool("pcbdedicated", false, (on) => { drawPCB(); });
+var pcbshowlednumbersState = new SavedStateBool("pcbshowlednumbers", false, (on) => { drawPCB(); });
+
 //////////////// SOUND2 PR /////////////////
 
 //////////// Fullscreen PR ///////////
@@ -9846,6 +10052,29 @@ function SetupRendering() {
   tick();
 }
 
+
+function togglePixelRingCount() {
+  const sel = FIND('pixelRingCount');
+  if (!sel || sel.dataset.inited === '1') return;
+  sel.innerHTML = '';
+
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.text = 'Number of LEDs';
+  placeholder.disabled = true;
+  placeholder.selected = true;
+  sel.appendChild(placeholder);
+
+  for (let i = 1; i <= 20; i++) {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.text  = i;
+    sel.appendChild(opt);
+  }
+  sel.dataset.inited = '1';
+}
+
+
 function onPageLoad() {
   SetupRendering();
   rebuildMoreEffectsMenu();
@@ -9861,14 +10090,37 @@ function onPageLoad() {
     if (audioCtx.state === 'suspended') audioCtx.resume();
     startOverlay.style.display = 'none';
   };
-
+  previewType.dispatchEvent(new Event('change'));
   window.addEventListener('resize', resizeCanvasAndCamera);
 }
 
-////////////// Resize PR ///////////
+// Preview type dropdown handler - show/hide blade preview
+previewType.addEventListener('change', function() {
+  var bladeCanvas = FIND('canvas_id');
+  var ringCount   = FIND('pixelRingCount');
 
+  if (this.value === 'blade') {
+    bladeCanvas.classList.remove('hidden');
+    enlargeBtn.classList.remove('hidden');
+    pcbCanvas.classList.add('hidden');
+    ringCount.classList.add('hidden');
+  } else {
+    bladeCanvas.classList.add('hidden');
+    enlargeBtn.classList.add('hidden');
+    pcbCanvas.classList.remove('hidden');
 
-FIND('ENLARGE_BUTTON').onclick = function() {
+    // Only show ringCount if "Pixel ring" is selected
+    if (this.value === 'PCBg') {
+      ringCount.classList.remove('hidden');
+      togglePixelRingCount()
+    } else {
+      ringCount.classList.add('hidden');
+    }
+    drawPCB();
+  }
+});
+
+enlargeBtn.onclick = function() {
   window.enlargeCanvas = !window.enlargeCanvas;
   this.innerText = window.enlargeCanvas ? 'Reduce' : 'Enlarge';
   resizeCanvasAndCamera();
@@ -9957,3 +10209,4 @@ function ClickRestore() {
   localStorage.clear();
   onPageLoad();
 }
+1219

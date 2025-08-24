@@ -14,10 +14,11 @@ https://www.artstation.com/haroldokaforwithers
 https://www.renderhub.com/talon-3d
 https://www.cgtrader.com/designers/talon-3d -->
 
-  <script type="module" crossorigin src="./assets/index-Bm3aJVhJ.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-DhGx2wQC.css">
+  <script type="module" crossorigin src="./assets/index-nFVLDZfk.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-DG1roGDH.css">
 </head>
 <body>
+  <script defer src="pcb_draw.js"></script>
   <div class="main-container">
     <div class="header-container fullscreen">
       <span class="header-title">ProffieOS Style Editor</span>
@@ -44,6 +45,24 @@ Goto settings to change hilt model or toggle Mouse Swings mode (swinging with mo
             onmousemove="mouse_move(event)" onmouseleave="mouse_leave(event)"
             onclick="AddClickedEffect()">
           </canvas>
+          <canvas
+            id="pcb_canvas" class="pcb-canvas hidden"
+            title="Shows LEDs on a pogo-pin blade emitter PCB.">
+          </canvas>
+          <select id="previewType" class="preview-type"
+            title="Choose preview type">
+            <option value="blade">Blade</option>
+            <option value="PCBa">SCW NPXL V3-V4 Connector</option>
+            <option value="PCBb">SCW ECO NPXL V4 Connector</option>
+            <option value="PCBc">SCW NPXL Blade side pcb with 5-pixels</option>
+            <option value="PCBd">SCW NPXL Blade side pcb with 6-pixels</option>
+            <option value="PCBe">SCW MTRX 64 Pixel rectangular</option>
+            <option value="PCBf">SCW MTRX 69 Pixel round</option>
+            <option value="PCBg">Pixel ring</option>
+          </select>
+          <select id="pixelRingCount" class="pixel-ring-count"
+            title="Number of LEDs on pixel ring">
+          </select>
           <button
             id="ENLARGE_BUTTON"
             title="Click to toggle blade preview window size.">Enlarge</button>
@@ -226,7 +245,10 @@ It is only an active button when applicable."
 
           <section class="settings-section">
             <h4 class="settings-section-label" title="These settings apply to the blade preview above.">Blade Preview:</h4>
-            <label title="Toggles background image on or off.">
+            <label title="Toggles background image on or off. Background image courtesy of 3D Artist Harold (TALON-3D) Okafor-Withers
+https://www.artstation.com/haroldokaforwithers
+https://www.renderhub.com/talon-3d
+https://www.cgtrader.com/designers/talon-3d">
               <input type="checkbox" id="BACKGROUND_BUTTON" name="background" onclick="handleSettings(this)">
               <span>Show background image</span>
             </label>
@@ -251,6 +273,20 @@ It is only an active button when applicable."
               <span>Slow-mo animations</span>
             </label>
           </section> <!-- settings-section Blade Preview -->
+
+          <section class="settings-section">
+            <h4 class="settings-section-label" title="These settings apply to the PCB preview above.">PCB Preview:</h4>
+
+            <label title="Toggles the PCB to act as either a dedicated blade or as in parallel with main blade.">
+              <input type="checkbox" id="PCBDEDICATED_BUTTON" name="pcbdedicated" onclick="handleSettings(this)">
+              <span>PCB is its own blade</span>
+            </label>
+
+            <label title="Show pixel numbers around the PCB/Pixel Ring.">
+              <input type="checkbox" id="PCBSHOWLEDNUMBERS_BUTTON" name="pcbshowlednumbers" onclick="handleSettings(this)">
+              <span>Show LED numbers</span>
+            </label>
+          </section> <!-- settings-section PCB Preview -->
 
           <section class="settings-section">
             <h4 class="settings-section-label" title="These settings apply Sound settings..">Sound Settings:</h4>
@@ -312,7 +348,14 @@ It is only an active button when applicable."
       </p>
     </div>
   </div>
-  <script src="style_editor.js"></script>
-  <script src="sound.js"></script>
+  <script defer src="style_editor.js"></script>
+  <script defer src="sound.js"></script>
+  <img id="pcba_image" src="./pcb_images/PCBa.png" style="display:none;">
+  <img id="pcbb_image" src="./pcb_images/PCBb.png" style="display:none;">
+  <img id="pcbc_image" src="./pcb_images/PCBc.png" style="display:none;">
+  <img id="pcbd_image" src="./pcb_images/PCBd.png" style="display:none;">
+  <img id="pcbe_image" src="./pcb_images/PCBe.png" style="display:none;">
+  <img id="pcbf_image" src="./pcb_images/PCBf.png" style="display:none;">
+
   </body>
 </html>
