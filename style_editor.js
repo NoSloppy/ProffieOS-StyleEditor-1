@@ -2609,6 +2609,55 @@ function Strobe(T, STROBE_COLOR, STROBE_FREQUENCY, STROBE_MILLIS) {
   return new StrobeClass(T, STROBE_COLOR, STROBE_FREQUENCY, STROBE_MILLIS);
 }
 
+// class GradientClass extends STYLE {
+//   constructor(COLORS) {
+//     super("COLOR2 at base, COLOR2 at tip, smooth gradient in between.", COLORS);
+//     this.COLORS = COLORS;
+//     for (var i = 0; i < this.COLORS.length; i++)
+//       this.add_arg("COLOR" + (i + 1), "COLOR", "COLOR " + (i + 1));
+//   }
+//   run(blade) {
+//     for (var i = 0; i < this.COLORS.length; i++)
+//       this.COLORS[i].run(blade);
+//     this.num_leds_ = 1.0 * blade.num_leds();
+//   }
+//   getColor(led) {
+//     var pos = led / this.num_leds_ * (this.COLORS.length - 1);
+//     var N = min(this.COLORS.length -2, Math.floor(pos));
+//     return this.COLORS[N].getColor(led).mix(this.COLORS[N+1].getColor(led), pos - N) ;
+//   }
+// };
+
+// function Gradient(A, B, C, D) {
+//   return new GradientClass(Array.from(arguments));
+// }
+
+
+// class GradientClass extends STYLE {
+//   constructor(COLORS) {
+//     super("COLOR2 at base, COLOR2 at tip, smooth gradient in between.", COLORS);
+//     this.COLORS = COLORS;
+//     for (var i = 0; i < this.COLORS.length; i++)
+//       this.add_arg("COLOR" + (i + 1), "COLOR", "COLOR " + (i + 1));
+//     this.num_leds_ = 1;
+//   }
+//   run(blade) {
+//     for (var i = 0; i < this.COLORS.length; i++)
+//       this.COLORS[i].run(blade);
+//     this.num_leds_ = (blade.num_leds() | 0);
+//   }
+//   getColor(led) {
+//     // Avoid NaN if not set yet
+//     var nled  = (this.num_leds_ | 0) || 1;
+//     var denom = Math.max(1, nled - 10);  // THIS SEEMS TO WORK THOUGH!!?
+//     var pos   = (led / denom) * (this.COLORS.length - 1);
+
+//     var N = min(this.COLORS.length - 2, Math.floor(pos));
+//     var t = pos - N;
+//     return this.COLORS[N].getColor(led).mix(this.COLORS[N + 1].getColor(led), t);
+//   }
+// };
+
 class GradientClass extends STYLE {
   constructor(COLORS) {
     super("COLOR2 at base, COLOR2 at tip, smooth gradient in between.", COLORS);
@@ -2622,9 +2671,17 @@ class GradientClass extends STYLE {
     this.num_leds_ = 1.0 * blade.num_leds();
   }
   getColor(led) {
-    var pos = led / this.num_leds_ * (this.COLORS.length - 1);
-    var N = min(this.COLORS.length -2, Math.floor(pos));
-    return this.COLORS[N].getColor(led).mix(this.COLORS[N+1].getColor(led), pos - N) ;
+    if (this.num_leds_ <= 1) return this.COLORS[0].getColor(led);
+
+const segment_count = this.COLORS.length;
+const pos = (led + 0.5) * segment_count / this.num_leds_;
+
+    const N = Math.floor(pos);
+    const blend = pos - N;
+
+    const c1 = this.COLORS[clamp(N, 0, this.COLORS.length - 1)].getColor(led);
+    const c2 = this.COLORS[clamp(N + 1, 0, this.COLORS.length - 1)].getColor(led);
+    return c1.mix(c2, blend);
   }
 };
 
@@ -8964,7 +9021,6 @@ function Run() {
   updateLockupDropdown();
 
   if (current_style.argstring) {
-//////////// missing semicolon PR ///////////
     FIND("ARGSTR").value = "builtin 0 1 " + current_style.argstring;
     ArgStringChanged();
   }

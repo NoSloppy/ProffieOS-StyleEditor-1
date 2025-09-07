@@ -24,8 +24,8 @@ function drawPCB() {
 
   function sc(v) { return v * S; }
 
-const bladeColors = window.bladeColors || [];
-const pcbColors   = window.pcbColors   || null;
+  const bladeColors = window.bladeColors || [];
+  const pcbColors   = window.pcbColors   || null;
 
   function pickColor(i, mappedIdxFloat) {
     if (pcbDedicatedState.get()) {
