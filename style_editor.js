@@ -2609,55 +2609,6 @@ function Strobe(T, STROBE_COLOR, STROBE_FREQUENCY, STROBE_MILLIS) {
   return new StrobeClass(T, STROBE_COLOR, STROBE_FREQUENCY, STROBE_MILLIS);
 }
 
-// class GradientClass extends STYLE {
-//   constructor(COLORS) {
-//     super("COLOR2 at base, COLOR2 at tip, smooth gradient in between.", COLORS);
-//     this.COLORS = COLORS;
-//     for (var i = 0; i < this.COLORS.length; i++)
-//       this.add_arg("COLOR" + (i + 1), "COLOR", "COLOR " + (i + 1));
-//   }
-//   run(blade) {
-//     for (var i = 0; i < this.COLORS.length; i++)
-//       this.COLORS[i].run(blade);
-//     this.num_leds_ = 1.0 * blade.num_leds();
-//   }
-//   getColor(led) {
-//     var pos = led / this.num_leds_ * (this.COLORS.length - 1);
-//     var N = min(this.COLORS.length -2, Math.floor(pos));
-//     return this.COLORS[N].getColor(led).mix(this.COLORS[N+1].getColor(led), pos - N) ;
-//   }
-// };
-
-// function Gradient(A, B, C, D) {
-//   return new GradientClass(Array.from(arguments));
-// }
-
-
-// class GradientClass extends STYLE {
-//   constructor(COLORS) {
-//     super("COLOR2 at base, COLOR2 at tip, smooth gradient in between.", COLORS);
-//     this.COLORS = COLORS;
-//     for (var i = 0; i < this.COLORS.length; i++)
-//       this.add_arg("COLOR" + (i + 1), "COLOR", "COLOR " + (i + 1));
-//     this.num_leds_ = 1;
-//   }
-//   run(blade) {
-//     for (var i = 0; i < this.COLORS.length; i++)
-//       this.COLORS[i].run(blade);
-//     this.num_leds_ = (blade.num_leds() | 0);
-//   }
-//   getColor(led) {
-//     // Avoid NaN if not set yet
-//     var nled  = (this.num_leds_ | 0) || 1;
-//     var denom = Math.max(1, nled - 10);  // THIS SEEMS TO WORK THOUGH!!?
-//     var pos   = (led / denom) * (this.COLORS.length - 1);
-
-//     var N = min(this.COLORS.length - 2, Math.floor(pos));
-//     var t = pos - N;
-//     return this.COLORS[N].getColor(led).mix(this.COLORS[N + 1].getColor(led), t);
-//   }
-// };
-
 class GradientClass extends STYLE {
   constructor(COLORS) {
     super("COLOR2 at base, COLOR2 at tip, smooth gradient in between.", COLORS);
@@ -2673,8 +2624,8 @@ class GradientClass extends STYLE {
   getColor(led) {
     if (this.num_leds_ <= 1) return this.COLORS[0].getColor(led);
 
-const segment_count = this.COLORS.length;
-const pos = (led + 0.5) * segment_count / this.num_leds_;
+    const segment_count = this.COLORS.length;
+    const pos = (led + 0.5) * segment_count / this.num_leds_;
 
     const N = Math.floor(pos);
     const blend = pos - N;
@@ -8626,8 +8577,6 @@ function drawScene() {
   if (!pixels || pixels.length < num_leds * 4 * 2) {
      pixels = new Uint8Array(num_leds * 4 * 2);
   }
-  window.bladeColors = window.bladeColors || [];
-  window.pcbColors   = window.pcbColors   || null;
 
   var S = current_style;
   if (S != last_style) {
@@ -8657,12 +8606,12 @@ function drawScene() {
         pixels[i*4 + 3] = 255;
 
         // keep parallel-mode PCB sampling fed
-        window.bladeColors[i] = [pixels[i*4 + 0], pixels[i*4 + 1], pixels[i*4 + 2]];
+        bladeColors[i] = [pixels[i*4 + 0], pixels[i*4 + 1], pixels[i*4 + 2]];
     }
 
     // Dedicated vs parallel PCB mapping
     if (previewType.value === 'blade') {
-      window.pcbColors = null;
+      pcbColors = null;
     } else if (pcbDedicatedState.get()) {
       var len = 0;
       switch (previewType.value) {
@@ -8674,10 +8623,10 @@ function drawScene() {
         case 'PCBf': len = 69; break;  // MTRX 69 pixel round PCB
         case 'PCBg': len = parseInt(FIND('pixelRingCount').value) || 6; break;
       }
-      window.pcbColors = len ? buildPcbColors(len, num_leds, S) : null;
+      pcbColors = len ? buildPcbColors(len, num_leds, S) : null;
     } else {
       // PCB in parallel mode
-      window.pcbColors = null;
+      pcbColors = null;
     }
 
     if (last_micros != 0) {
