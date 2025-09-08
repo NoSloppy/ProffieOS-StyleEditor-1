@@ -9909,7 +9909,7 @@ class SavedStateNumber extends SavedState {
 }
 //////////////// WAVLEN PR /////////////////
 
-var darkState = new SavedStateBool("dark", false, (on) => {
+var darkState = new SavedStateBool("dark", true, (on) => {
   body.classList.toggle("dark-mode", on);
   structuredView.classList.toggle("dark-mode", on);
 });
