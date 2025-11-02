@@ -9343,14 +9343,30 @@ if ((!STATE_LOCKUP || STATE_LOCKUP === LOCKUP_NONE) && lockupLoopSrc) {
       }
     }
     lockupSelect.value = "LOCKUP_NONE";
-  } else {
-    const stopOption = new Option("Stop", "LOCKUP_NONE");
-    lockupSelect.appendChild(stopOption);
-    lockupSelect.value = "LOCKUP_NONE";
-    lockupSelect.options[0].text = "\u00A0\u00A0\u00A0\u00A0End Lockup \u00A0";
-    lockupSelect.appendChild(new Option("\u00A0\u00A0\u00A0\u00A0Stop", "LOCKUP_NONE"));
+//   } else {
+//     const stopOption = new Option("Stop", "LOCKUP_NONE");
+//     lockupSelect.appendChild(stopOption);
+//     lockupSelect.value = "LOCKUP_NONE";
+//     lockupSelect.options[0].text = "\u00A0\u00A0\u00A0\u00A0End Lockup \u00A0";
+//     lockupSelect.appendChild(new Option("\u00A0\u00A0\u00A0\u00A0Stop", "LOCKUP_NONE"));
+//   }
+// }
+    } else {
+      const currentLabel =
+        (lockupLabels && STATE_LOCKUP in lockupLabels && lockupLabels[STATE_LOCKUP]) ? lockupLabels[STATE_LOCKUP] : "Lockup";
+      const endText = `\u00A0\u00A0\u00A0\u00A0End ${currentLabel} \u00A0`;
+
+      const stopOption = new Option(endText, "LOCKUP_NONE");
+      lockupSelect.appendChild(stopOption);
+      lockupSelect.value = "LOCKUP_NONE";
+
+      // Ensure the first option reflects the dynamic label even if options are reordered
+      lockupSelect.options[0].text = endText;
+
+      // If you want a second “Stop” entry, make it reflect the same dynamic label too
+      lockupSelect.appendChild(new Option(endText, "LOCKUP_NONE"));
+    }
   }
-}
 //////////// BC ///////////
 
 function ClickLockup() {
