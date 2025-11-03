@@ -186,65 +186,31 @@ function mouse_speed(t1, t2) {
   return Math.sqrt(dx * dx + dy * dy) / Math.abs(dt);
 }
 
+// Helper: are we being driven by the board?
+function usingRemoteControl() {
+  try {
+    return !!(window.ProffieLink && window.ProffieLink.isConnected && window.ProffieLink.isConnected());
+  } catch (_) { return false; }
+}
+
 function mouse_move(e) {
+  if (usingRemoteControl()) return;
+
   if (mouseSwingsState.get()) return;
   HOME_POS = false;
   IN_FRAME = true;
-  resizeCanvasAndCamera();
-//////////// Fullscreen PR ///////////
-  var rect = canvas.getBoundingClientRect();
-  var w = rect.right - rect.left;
-  var h = rect.bottom - rect.top;
-  var d = min(h, w);
+  // resizeCanvasAndCamera();
 
-  let x= (e.clientX - (rect.left + rect.right) / 2) / d * 2.5;
-  let y;
-  if (document.fullscreenElement === pageLeftTop || window.enlargeCanvas) {
-    y = (e.clientY - (rect.top + rect.bottom) / 2) / d * 1.5;
-   } else {
-    y = (e.clientY - (rect.top + rect.bottom) / 2) / d;
-  }
+  const rect = canvas.getBoundingClientRect();
+  const w = rect.right - rect.left;
+  const h = rect.bottom - rect.top;
+  const d = Math.min(h, w);
 
-  var now = actual_millis();
-  MOUSE_POSITIONS = MOUSE_POSITIONS.concat([x* 10000, y * 10000, now])
-  while (MOUSE_POSITIONS.length > 0 && now - MOUSE_POSITIONS[2] > 100) {
-    MOUSE_POSITIONS = MOUSE_POSITIONS.slice(3);
-  }
+  let x = (e.clientX - (rect.left + rect.right) / 2) / d * 2.5;
+  let y = (e.clientY - (rect.top + rect.bottom) / 2) / d *
+          ((document.fullscreenElement === pageLeftTop || window.enlargeCanvas) ? 1.5 : 1.0);
 
-//  console.log("x = "+x+" y = "+y);
-  // if (e.shiftKey) {
-  //   MOVE_MATRIX = default_move_matrix();
-  // } else {
-    var SCALE = 100.0;
-    BLADE_ANGLE = -y;
-
-    const PIVOT_OFFSET_X = 0.5;  // pivot at grip
-    const swing = x * 20;
-
-    MOVE_MATRIX = default_rotation_matrix();
-    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mkyrot(Math.PI / 2.0));
-    let yOffset = -0.04;
-    if (window.enlargeCanvas && !window.fullscreenActive) {
-      yOffset = -0.10;
-    }
-    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(PIVOT_OFFSET_X * SCALE, yOffset * SCALE, 0.0));
-    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mkyrot(-x / 3));
-    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mkzrot(y));
-    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(-PIVOT_OFFSET_X * SCALE, 0.0, 0.0));
-    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(-0.17 * SCALE, 0.0, 0.0));
-    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(0, 0, swing));
-  // }
-//  console.log(MOVE_MATRIX.values);
-
-//////////// SOUND2 PR ///////////
-  // SmoothSwing updates
-  lastSwingSpeed = get_swing_speed();
-  lastSwingUpdate = performance.now();
-  // console.debug(
-  //   `[SwingDebug][mouse_move] lastSwingSpeed=${lastSwingSpeed.toFixed(1)}, ` +
-  //   `lastSwingUpdate=${lastSwingUpdate}`
-  // );
-  triggerAccentEvent(lastSwingSpeed);
+  window.drive_saber_from_xy(x, y);
 }
 
 function get_swing_speed() {
@@ -277,13 +243,60 @@ function get_swing_accel() {
 }
 
 function mouse_leave(e) {
+  if (usingRemoteControl()) return;
   HOME_POS = true;
   MOUSE_POSITIONS = [];
   IN_FRAME = false;
   window.bladeTrailTransforms = [];
   wasOverTrailThreshold = false;
-  resizeCanvasAndCamera();
+  // resizeCanvasAndCamera();
 }
+
+// x ~ [-2.5..2.5] left/right, y ~ [-1.5..1.5] up/down (same ranges mouse_move uses)
+let _lastCanvasW = -1, _lastCanvasH = -1;
+
+window.drive_saber_from_xy = function(x, y) {
+  HOME_POS = false;
+  IN_FRAME = true;
+
+  // // Only resize if dimensions changed (much cheaper)
+  // const rect = canvas.getBoundingClientRect();
+  // const w = rect.right - rect.left;
+  // const h = rect.bottom - rect.top;
+  // if (w !== _lastCanvasW || h !== _lastCanvasH) {
+  //   _lastCanvasW = w; _lastCanvasH = h;
+  //   resizeCanvasAndCamera();
+  // }
+
+  var SCALE = 100.0;
+  BLADE_ANGLE = -y;
+
+  const PIVOT_OFFSET_X = 0.5;
+  const swing = x * 20;
+
+  MOVE_MATRIX = default_rotation_matrix();
+  MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mkyrot(Math.PI / 2.0));
+
+  let yOffset = -0.04;
+  if (window.enlargeCanvas && !window.fullscreenActive) yOffset = -0.10;
+
+  MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(PIVOT_OFFSET_X * SCALE, yOffset * SCALE, 0.0));
+  MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mkyrot(-x / 3));
+  MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mkzrot(y));
+  MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(-PIVOT_OFFSET_X * SCALE, 0.0, 0.0));
+  MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(-0.17 * SCALE, 0.0, 0.0));
+  MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(0, 0, swing));
+
+  // Update swing data just like mouse_move so trails/sound stay in sync
+  const now = actual_millis();
+  MOUSE_POSITIONS = MOUSE_POSITIONS.concat([x * 10000, y * 10000, now]);
+  while (MOUSE_POSITIONS.length > 0 && now - MOUSE_POSITIONS[2] > 100) {
+    MOUSE_POSITIONS = MOUSE_POSITIONS.slice(3);
+  }
+  lastSwingSpeed = get_swing_speed();
+  lastSwingUpdate = performance.now();
+  triggerAccentEvent(lastSwingSpeed);
+};
 
 function compile() {
   // reinitialize render if required
@@ -976,6 +989,7 @@ EFFECT_ENUM_BUILDER.addValue("EFFECT_DRAG_BEGIN");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_DRAG_END");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_LOCKUP_BEGIN");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_LOCKUP_END");
+// PSEUDO FOR NOW
 EFFECT_ENUM_BUILDER.addValue("EFFECT_MELT_BEGIN");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_MELT_END");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_LB_BEGIN");
@@ -1023,6 +1037,7 @@ EFFECT_ENUM_BUILDER.addValue("EFFECT_JAM");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_UNJAM");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_PLI_ON");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_PLI_OFF");
+// PSEUDO FOR NOW
 EFFECT_ENUM_BUILDER.addValue("EFFECT_AUTOFIRE_BEGIN");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_AUTOFIRE_END");
 ////////// Add DESTRUCT PR /////////////////
@@ -1066,6 +1081,7 @@ LOCKUP_ENUM_BUILDER.addValue("LOCKUP_MELT");
 LOCKUP_ENUM_BUILDER.addValue("LOCKUP_LIGHTNING_BLOCK");
 LOCKUP_ENUM_BUILDER.addValue("LOCKUP_AUTOFIRE");
 LOCKUP_ENUM_BUILDER.addValue("LOCKUP_ARMED");
+
 LOCKUP_ENUM_BUILDER.build();
 
 const ArgumentName_ENUM_BUILDER = new EnumBuilder("ArgumentName");
@@ -1123,6 +1139,7 @@ const EFFECT_SOUND_MAP = {
   [EFFECT_POSTOFF]:          "pstoff",
   [EFFECT_IGNITION]:         "out",
   [EFFECT_RETRACTION]:       "in",
+  // Lockups
   [EFFECT_DRAG_BEGIN]:       "bgndrag",
   [EFFECT_DRAG_END]:         "enddrag",
   [EFFECT_LOCKUP_BEGIN]:     "bgnlock",
@@ -2113,6 +2130,7 @@ var STATE_WAIT_FOR_ON = 0;
 // 2 = drag
 // 3 = lb
 // 4 = melt
+// 5 = autofire
 var STATE_LOCKUP = 0;
 var STATE_ROTATE = 0;
 var STATE_NUM_LEDS = 144;
@@ -2644,6 +2662,7 @@ class GradientClass extends STYLE {
 function Gradient(A, B, C, D) {
   return new GradientClass(Array.from(arguments));
 }
+
 
 class MixClass extends STYLE {
   constructor(ARGS) {
@@ -4085,9 +4104,9 @@ Blade.prototype.addEffect = function(type, location) {
       )
   );
   const BEGIN_EFFECT_MAP = {
-    [EFFECT_LOCKUP_BEGIN]: "bgnlock",
-    [EFFECT_DRAG_BEGIN]:   "bgndrag",
-    [EFFECT_MELT_BEGIN]:   "bgnmelt",
+    [EFFECT_LOCKUP_BEGIN]:    "bgnlock",
+    [EFFECT_DRAG_BEGIN]:      "bgndrag",
+    [EFFECT_MELT_BEGIN]:      "bgnmelt",
     [EFFECT_LB_BEGIN]:        "bgnlb",
     [EFFECT_AUTOFIRE_BEGIN]:  "bgnauto"
   };
@@ -4103,9 +4122,9 @@ Blade.prototype.addEffect = function(type, location) {
   }
 
     const END_EFFECT_MAP = {
-      [EFFECT_LOCKUP_END]: "endlock",
-      [EFFECT_DRAG_END]:   "enddrag",
-      [EFFECT_MELT_END]:   "endmelt",
+      [EFFECT_LOCKUP_END]:    "endlock",
+      [EFFECT_DRAG_END]:      "enddrag",
+      [EFFECT_MELT_END]:      "endmelt",
       [EFFECT_LB_END]:        "endlb",
       [EFFECT_AUTOFIRE_END]:  "endauto"
     };
@@ -8388,35 +8407,6 @@ var timeFactor = 1.0;
 var bad_fps = 0;
 var good_fps = 0;
 
-// var popupIdentifier;
-// var popupWindow = FIND("popup_window");
-// var popupOverlay = FIND("popup_overlay");
-
-// function showPopupMessage(message, currentPopup) {
-//   popupIdentifier = currentPopup;
-//   var checkbox = FIND("dont_show_again");
-//   checkbox.checked = localStorage.getItem(popupIdentifier) === "false";
-
-//   if (localStorage.getItem(popupIdentifier) === "false") {
-//     console.log(popupIdentifier + " is disabled.");
-//   } else {
-//     FIND("popup_message").innerHTML = message;
-//     popupWindow.classList.add("show");
-//     popupOverlay.classList.add("show");
-//   }
-// }
-
-// function dismissPopupMessage() {
-//   popupWindow.classList.remove("show");
-//   popupOverlay.classList.remove("show");
-// }
-
-// function DontShowAgain(checkboxState) {
-//   checkboxState = !checkboxState;
-//   localStorage.setItem(popupIdentifier, checkboxState);
-//   console.log("Saving " + popupIdentifier + " " + checkboxState);
-// }
-
 var pixels;
 var AA = 1;
 var AA_STEP_SIZE = 1;
@@ -8681,6 +8671,123 @@ function tick() {
   // Update PCB preview in real time if visible
   if (!pcbCanvas.hidden) drawPCB();
 }
+
+  function openConnectOverlay() {
+    const el      = FIND("connect-overlay");
+    if (!el) return;
+
+    const note    = FIND("connect-support-note");
+    const title   = FIND("connect-overlay-title");
+    const choices = FIND("CONNECT_CHOICES");
+    const disc    = FIND("CONNECT_DISCONNECT");
+    const usbBtn  = FIND("CONNECT_USB_BTN");
+    const bleBtn  = FIND("CONNECT_BLE_BTN");
+
+    if (title) title.textContent = "Connect Proffieboard";
+
+    const libLoaded = !!window.ProffieLink;
+    const connected = libLoaded && window.ProffieLink.isConnected && window.ProffieLink.isConnected();
+
+    const secure  = window.isSecureContext === true;
+    const usbFeat = "usb" in navigator;
+    const bleFeat = "bluetooth" in navigator;
+
+    const usbOK = libLoaded && (window.ProffieLink.usbSupported
+      ? window.ProffieLink.usbSupported()
+      : (usbFeat && secure));
+
+    const bleOK = libLoaded && (window.ProffieLink.bleSupported
+      ? window.ProffieLink.bleSupported()
+      : (bleFeat && secure));
+
+    if (connected) {
+      // Connected view: show Disconnect block only
+      if (note) note.textContent = "You are connected. Choose Disconnect to stop remote control.";
+      if (choices) choices.style.display = "none";
+      if (disc)    disc.style.display    = "flex";
+    } else {
+      // Not connected
+      const msgs = [];
+      if (!libLoaded) msgs.push("link script missing");
+      if (!secure)    msgs.push("not a secure context (use https or localhost)");
+      if (!usbFeat)   msgs.push("WebUSB unsupported");
+      if (!bleFeat)   msgs.push("Web Bluetooth unsupported");
+      if (!usbFeat || !bleFeat) msgs.push("Use Google Chrome browser");
+
+      if (note) note.innerText = msgs.length ? ("Note:\n" + msgs.join("\n")) : "Choose a connection method:";
+
+      if (usbBtn) { usbBtn.disabled = !usbOK; usbBtn.style.opacity = usbOK ? 1 : 0.5; }
+      if (bleBtn) { bleBtn.disabled = !bleOK; bleBtn.style.opacity = bleOK ? 1 : 0.5; }
+
+      if (choices) choices.style.display = "flex";
+      if (disc)    disc.style.display    = "none";
+    }
+
+    if (!connected && window.__connecting) {
+      if (title) title.textContent = "Connecting…";
+      if (note)  note.textContent  =
+        window.__connecting === 'USB' ? "Attempting USB connection…" : "Attempting Bluetooth connection…";
+
+      if (choices) choices.style.display = "none";
+      if (disc)    disc.style.display    = "none";
+
+      // Clear banner after ~1s unless we become connected (overlay closes then)
+      clearTimeout(window.__connectingTimer);
+      window.__connectingTimer = setTimeout(() => {
+        // if still not connected, restore normal overlay
+        if (!window.ProffieLink?.isConnected?.()) {
+          window.__connecting = null;
+          try { openConnectOverlay(); } catch (_) {}
+        }
+      }, 1000);
+    }
+
+    el.style.display = "flex";
+  }
+
+  function closeConnectOverlay() {
+    const el = FIND("connect-overlay");
+    if (el) el.style.display = "none";
+  }
+
+  async function connectProffieUSB() {
+    alert("Note – 'Tools>USB Type: Serial+WebUSB' in Arduino must be enabled and uploaded to the Proffieboard for USB connection to work.");
+    if (!window.ProffieLink || !window.ProffieLink.usbSupported()) { alert("WebUSB not supported in this browser."); return; }
+    try {
+      window.__connecting = 'USB';
+      openConnectOverlay();
+      await window.ProffieLink.connectUSB();
+      setTimeout(() => { try { closeConnectOverlay(); } catch (_) {} }, 1000);
+    } catch (e) {
+      console.error(e); alert("USB connect failed.");
+    } finally {
+      window.__connecting = null;
+    }
+  }
+
+  async function connectProffieBLE() {
+    if (!window.ProffieLink || !window.ProffieLink.bleSupported()) { alert("Web Bluetooth not supported in this browser."); return; }
+    try {
+      window.__connecting = 'BLE';
+      openConnectOverlay();
+      await window.ProffieLink.connectBLE();
+      setTimeout(() => { try { closeConnectOverlay(); } catch (_) {} }, 1000);
+    } catch (e) {
+      console.error(e); alert("Bluetooth connect failed.");
+    } finally {
+      window.__connecting = null;
+    }
+  }
+
+  async function disconnectProffie() {
+    try {
+      if (window.ProffieLink && window.ProffieLink.disconnect) {
+        window.ProffieLink.disconnect();
+      }
+    } finally {
+      closeConnectOverlay();
+    }
+  }
 
 var overall_string;
 
@@ -8977,6 +9084,7 @@ function Run() {
   updateLockupDropdown();
 
   if (current_style.argstring) {
+//////////// missing semicolon PR ///////////
     FIND("ARGSTR").value = "builtin 0 1 " + current_style.argstring;
     ArgStringChanged();
   }
@@ -9351,22 +9459,22 @@ if ((!STATE_LOCKUP || STATE_LOCKUP === LOCKUP_NONE) && lockupLoopSrc) {
 //     lockupSelect.appendChild(new Option("\u00A0\u00A0\u00A0\u00A0Stop", "LOCKUP_NONE"));
 //   }
 // }
-    } else {
-      const currentLabel =
-        (lockupLabels && STATE_LOCKUP in lockupLabels && lockupLabels[STATE_LOCKUP]) ? lockupLabels[STATE_LOCKUP] : "Lockup";
-      const endText = `\u00A0\u00A0\u00A0\u00A0End ${currentLabel} \u00A0`;
+  } else {
+    const currentLabel =
+      (lockupLabels && STATE_LOCKUP in lockupLabels && lockupLabels[STATE_LOCKUP]) ? lockupLabels[STATE_LOCKUP] : "Lockup";
+    const endText = `\u00A0\u00A0\u00A0\u00A0End ${currentLabel} \u00A0`;
 
-      const stopOption = new Option(endText, "LOCKUP_NONE");
-      lockupSelect.appendChild(stopOption);
-      lockupSelect.value = "LOCKUP_NONE";
+    const stopOption = new Option(endText, "LOCKUP_NONE");
+    lockupSelect.appendChild(stopOption);
+    lockupSelect.value = "LOCKUP_NONE";
 
-      // Ensure the first option reflects the dynamic label even if options are reordered
-      lockupSelect.options[0].text = endText;
+    // Ensure the first option reflects the dynamic label even if options are reordered
+    lockupSelect.options[0].text = endText;
 
-      // If you want a second “Stop” entry, make it reflect the same dynamic label too
-      lockupSelect.appendChild(new Option(endText, "LOCKUP_NONE"));
-    }
+    // If you want a second “Stop” entry, make it reflect the same dynamic label too
+    lockupSelect.appendChild(new Option(endText, "LOCKUP_NONE"));
   }
+}
 //////////// BC ///////////
 
 function ClickLockup() {
@@ -10062,10 +10170,6 @@ function SetupRendering() {
 
   var str = new URL(window.location.href).searchParams.get("S");
   if (!str) {
-// test
-    // str = "Layers<Red,InOutTrL<TrWipeX<WavLen<EFFECT_IGNITION>>,TrWipeInX<WavLen<EFFECT_RETRACTION>>,Pulsing<ElectricViolet,Black,2000>>,ResponsiveLockupL<White,TrInstant,TrFade<100>,Int<26000>>,ResponsiveLightningBlockL<White>,ResponsiveMeltL<Mix<TwistAngle<>,Red,Yellow>>,ResponsiveDragL<White>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_CLASH>>,AliceBlue,TrInstant>,EFFECT_CLASH>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_STAB>>,Cyan,TrInstant>,EFFECT_STAB>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_BLAST>>,Aquamarine,TrInstant>,EFFECT_BLAST>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_FORCE>>,Azure,TrInstant>,EFFECT_FORCE>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_BOOT>>,Bisque,TrInstant>,EFFECT_BOOT>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_NEWFONT>>,Black,TrInstant>,EFFECT_NEWFONT>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_PREON>>,BlanchedAlmond,TrInstant>,EFFECT_PREON>,TransitionEffectL<TrConcat<TrWipeInX<WavLen<EFFECT_IGNITION>>,BlinkingL<Chartreuse,Int<200>,Int<500>>,TrInstant>,EFFECT_IGNITION>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_RETRACTION>>,BlinkingL<Coral,Int<200>,Int<500>>,TrInstant>,EFFECT_RETRACTION>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_POSTOFF>>,Blue,TrInstant>,EFFECT_POSTOFF>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_DRAG_BEGIN>>,Cornsilk,TrInstant>,EFFECT_DRAG_BEGIN>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_DRAG_END>>,Cyan,TrInstant>,EFFECT_DRAG_END>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_LOCKUP_BEGIN>>,DarkOrange,TrInstant>,EFFECT_LOCKUP_BEGIN>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_LOCKUP_END>>,DeepPink,TrInstant>,EFFECT_LOCKUP_END>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_MELT_BEGIN>>,DeepSkyBlue,TrInstant>,EFFECT_MELT_BEGIN>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_MELT_END>>,FloralWhite,TrInstant>,EFFECT_MELT_END>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_LB_BEGIN>>,GhostWhite,TrInstant>,EFFECT_LB_BEGIN>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_LB_END>>,Green,TrInstant>,EFFECT_LB_END>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_CHANGE>>,GreenYellow,TrInstant>,EFFECT_CHANGE>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_BATTERY_LEVEL>>,HoneyDew,TrInstant>,EFFECT_BATTERY_LEVEL>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_VOLUME_LEVEL>>,HotPink,TrInstant>,EFFECT_VOLUME_LEVEL>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_POWERSAVE>>,Ivory,TrInstant>,EFFECT_POWERSAVE>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_BLADEIN>>,LavenderBlush,TrInstant>,EFFECT_BLADEIN>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_BLADEOUT>>,LemonChiffon,TrInstant>,EFFECT_BLADEOUT>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_ACCENT_SWING>>,LightCyan,TrInstant>,EFFECT_ACCENT_SWING>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_ACCENT_SLASH>>,Blue,TrInstant>,EFFECT_ACCENT_SLASH>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_SPIN>>,LightSalmon,TrInstant>,EFFECT_SPIN>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_ON>>,LightYellow,TrInstant>,EFFECT_ON>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_OFF>>,Magenta,TrInstant>,EFFECT_OFF>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_OFF_CLASH>>,MintCream,TrInstant>,EFFECT_OFF_CLASH>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_FAST_ON>>,MistyRose,TrInstant>,EFFECT_FAST_ON>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_FAST_OFF>>,Moccasin,TrInstant>,EFFECT_FAST_OFF>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_QUOTE>>,NavajoWhite,TrInstant>,EFFECT_QUOTE>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_NEXT_QUOTE>>,Orange,TrInstant>,EFFECT_NEXT_QUOTE>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_TRACK>>,OrangeRed,TrInstant>,EFFECT_TRACK>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_SECONDARY_IGNITION>>,PapayaWhip,TrInstant>,EFFECT_SECONDARY_IGNITION>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_SECONDARY_RETRACTION>>,PeachPuff,TrInstant>,EFFECT_SECONDARY_RETRACTION>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_INTERACTIVE_PREON>>,Pink,TrInstant>,EFFECT_INTERACTIVE_PREON>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_INTERACTIVE_BLAST>>,Red,TrInstant>,EFFECT_INTERACTIVE_BLAST>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_BEGIN_BATTLE_MODE>>,SeaShell,TrInstant>,EFFECT_BEGIN_BATTLE_MODE>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_END_BATTLE_MODE>>,Snow,TrInstant>,EFFECT_END_BATTLE_MODE>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_BEGIN_AUTO_BLAST>>,SpringGreen,TrInstant>,EFFECT_BEGIN_AUTO_BLAST>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_END_AUTO_BLAST>>,SteelBlue,TrInstant>,EFFECT_END_AUTO_BLAST>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_CLASH_UPDATE>>,Tomato,TrInstant>,EFFECT_CLASH_UPDATE>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_ALT_SOUND>>,White,TrInstant>,EFFECT_ALT_SOUND>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_TRANSITION_SOUND>>,Yellow,TrInstant>,EFFECT_TRANSITION_SOUND>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_SOUND_LOOP>>,ElectricPurple,TrInstant>,EFFECT_SOUND_LOOP>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_STUN>>,ElectricViolet,TrInstant>,EFFECT_STUN>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_FIRE>>,ElectricLime,TrInstant>,EFFECT_FIRE>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_CLIP_IN>>,Amber,TrInstant>,EFFECT_CLIP_IN>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_CLIP_OUT>>,CyberYellow,TrInstant>,EFFECT_CLIP_OUT>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_RELOAD>>,CanaryYellow,TrInstant>,EFFECT_RELOAD>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_MODE>>,PaleGreen,TrInstant>,EFFECT_MODE>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_RANGE>>,Flamingo,TrInstant>,EFFECT_RANGE>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_EMPTY>>,VividViolet,TrInstant>,EFFECT_EMPTY>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_FULL>>,PsychedelicPurple,TrInstant>,EFFECT_FULL>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_JAM>>,HotMagenta,TrInstant>,EFFECT_JAM>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_UNJAM>>,BrutalPink,TrInstant>,EFFECT_UNJAM>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_PLI_ON>>,NeonRose,TrInstant>,EFFECT_PLI_ON>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_PLI_OFF>>,VividRaspberry,TrInstant>,EFFECT_PLI_OFF>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_DESTRUCT>>,HaltRed,TrInstant>,EFFECT_DESTRUCT>,TransitionEffectL<TrConcat<TrWipeX<WavLen<EFFECT_BOOM>>,MoltenCore,TrInstant>,EFFECT_BOOM>>";
-// Standard but better base
-    // str = "Layers<BrownNoiseFlicker<BlueRibbon,Blue,50>,ResponsiveLockupL<White,TrInstant,TrFade<100>,Int<26000>>,ResponsiveLightningBlockL<White>,ResponsiveMeltL<Mix<TwistAngle<>,Red,Yellow>>,ResponsiveDragL<White>,ResponsiveClashL<White,TrInstant,TrFade<200>,Int<26000>>,ResponsiveBlastL<White>,ResponsiveBlastWaveL<White>,ResponsiveBlastFadeL<White>,ResponsiveStabL<White>,InOutTrL<TrWipe<300>,TrWipeIn<500>>>";
 // Liquid Static
     str = "Layers<StripesX<Sin<Int<12>,Int<3000>,Int<7000>>,Scale<SwingSpeed<100>,Int<75>,Int<125>>,StripesX<Sin<Int<10>,Int<1000>,Int<3000>>,Scale<SwingSpeed<100>,Int<75>,Int<100>>,Pulsing<Blue,Mix<Int<2570>,Black,Blue>,1200>,Mix<SwingSpeed<200>,Mix<Int<16000>,Black,Blue>,Black>>,Mix<Int<7710>,Black,Blue>,Pulsing<Mix<Int<6425>,Black,Blue>,StripesX<Sin<Int<10>,Int<2000>,Int<3000>>,Sin<Int<10>,Int<75>,Int<100>>,Blue,Mix<Int<12000>,Black,Blue>>,2000>,Pulsing<Mix<Int<16448>,Black,Blue>,Mix<Int<642>,Black,Blue>,3000>>,AlphaL<StaticFire<Blue,Mix<Int<256>,Black,Blue>,0,1,10,2000,2>,Int<10000>>,AlphaL<LightCyan,SmoothStep<Int<2000>,Int<-6000>>>,TransitionEffectL<TrConcat<TrInstant,HumpFlickerL<White,40>,TrFade<1200>>,EFFECT_IGNITION>,TransitionEffectL<TrConcat<TrFadeX<WavLen<EFFECT_RETRACTION>>,Stripes<3000,3500,Blue,RandomPerLEDFlicker<Mix<Int<7710>,Black,Blue>,Black>,BrownNoiseFlicker<Blue,Mix<Int<3855>,Black,Blue>,200>,RandomPerLEDFlicker<Mix<Int<3137>,Black,Blue>,Mix<Int<3855>,Black,Blue>>>,TrInstant>,EFFECT_RETRACTION>,EffectSequence<EFFECT_POWERSAVE,AlphaL<Black,Int<16384>>,AlphaL<Black,Int<0>>>,TransitionEffectL<TrConcat<TrInstant,GreenYellow,TrDelay<25>,AlphaL<TransitionEffect<BrownNoiseFlicker<Rgb<255,150,0>,Black,50>,White,TrInstant,TrFade<300>,EFFECT_CLASH>,Bump<Scale<BladeAngle<>,Int<25000>,Int<8000>>,Int<18000>>>,TrFade<600>>,EFFECT_CLASH>,TransitionEffectL<TrConcat<TrInstant,GreenYellow,TrDelay<25>,AlphaL<Black,Int<0>>,TrWipeIn<300>,AlphaL<Stripes<5000,1000,Orange,DarkOrange,Rgb<150,60,0>,Rgb<60,30,0>,Rgb<150,14,0>,OrangeRed>,SmoothStep<Int<20000>,Int<20000>>>,TrJoin<TrSmoothFade<900>,TrWipe<700>>>,EFFECT_STAB>,TransitionEffectL<TrConcat<TrInstant,GreenYellow,TrDelay<25>>,EFFECT_BLAST>,BlastL<White,850,250,351>,AlphaL<TransitionEffectL<TrConcat<TrFade<300>,Rgb<255,70,70>,TrFade<300>>,EFFECT_BLAST>,BlastF<700,250,100000>>,BlastL<White,300,350,100000>,TransitionEffectL<TrConcat<TrInstant,Strobe<GreenYellow,Black,20,30>,TrFade<200>,BrownNoiseFlickerL<AlphaL<White,Int<16000>>,Int<5000>>,TrJoinR<TrWipe<200>,TrWipeIn<200>,TrFade<300>>>,EFFECT_LOCKUP_END>,LockupTrL<Layers<AlphaL<TransitionLoopL<TrConcat<TrDelayX<Scale<SlowNoise<Int<3000>>,Int<30>,Int<800>>>,Mix<SlowNoise<Int<1000>>,Black,Black,White,Black>,TrDelayX<Scale<SlowNoise<Int<1000>>,Int<10>,Int<50>>>>>,Int<32768>>,AlphaL<Blinking<Tomato,Strobe<Yellow,Black,15,30>,60,500>,Bump<Scale<BladeAngle<5000,28000>,Scale<BladeAngle<8000,16000>,Int<3000>,Int<44000>>,Int<3000>>,Scale<SlowNoise<Int<3000>>,Int<8000>,Int<18000>>>>,AlphaL<Blinking<BrownNoiseFlicker<White,Black,50>,BrownNoiseFlicker<Yellow,Tomato,50>,100,500>,Bump<Scale<BladeAngle<5000,28000>,Scale<BladeAngle<8000,16000>,Int<3000>,Int<44000>>,Int<3000>>,Int<9000>>>>,TrConcat<TrInstant,AlphaL<Blinking<White,Strobe<BrownNoiseFlicker<Yellow,Black,500>,Black,15,30>,60,500>,Bump<Scale<BladeAngle<5000,28000>,Scale<BladeAngle<8000,16000>,Int<3000>,Int<44000>>,Int<3000>>,Scale<SlowNoise<Int<3000>>,Int<25000>,Int<32000>>>>,TrFade<500>>,TrSmoothFade<900>,SaberBase::LOCKUP_NORMAL>,TransitionEffectL<TrConcat<TrInstant,AlphaL<Strobe<GreenYellow,Black,20,30>,Bump<Scale<BladeAngle<5000,28000>,Scale<BladeAngle<8000,16000>,Int<3000>,Int<44000>>,Int<3000>>,Int<15000>>>,TrFade<600>>,EFFECT_LOCKUP_BEGIN>,TransitionEffectL<TrConcat<TrInstant,GreenYellow,TrDelay<25>,HumpFlickerL<Strobe<AlphaL<White,Int<20000>>,Black,20,30>,30>,TrSmoothFade<225>>,EFFECT_LOCKUP_BEGIN>,LockupTrL<AlphaL<AudioFlicker<BrownNoiseFlicker<Strobe<Black,OrangeRed,20,25>,Yellow,200>,White>,SmoothStep<Int<30000>,Int<2000>>>,TrConcat<TrInstant,GreenYellow,TrDelay<25>,AlphaL<Black,Int<0>>,TrFade<150>>,TrColorCycle<1500,-2000,100>,SaberBase::LOCKUP_DRAG>,LockupTrL<Layers<AlphaL<Black,Int<16000>>,AlphaL<White,StrobeF<Scale<SlowNoise<Int<1000>>,Int<1>,Int<6>>,Scale<SlowNoise<Int<1000>>,Int<10>,Int<50>>>>,AlphaL<RandomFlicker<Strobe<White,Rgb<83,0,255>,50,10>,BrownNoiseFlicker<Rgb<83,0,255>,Black,500>>,LayerFunctions<Bump<Scale<SlowNoise<Int<2000>>,Int<3000>,Int<16000>>,Scale<BrownNoiseF<Int<10>>,Int<14000>,Int<8000>>>,Bump<Scale<SlowNoise<Int<2300>>,Int<26000>,Int<8000>>,Scale<NoisySoundLevel,Int<5000>,Int<10000>>>,Bump<Scale<SlowNoise<Int<2300>>,Int<20000>,Int<30000>>,Scale<IsLessThan<SlowNoise<Int<1500>>,Int<8000>>,Scale<NoisySoundLevel,Int<5000>,Int<0>>,Int<0>>>>>>,TrConcat<TrInstant,GreenYellow,TrDelay<25>,BrownNoiseFlicker<Rgb<83,0,255>,Black,500>,TrFade<100>>,TrConcat<TrInstant,GreenYellow,TrDelay<25>,BrownNoiseFlicker<Rgb<83,0,255>,Black,500>,TrFade<150>,BrownNoiseFlickerL<AlphaL<White,Int<16000>>,Int<50>>,TrJoinR<TrWipe<200>,TrWipeIn<200>,TrFade<400>> >,SaberBase::LOCKUP_LIGHTNING_BLOCK>,LockupTrL<AlphaL<Remap<Scale<RampF,Int<65536>,Int<0>>,StaticFire<Mix<TwistAngle<>,Rgb16<20393,93,93>,DarkOrange>,Mix<TwistAngle<>,Rgb16<20393,93,93>,Orange>,0,4,5,4000,10>>,SmoothStep<Scale<TwistAngle<>,Int<24000>,Int<29000>>,Int<4000>>>,TrConcat<TrInstant,GreenYellow,TrDelay<25>,AlphaL<Black,Int<0>>,TrWipeIn<600>,AlphaL<Red,SmoothStep<Scale<TwistAngle<>,Int<24000>,Int<29000>>,Int<2000>>>,TrExtend<3000,TrFade<300>>,AlphaL<Mix<TwistAngle<>,Red,Orange>,SmoothStep<Scale<TwistAngle<>,Int<24000>,Int<29000>>,Int<2000>>>,TrFade<3000>>,TrColorCycle<1500,-2000>,SaberBase::LOCKUP_MELT>,InOutTrL<TrWipeSparkTip<White,300>,TrWipeInSparkTipX<LightCyan,WavLen<EFFECT_RETRACTION>,Int<401>>>,TransitionEffectL<TrConcat<TrInstant,AlphaL<BrownNoiseFlickerL<White,Int<30>>,SmoothStep<Scale<SlowNoise<Int<2000>>,Int<2000>,Sum<Int<2000>,Int<4000>>>,Int<-2000>>>,TrDelayX<WavLen<EFFECT_PREON>>>,EFFECT_PREON>,TransitionEffectL<TrConcat<TrInstant,AlphaL<BrownNoiseFlickerL<White,Int<30>>,SmoothStep<Scale<SlowNoise<Int<2000>>,Int<2000>,Sum<Int<2000>,Int<3000>>>,Int<-4000>>>,TrDelayX<WavLen<EFFECT_POSTOFF>>>,EFFECT_POSTOFF>>";
   }

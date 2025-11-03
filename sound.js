@@ -88,13 +88,66 @@ fileInput.addEventListener('change', (e) => {
     delete customFontSoundFilenames[effect];
   });
 
-  // Build an array of Promises—one per file—to decode & stash buffers
-  const loadPromises = files.map(file => {
-    const m = file.name.match(/^([a-z]+)[0-9]*\.wav$/i);
-    // skip non-wav or unrecognized
-    if (!m) return Promise.resolve();
+  // // Build an array of Promises—one per file—to decode & stash buffers
+  // const loadPromises = files.map(file => {
+  //   const m = file.name.match(/^([a-z]+)[0-9]*\.wav$/i);
+  //   // skip non-wav or unrecognized
+  //   if (!m) return Promise.resolve();
 
-    const effect = m[1].toLowerCase();
+  //   const effect = m[1].toLowerCase();
+  //   customFontSoundBuffers  [effect] ||= [];
+  //   customFontSoundDurations[effect] ||= [];
+  //   customFontSoundFilenames[effect] ||= [];
+
+  //   return new Promise(resolve => {
+  //     const reader = new FileReader();
+  //     reader.onload = () => {
+  //       audioCtx.decodeAudioData(reader.result)
+  //         .then(buffer => {
+  //           // Next index for this effect
+  //           const idx = customFontSoundFilenames[effect].length;
+  //           customFontSoundFilenames[effect][idx] = file.name;
+  //           customFontSoundBuffers[effect][idx]   = buffer;
+  //           const dur = Math.round(buffer.duration * 1000);
+  //           customFontSoundDurations[effect][idx] = dur;
+  //           console.log(`Custom font: ${folderName} ${file.name} – ${dur} ms`);
+  //           resolve();
+  //         })
+  //         .catch(err => {
+  //           console.error(`Decode error for ${file.name}:`, err);
+  //           resolve();
+  //         });
+  //     };
+  //     reader.onerror = err => {
+  //       console.error(`FileReader error for ${file.name}:`, err);
+  //       resolve();
+  //     };
+  //     reader.readAsArrayBuffer(file);
+  //   });
+  // });
+
+  // Build an array of Promises—one per file—to decode & stash buffers
+  // Also account for sub-sub sounds
+  const loadPromises = files.map(file => {
+    const relPath = file.webkitRelativePath || file.name;
+
+    // Only process WAVs
+    if (!/\.wav$/i.test(file.name)) return Promise.resolve();
+
+    // Prefer effect name from the filename (e.g., clsh01.wav); if missing,
+    // fall back to the top-level effect folder (e.g., clsh/01/000.wav → "clsh").
+    const nameMatch = file.name.match(/^([a-z]+)[0-9]*\.wav$/i);
+    let effect = nameMatch ? nameMatch[1].toLowerCase() : null;
+
+    if (!effect && relPath.includes('/')) {
+      const parts = relPath.split('/');          // [font, effectDir, maybe subdir, filename]
+      const effectDir = parts[1] || '';
+      effect = effectDir.replace(/[^a-z]/gi, '').toLowerCase();  // "clsh." → "clsh"
+    }
+
+    // Still unknown? Skip.
+    if (!effect) return Promise.resolve();
+
     customFontSoundBuffers  [effect] ||= [];
     customFontSoundDurations[effect] ||= [];
     customFontSoundFilenames[effect] ||= [];
@@ -104,13 +157,17 @@ fileInput.addEventListener('change', (e) => {
       reader.onload = () => {
         audioCtx.decodeAudioData(reader.result)
           .then(buffer => {
-            // Next index for this effect
             const idx = customFontSoundFilenames[effect].length;
-            customFontSoundFilenames[effect][idx] = file.name;
+
+            // Store a nicer display name that includes subdirs (e.g., "clsh/01/000.wav")
+            const displayName = relPath.split('/').slice(1).join('/');
+
+            customFontSoundFilenames[effect][idx] = displayName;
             customFontSoundBuffers[effect][idx]   = buffer;
             const dur = Math.round(buffer.duration * 1000);
             customFontSoundDurations[effect][idx] = dur;
-            console.log(`Custom font: ${folderName} ${file.name} – ${dur} ms`);
+
+            console.log(`Custom font: ${folderName} ${displayName} – ${dur} ms`);
             resolve();
           })
           .catch(err => {
@@ -564,7 +621,7 @@ function endLockupLoop(effectType, endEffectName, shouldClear) {
     if (shouldClear) currentLockupType = null;
     return;
   }
-
+  
   // Play endlock if exists, with fallback to default font when needed
   if (endEffectName) {
     function tryPlayBuffers(bufs, fnames, durs, fontLabel) {

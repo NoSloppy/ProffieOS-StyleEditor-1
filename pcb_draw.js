@@ -1,5 +1,5 @@
-var bladeColors = [];  // Hold blade pixel colors for PCB display
-var pcbColors = null;
+window.bladeColors = window.bladeColors || [];  // Hold blade pixel colors for PCB display
+window.pcbColors   = window.pcbColors   || null;  // Dedicated PCB colors (if any)
 
 function drawPCB() {
   var glowSpread    = 3.5;
@@ -23,6 +23,9 @@ function drawPCB() {
   var S = radius / BASE_R;   // scale factor
 
   function sc(v) { return v * S; }
+
+const bladeColors = window.bladeColors || [];
+const pcbColors   = window.pcbColors   || null;
 
   function pickColor(i, mappedIdxFloat) {
     if (pcbDedicatedState.get()) {

@@ -8,14 +8,18 @@
   <link rel="shortcut icon" type="image/png" href="./assets/SE_Favicon_BC-C5gxpSYq.png">
   <title>ProffieOS Style Editor</title>
 
+  <!-- Font Awesome Free 7.0.1 by @fontawesome
+       License: https://fontawesome.com/license/free
+       Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT
+       Served locally from /public/fontawesome-free-7.0.1-web -->
+  <link rel="stylesheet" href="./fontawesome-free-7.0.1-web/css/all.min.css">
+  <!-- Background image courtesy of 3D Artist Harold (TALON-3D) Okafor-Withers
+  https://www.artstation.com/haroldokaforwithers
+  https://www.renderhub.com/talon-3d
+  https://www.cgtrader.com/designers/talon-3d -->
 
-<!-- Background image courtesy of 3D Artist Harold (TALON-3D) Okafor-Withers
-https://www.artstation.com/haroldokaforwithers
-https://www.renderhub.com/talon-3d
-https://www.cgtrader.com/designers/talon-3d -->
-
-  <script type="module" crossorigin src="./assets/index-DYgi9hQO.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-DgynW2UF.css">
+  <script type="module" crossorigin src="./assets/index-DAs3MdaK.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-CB-Ha5nj.css">
 </head>
 <body>
   <script defer src="pcb_draw.js"></script>
@@ -218,6 +222,11 @@ Goto settings to change hilt model or toggle Mouse Swings mode (swinging with mo
           </span>  <!-- action-buttons-strip -->
           <span class="settings-button-strip">
             <button
+              id="REMOTE_CONTROL_BUTTON" class="settings-button" title="Connect a Proffieboard to control the saber."
+              onclick="openConnectOverlay()">
+              <i class="fa-solid fa-link"></i> Remote Control
+            </button>
+            <button
               id="SETTINGS_BUTTON" class="settings-button" title="Settings"
               onclick="toggleSettingsPanel()">
               <i class="fa-solid fa-cog"></i> Settings</button>
@@ -251,53 +260,55 @@ Goto settings to change hilt model or toggle Mouse Swings mode (swinging with mo
             </label>
           </section> <!-- settings-section General -->
 
-          <section class="settings-section">
-            <h4 class="settings-section-label" title="These settings apply to the blade preview above.">Blade Preview:</h4>
-            <label title="Toggles background image on or off. 
+          <div class="settings-columns">
+            <section class="settings-section">
+              <h4 class="settings-section-label" title="These settings apply to the blade preview above.">Blade Preview:</h4>
+              <label title="Toggles background image on or off. 
 Background image courtesy of 3D Artist Harold (TALON-3D) Okafor-Withers
 https://www.artstation.com/haroldokaforwithers
 https://www.renderhub.com/talon-3d
 https://www.cgtrader.com/designers/talon-3d">
-              <input type="checkbox" id="BACKGROUND_BUTTON" name="background" onclick="handleSettings(this)">
-              <span>Show background image</span>
-            </label>
-            <label title="Toggles the option for swinging around the preview blade above using mouse control.">
-              <input type="checkbox" id="MOUSE_SWINGS_BUTTON" name="mouseswings" onclick="handleSettings(this)">
-              <span>Disable mouse swings</span>
-            </label>
-            <label title="Show motion trails behind the blade in the preview.">
-              <input type="checkbox" id="BLADE_TRAILS_BUTTON" name="bladetrails" onclick="handleSettings(this)">
-              <span>Show blade swing trails</span>
-            </label>
-            <label title="Toggles automated swing emulation on the preview blade while at rest (ie: shown when using SwingSpeed<>). Swinging while hovering over the preview area always shows swing blade effects according to movements.">
-              <input type="checkbox" id="AUTOSWING_BUTTON" name="autoswing" onclick="handleSettings(this)">
-              <span>Swing emulation</span>
-            </label>
-            <label title="Simulates In-Hilt LED blades, (no addressable pixel effects).">
-              <input type="checkbox" id="INHILT_BUTTON" name="inhilt" onclick="handleSettings(this)">
-              <span>Inhilt LED</span>
-            </label>
-            <label title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement.">
-              <input type="checkbox" id="SLOW_BUTTON" name="slow" onclick="handleSettings(this)">
-              <span>Slow-motion animations</span>
-            </label>
-          </section> <!-- settings-section Blade Preview -->
+                <input type="checkbox" id="BACKGROUND_BUTTON" name="background" onclick="handleSettings(this)">
+                <span>Show background image</span>
+              </label>
+              <label title="Toggles the option for swinging around the preview blade above using mouse control.">
+                <input type="checkbox" id="MOUSE_SWINGS_BUTTON" name="mouseswings" onclick="handleSettings(this)">
+                <span>Disable mouse swings</span>
+              </label>
+              <label title="Show motion trails behind the blade in the preview.">
+                <input type="checkbox" id="BLADE_TRAILS_BUTTON" name="bladetrails" onclick="handleSettings(this)">
+                <span>Show blade swing trails</span>
+              </label>
+              <label title="Toggles automated swing emulation on the preview blade while at rest (ie: shown when using SwingSpeed<>). Swinging while hovering over the preview area always shows swing blade effects according to movements.">
+                <input type="checkbox" id="AUTOSWING_BUTTON" name="autoswing" onclick="handleSettings(this)">
+                <span>Swing emulation</span>
+              </label>
+              <label title="Simulates In-Hilt LED blades, (no addressable pixel effects).">
+                <input type="checkbox" id="INHILT_BUTTON" name="inhilt" onclick="handleSettings(this)">
+                <span>Inhilt LED</span>
+              </label>
+              <label title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement.">
+                <input type="checkbox" id="SLOW_BUTTON" name="slow" onclick="handleSettings(this)">
+                <span>Slow-motion animations</span>
+              </label>
+            </section> <!-- settings-section Blade Preview -->
 
-          <section class="settings-section">
-            <h4 class="settings-section-label" title="These settings apply to the PCB preview above.">PCB Preview:</h4>
-            <label title="Toggles the PCB to act as either a dedicated blade or as in parallel with main blade.">
-              <input type="checkbox" id="PCB_DEDICATED_BUTTON" name="pcbdedicated" onclick="handleSettings(this)">
-              <span>PCB is wired as its own blade</span>
-            </label>
-            <label title="Show pixel numbers on PCB LEDs.">
-              <input type="checkbox" id="PCB_SHOW_LED_NUMBERS_BUTTON" name="pcbshowlednumbers" onclick="handleSettings(this)">
-              <span>Show LED numbers</span>
-            </label>
-            <label title="Keep blade preview visible when viewing PCBs.">
-              <input type="checkbox" id="PCB_VIEW_PLUS_BLADE_BUTTON" name="pcbviewplusblade" onclick="handleSettings(this)">
-              <span>Keep blade preview visible with PCB</span>
-            </label>
-          </section> <!-- settings-section PCB Preview -->
+            <section class="settings-section">
+              <h4 class="settings-section-label" title="These settings apply to the PCB preview above.">PCB Preview:</h4>
+              <label title="Toggles the PCB to act as either a dedicated blade or as in parallel with main blade.">
+                <input type="checkbox" id="PCB_DEDICATED_BUTTON" name="pcbdedicated" onclick="handleSettings(this)">
+                <span>PCB is wired as its own blade</span>
+              </label>
+              <label title="Show pixel numbers on PCB LEDs.">
+                <input type="checkbox" id="PCB_SHOW_LED_NUMBERS_BUTTON" name="pcbshowlednumbers" onclick="handleSettings(this)">
+                <span>Show LED numbers</span>
+              </label>
+              <label title="Keep blade preview visible when viewing PCBs.">
+                <input type="checkbox" id="PCB_VIEW_PLUS_BLADE_BUTTON" name="pcbviewplusblade" onclick="handleSettings(this)">
+                <span>Keep blade preview visible with PCB</span>
+              </label>
+            </section> <!-- settings-section PCB Preview -->
+          </div> <!-- settings-columns -->
 
           <section class="settings-section">
             <h4 class="settings-section-label" title="These settings apply Sound settings..">Sound Settings:</h4>
@@ -360,8 +371,41 @@ https://www.cgtrader.com/designers/talon-3d">
       </p>
     </div>
   </div>
+
+  <div id="connect-overlay" onclick="closeConnectOverlay()">
+    <div class="start-overlay-box" onclick="event.stopPropagation()">
+      <p id="connect-overlay-title">Connect Proffieboard</p>
+      <p class="start-overlay-sub" id="connect-support-note"></p>
+
+      <!-- shown when NOT connected -->
+      <div id="CONNECT_CHOICES" class="connect-buttons">
+        <button class="settings-button" id="CONNECT_USB_BTN"  onclick="connectProffieUSB()">
+          <i class="fa-brands fa-usb"></i> USB
+        </button>
+        <button class="settings-button" id="CONNECT_BLE_BTN"  onclick="connectProffieBLE()">
+          <i class="fa-brands fa-bluetooth-b"></i> Bluetooth
+        </button>
+        <button class="settings-button" id="CONNECT_CANCEL_BTN" onclick="closeConnectOverlay()">
+          Cancel
+        </button>
+      </div>
+
+      <!-- shown when CONNECTED -->
+      <div id="CONNECT_DISCONNECT" class="connect-buttons" style="display:none">
+        <button class="settings-button" id="DISCONNECT_BTN" onclick="disconnectProffie()">
+          <i class="fa-solid fa-link-slash"></i> Disconnect
+        </button>
+        <button class="settings-button" id="DISCONNECT_CANCEL_BTN" onclick="closeConnectOverlay()">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script defer src="proffie_link.js"></script>
   <script defer src="style_editor.js"></script>
   <script defer src="sound.js"></script>
+
   <img id="pcba_image" src="./pcb_images/PCBa.png" style="display:none;">
   <img id="pcbb_image" src="./pcb_images/PCBb.png" style="display:none;">
   <img id="pcbc_image" src="./pcb_images/PCBc.png" style="display:none;">
