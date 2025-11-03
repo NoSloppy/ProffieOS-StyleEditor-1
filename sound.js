@@ -558,6 +558,13 @@ function endLockupLoop(effectType, endEffectName, shouldClear) {
   // });
   if (lockupLoopSrc) { lockupLoopSrc.stop(); lockupLoopSrc.disconnect(); lockupLoopSrc = null; }
 
+  // If sound is OFF, do not play the end sound; just clean up state  //
+  if (!soundOnState.get()) {
+    if (lockupGainNode) { lockupGainNode.disconnect(); lockupGainNode = null; }
+    if (shouldClear) currentLockupType = null;
+    return;
+  }
+
   // Play endlock if exists, with fallback to default font when needed
   if (endEffectName) {
     function tryPlayBuffers(bufs, fnames, durs, fontLabel) {
