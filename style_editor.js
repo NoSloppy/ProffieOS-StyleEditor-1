@@ -12,11 +12,7 @@ const fullscreenBtn = FIND("FULLSCREEN_BUTTON");
 const pageLeftTop = FIND("page_left_top");
 
 function FIND(id) {
-  var ret = document.getElementById(id);
-  if (!ret) {
-//    console.log("Failed to find " + id);
-  }
-  return ret;
+  return document.getElementById(id);
 }
 
 const start_millis = new Date().getTime();

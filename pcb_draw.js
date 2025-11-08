@@ -24,19 +24,15 @@ function drawPCB() {
 
   function sc(v) { return v * S; }
 
-const bladeColors = window.bladeColors || [];
-const pcbColors   = window.pcbColors   || null;
-
   function pickColor(i, mappedIdxFloat) {
     if (pcbDedicatedState.get()) {
-      return (pcbColors && pcbColors[i]) ? pcbColors[i] : [255, 255, 0];
+      return (window.pcbColors && window.pcbColors[i]) ? window.pcbColors[i] : [255, 255, 0];
     } else {
       if (mappedIdxFloat == null) {
-        return (bladeColors && bladeColors[i]) ? bladeColors[i] : [255, 255, 0];
+        return (window.bladeColors && window.bladeColors[i]) ? window.bladeColors[i] : [255, 255, 0];
       } else {
-        var numBladePixels = bladeColors.length;
         var idx = Math.round(mappedIdxFloat);
-        return bladeColors[idx] || [255, 255, 0];
+        return window.bladeColors[idx] || [255, 255, 0];
       }
     }
   }
