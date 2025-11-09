@@ -2043,6 +2043,16 @@ function tick() {
     if (el) el.style.display = "none";
   }
 
+  function showCalibrateOverlay() {
+    const el = FIND("calibrate-overlay");
+    if (el) el.style.display = "flex";
+  }
+
+  function hideCalibrateOverlay() {
+    const el = FIND("calibrate-overlay");
+    if (el) el.style.display = "none";
+  }
+
   async function connectProffieUSB() {
     alert("Note – 'Tools>USB Type: Serial+WebUSB' in Arduino must be enabled and uploaded to the Proffieboard for USB connection to work.");
     if (!window.ProffieLink || !window.ProffieLink.usbSupported()) { alert("WebUSB not supported in this browser."); return; }
@@ -2050,7 +2060,7 @@ function tick() {
       window.__connecting = 'USB';
       openConnectOverlay();
       await window.ProffieLink.connectUSB();
-      setTimeout(() => { try { closeConnectOverlay(); } catch (_) {} }, 1000);
+      setTimeout(() => { try { closeConnectOverlay(); showCalibrateOverlay(); } catch (_) {} }, 1000);
     } catch (e) {
       console.error(e); alert("USB connect failed.");
     } finally {
@@ -2064,7 +2074,7 @@ function tick() {
       window.__connecting = 'BLE';
       openConnectOverlay();
       await window.ProffieLink.connectBLE();
-      setTimeout(() => { try { closeConnectOverlay(); } catch (_) {} }, 1000);
+      setTimeout(() => { try { closeConnectOverlay(); showCalibrateOverlay(); } catch (_) {} }, 1000);
     } catch (e) {
       console.error(e); alert("Bluetooth connect failed.");
     } finally {
