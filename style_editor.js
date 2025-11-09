@@ -3383,11 +3383,22 @@ var inhiltState = new SavedStateBool("inhilt", false, (on) => { STATE_NUM_LEDS =
 var slowState = new SavedStateBool("slow", false, (on) => { 
   const percentage = slowMotionSpeedState ? slowMotionSpeedState.get() : 50;
   time_factor = on ? (percentage * 10) : 1000;
-  // Enable/disable the speed slider
+  
+  // Enable/disable the speed slider and related elements
   const speedSlider = FIND("SLOWMOTION_SPEED_VALUE");
+  const speedLabel = FIND("slowmotion-speed-label");
+  const speedDisplay = FIND("SLOWMOTION_SPEED_DISPLAY");
+  
   if (speedSlider) {
     speedSlider.disabled = !on;
   }
+  if (speedLabel) {
+    speedLabel.style.opacity = on ? "1" : "0.4";
+  }
+  if (speedDisplay) {
+    speedDisplay.style.opacity = on ? "1" : "0.4";
+  }
+  
   // Update display text
   updateSlowMotionDisplay();
 });
@@ -3403,8 +3414,15 @@ var slowMotionSpeedState = new SavedStateNumber("slowmotion_speed", 50, (percent
 // Update the percentage display text for slow motion slider
 function updateSlowMotionDisplay() {
   const display = FIND("SLOWMOTION_SPEED_DISPLAY");
+  const speedLabel = FIND("slowmotion-speed-label");
+  const isEnabled = slowState && slowState.get();
+  
   if (display && slowMotionSpeedState) {
     display.textContent = slowMotionSpeedState.get() + "%";
+    display.style.opacity = isEnabled ? "1" : "0.4";
+  }
+  if (speedLabel) {
+    speedLabel.style.opacity = isEnabled ? "1" : "0.4";
   }
 }
 
