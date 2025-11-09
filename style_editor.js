@@ -3377,7 +3377,7 @@ var mouseSwingsState = new SavedStateBool("mouse_swings", false, (on) => {});
 var bladeTrailsState = new SavedStateBool("blade_trails", true, (on) => { window.showBladeTrails = on; });
 var autoswingState = new SavedStateBool("autoswing", true, (on) => {});
 var inhiltState = new SavedStateBool("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
-var slowState = new SavedStateBool("slow", false, (on) => { framesPerUpdate = on ? 10 : 0; time_factor = framesPerUpdate == 0 ? 1000 : (1000/framesPerUpdate)});
+var slowState = new SavedStateBool("slow", false, (on) => { framesPerUpdate = on ? 10 : 0; time_factor = on ? 500 : 1000; });
 var benchmarkState = new SavedStateBool("benchmark", false, (on) => { AA=1; compile(); FIND("error_message").innerHTML = ""; });
 //////////////// WAVLEN PR /////////////////
 var wavlenState = new SavedStateNumber("wavlen", 500, (value) => {
