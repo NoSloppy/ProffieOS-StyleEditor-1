@@ -2031,6 +2031,12 @@ function tick() {
         if (!window.ProffieLink?.isConnected?.()) {
           window.__connecting = null;
           try { openConnectOverlay(); } catch (_) {}
+        } else {
+          // Connected! Show calibration message
+          if (title) title.textContent = "Calibrate:";
+          if (note)  note.textContent  = "Point your saber at the screen and press \"c\" on the keyboard to re-center.";
+          if (choices) choices.style.display = "none";
+          if (disc)    disc.style.display    = "none";
         }
       }, 1000);
     }
@@ -2043,16 +2049,6 @@ function tick() {
     if (el) el.style.display = "none";
   }
 
-  function showCalibrateOverlay() {
-    const el = FIND("calibrate-overlay");
-    if (el) el.style.display = "flex";
-  }
-
-  function hideCalibrateOverlay() {
-    const el = FIND("calibrate-overlay");
-    if (el) el.style.display = "none";
-  }
-
   async function connectProffieUSB() {
     alert("Note – 'Tools>USB Type: Serial+WebUSB' in Arduino must be enabled and uploaded to the Proffieboard for USB connection to work.");
     if (!window.ProffieLink || !window.ProffieLink.usbSupported()) { alert("WebUSB not supported in this browser."); return; }
@@ -2060,7 +2056,7 @@ function tick() {
       window.__connecting = 'USB';
       openConnectOverlay();
       await window.ProffieLink.connectUSB();
-      setTimeout(() => { try { closeConnectOverlay(); showCalibrateOverlay(); } catch (_) {} }, 1000);
+      // Don't close the overlay - let openConnectOverlay() handle showing calibration message
     } catch (e) {
       console.error(e); alert("USB connect failed.");
     } finally {
@@ -2074,7 +2070,7 @@ function tick() {
       window.__connecting = 'BLE';
       openConnectOverlay();
       await window.ProffieLink.connectBLE();
-      setTimeout(() => { try { closeConnectOverlay(); showCalibrateOverlay(); } catch (_) {} }, 1000);
+      // Don't close the overlay - let openConnectOverlay() handle showing calibration message
     } catch (e) {
       console.error(e); alert("Bluetooth connect failed.");
     } finally {
