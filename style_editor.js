@@ -1705,6 +1705,10 @@ var style_tree;
 var AA_STEP_SIZE = 1;
 
 // returns Float32Array with 3 * num_pixel values
+// Debug counter for slow motion diagnostics
+var debugFrameCount = 0;
+var debugLastLog = 0;
+
 function getSaberColors() {
     var now_actual_millis = actual_millis();
     var delta_actual_millis = now_actual_millis - last_actual_millis;
@@ -1714,6 +1718,13 @@ function getSaberColors() {
     last_micros = current_micros;
     current_micros_internal += delta_us;
     current_micros = current_micros_internal
+    
+    // Debug logging every 60 frames
+    debugFrameCount++;
+    if (debugFrameCount - debugLastLog >= 60) {
+        debugLastLog = debugFrameCount;
+        console.log(`[Frame ${debugFrameCount}] time_factor=${time_factor}, delta_actual_millis=${delta_actual_millis}, delta_us=${delta_us}, current_micros=${current_micros}`);
+    }
     if (current_micros - last_micros > 1000000/45) {
         bad_fps ++;
         if (good_fps) good_fps--;
@@ -1777,6 +1788,12 @@ function getSaberColors() {
             pixels[i*3 + 2] += c.b / 2;
         }
         S.update_displays();
+        
+        // Debug: Log first LED color every 60 frames
+        if (debugFrameCount - debugLastLog === 0) {
+            var c0 = S.getColor(0);
+            console.log(`[Frame ${debugFrameCount}] LED[0] color: r=${pixels[0].toFixed(3)}, g=${pixels[1].toFixed(3)}, b=${pixels[2].toFixed(3)} (raw: r=${c0.r.toFixed(3)}, g=${c0.g.toFixed(3)}, b=${c0.b.toFixed(3)})`);
+        }
     }
     t += 1;
     return pixels;
