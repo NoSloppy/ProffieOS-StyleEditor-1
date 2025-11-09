@@ -3329,15 +3329,18 @@ class SavedStateBool extends SavedState {
 class SavedStateNumber extends SavedState {
   constructor(name, def, update_function) {
     super(name, def, update_function);
-    // For select elements, store the mapping for use in handleSettings().
-    const select = FIND(name.toUpperCase() + "_VALUE");
-    if (select && select.tagName === 'SELECT') {
-      state_by_select.set(select, this);
+    // For select and range input elements, store the mapping for use in handleSettings().
+    const input = FIND(name.toUpperCase() + "_VALUE");
+    if (input && (input.tagName === 'SELECT' || input.type === 'range')) {
+      state_by_select.set(input, this);
     }
   }
   set(value) {
     this.value = value;
-    FIND(this.name.toUpperCase() + "_VALUE").value = value;
+    const input = FIND(this.name.toUpperCase() + "_VALUE");
+    if (input) {
+      input.value = value;
+    }
     saveState(this.name + "_Save", value);
     this.update_function(value);
   }
@@ -3376,21 +3379,34 @@ var bladeTrailsState = new SavedStateBool("blade_trails", true, (on) => { window
 var autoswingState = new SavedStateBool("autoswing", true, (on) => {});
 var inhiltState = new SavedStateBool("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
 
-// Slow motion state: checkbox enables/disables, speed selector controls the speed
+// Slow motion state: checkbox enables/disables, speed slider controls the speed (1-100%)
 var slowState = new SavedStateBool("slow", false, (on) => { 
-  time_factor = on ? (slowMotionSpeedState ? slowMotionSpeedState.get() : 500) : 1000;
-  // Enable/disable the speed selector
-  const speedSelect = FIND("SLOWMOTION_SPEED_VALUE");
-  if (speedSelect) {
-    speedSelect.disabled = !on;
+  const percentage = slowMotionSpeedState ? slowMotionSpeedState.get() : 50;
+  time_factor = on ? (percentage * 10) : 1000;
+  // Enable/disable the speed slider
+  const speedSlider = FIND("SLOWMOTION_SPEED_VALUE");
+  if (speedSlider) {
+    speedSlider.disabled = !on;
   }
+  // Update display text
+  updateSlowMotionDisplay();
 });
 
-var slowMotionSpeedState = new SavedStateNumber("slowmotion_speed", 500, (value) => {
+var slowMotionSpeedState = new SavedStateNumber("slowmotion_speed", 50, (percentage) => {
   if (slowState && slowState.get()) {
-    time_factor = value;
+    time_factor = percentage * 10;
   }
+  // Update display text
+  updateSlowMotionDisplay();
 });
+
+// Update the percentage display text for slow motion slider
+function updateSlowMotionDisplay() {
+  const display = FIND("SLOWMOTION_SPEED_DISPLAY");
+  if (display && slowMotionSpeedState) {
+    display.textContent = slowMotionSpeedState.get() + "%";
+  }
+}
 
 var benchmarkState = new SavedStateBool("benchmark", false, (on) => { AA=1; compile(); FIND("error_message").innerHTML = ""; });
 //////////////// WAVLEN PR /////////////////
@@ -3645,8 +3661,8 @@ function handleSettings(element) {
     var state = state_by_checkbox.get(element);
     state.set(!state.get());
   }
-  // Handle select elements (using mapping for better maintainability)
-  else if (element.tagName === 'SELECT') {
+  // Handle select elements and range inputs (using mapping for better maintainability)
+  else if (element.tagName === 'SELECT' || element.type === 'range') {
     const state = state_by_select.get(element);
     if (state) {
       state.set(parseInt(element.value));
