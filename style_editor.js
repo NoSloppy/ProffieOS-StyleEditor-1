@@ -1758,9 +1758,7 @@ function getSaberColors() {
     } else {
         S = show_style;
     }
-    numTick++;
-    if (S.getColor && S.getType && S.getType() == "COLOR" && numTick > framesPerUpdate) {
-        numTick = 0;
+    if (S.getColor && S.getType && S.getType() == "COLOR") {
         S.run(blade);
         for (var i = 0; i < num_leds; i++) {
             var c = S.getColor(i);
@@ -1771,9 +1769,7 @@ function getSaberColors() {
         if (last_micros != 0) {
             current_micros += delta_us / 2;
         }
-        if (framesPerUpdate == 0) {
-            S.run(blade);
-        }
+        S.run(blade);
         for (var i = 0; i < num_leds; i++) {
             var c = S.getColor(i);
             pixels[i*3 + 0] += c.r / 2;
@@ -1884,9 +1880,7 @@ function drawScene() {
   } else {
     S = show_style;
   }
-  numTick++;
-  if (S.getColor && S.getType && S.getType() == "COLOR" && numTick > framesPerUpdate) {
-    numTick = 0;
+  if (S.getColor && S.getType && S.getType() == "COLOR") {
     S.run(blade);
     for (var i = 0; i < num_leds; i++) {
         var c = S.getColor(i);
@@ -1922,9 +1916,7 @@ function drawScene() {
     if (last_micros != 0) {
       current_micros += delta_us / 2;
     }
-    if (framesPerUpdate == 0) {
-      S.run(blade);
-    }
+    S.run(blade);
     for (var i = 0; i < num_leds; i++) {
         var c = S.getColor(i);
         pixels[i*4 + 0 + num_leds * 4] = Math.round(c.r * 255);
@@ -3377,7 +3369,7 @@ var mouseSwingsState = new SavedStateBool("mouse_swings", false, (on) => {});
 var bladeTrailsState = new SavedStateBool("blade_trails", true, (on) => { window.showBladeTrails = on; });
 var autoswingState = new SavedStateBool("autoswing", true, (on) => {});
 var inhiltState = new SavedStateBool("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
-var slowState = new SavedStateBool("slow", false, (on) => { framesPerUpdate = on ? 10 : 0; time_factor = on ? 500 : 1000; });
+var slowState = new SavedStateBool("slow", false, (on) => { time_factor = on ? 500 : 1000; });
 var benchmarkState = new SavedStateBool("benchmark", false, (on) => { AA=1; compile(); FIND("error_message").innerHTML = ""; });
 //////////////// WAVLEN PR /////////////////
 var wavlenState = new SavedStateNumber("wavlen", 500, (value) => {
