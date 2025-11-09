@@ -1705,10 +1705,6 @@ var style_tree;
 var AA_STEP_SIZE = 1;
 
 // returns Float32Array with 3 * num_pixel values
-// Debug counter for slow motion diagnostics
-var debugFrameCount = 0;
-var debugLastLog = 0;
-
 function getSaberColors() {
     var now_actual_millis = actual_millis();
     var delta_actual_millis = now_actual_millis - last_actual_millis;
@@ -1718,13 +1714,6 @@ function getSaberColors() {
     last_micros = current_micros;
     current_micros_internal += delta_us;
     current_micros = current_micros_internal
-    
-    // Debug logging every 60 frames
-    debugFrameCount++;
-    if (debugFrameCount - debugLastLog >= 60) {
-        debugLastLog = debugFrameCount;
-        console.log(`[Frame ${debugFrameCount}] time_factor=${time_factor}, delta_actual_millis=${delta_actual_millis}, delta_us=${delta_us}, current_micros=${current_micros}`);
-    }
     if (current_micros - last_micros > 1000000/45) {
         bad_fps ++;
         if (good_fps) good_fps--;
@@ -1788,12 +1777,6 @@ function getSaberColors() {
             pixels[i*3 + 2] += c.b / 2;
         }
         S.update_displays();
-        
-        // Debug: Log first LED color every 60 frames
-        if (debugFrameCount - debugLastLog === 0) {
-            var c0 = S.getColor(0);
-            console.log(`[Frame ${debugFrameCount}] LED[0] color: r=${pixels[0].toFixed(3)}, g=${pixels[1].toFixed(3)}, b=${pixels[2].toFixed(3)} (raw: r=${c0.r.toFixed(3)}, g=${c0.g.toFixed(3)}, b=${c0.b.toFixed(3)})`);
-        }
     }
     t += 1;
     return pixels;
@@ -3295,6 +3278,7 @@ window.addEventListener('DOMContentLoaded', onPageLoad);
 
 var all_saved_states = [];
 var state_by_checkbox = new Map();
+var state_by_select = new Map();
 var body = document.querySelector("body");
 var structuredView;
 //////////////// WAVLEN PR /////////////////
@@ -3345,6 +3329,11 @@ class SavedStateBool extends SavedState {
 class SavedStateNumber extends SavedState {
   constructor(name, def, update_function) {
     super(name, def, update_function);
+    // For select elements, store the mapping for use in handleSettings().
+    const select = FIND(name.toUpperCase() + "_VALUE");
+    if (select && select.tagName === 'SELECT') {
+      state_by_select.set(select, this);
+    }
   }
   set(value) {
     this.value = value;
@@ -3386,7 +3375,23 @@ var mouseSwingsState = new SavedStateBool("mouse_swings", false, (on) => {});
 var bladeTrailsState = new SavedStateBool("blade_trails", true, (on) => { window.showBladeTrails = on; });
 var autoswingState = new SavedStateBool("autoswing", true, (on) => {});
 var inhiltState = new SavedStateBool("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
-var slowState = new SavedStateBool("slow", false, (on) => { time_factor = on ? 500 : 1000; });
+
+// Slow motion state: checkbox enables/disables, speed selector controls the speed
+var slowState = new SavedStateBool("slow", false, (on) => { 
+  time_factor = on ? (slowMotionSpeedState ? slowMotionSpeedState.get() : 500) : 1000;
+  // Enable/disable the speed selector
+  const speedSelect = FIND("SLOWMOTION_SPEED_VALUE");
+  if (speedSelect) {
+    speedSelect.disabled = !on;
+  }
+});
+
+var slowMotionSpeedState = new SavedStateNumber("slowmotion_speed", 500, (value) => {
+  if (slowState && slowState.get()) {
+    time_factor = value;
+  }
+});
+
 var benchmarkState = new SavedStateBool("benchmark", false, (on) => { AA=1; compile(); FIND("error_message").innerHTML = ""; });
 //////////////// WAVLEN PR /////////////////
 var wavlenState = new SavedStateNumber("wavlen", 500, (value) => {
@@ -3634,9 +3639,19 @@ document.addEventListener('mouseup', () => {
   }
 });
 
-function handleSettings(checkbox) {
-  var state = state_by_checkbox.get(checkbox);
-  state.set(!state.get());
+function handleSettings(element) {
+  // Handle checkboxes
+  if (element.type === 'checkbox') {
+    var state = state_by_checkbox.get(element);
+    state.set(!state.get());
+  }
+  // Handle select elements (using mapping for better maintainability)
+  else if (element.tagName === 'SELECT') {
+    const state = state_by_select.get(element);
+    if (state) {
+      state.set(parseInt(element.value));
+    }
+  }
 }
 
 // User can choose one or the other

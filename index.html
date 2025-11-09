@@ -291,6 +291,16 @@ https://www.cgtrader.com/designers/talon-3d">
                 <input type="checkbox" id="SLOW_BUTTON" name="slow" onclick="handleSettings(this)">
                 <span>Slow-motion animations</span>
               </label>
+              <section class="slowmotion-controls" style="margin-left: 20px;">
+                <label id="slowmotion-speed-label" title="Choose slow motion speed: 0.25x is slowest, 0.75x is fastest slow motion.">
+                  Speed:
+                  <select id="SLOWMOTION_SPEED_VALUE" class="slowmotion-speed-value" onchange="handleSettings(this)" style="margin-left: 5px;">
+                    <option value="250">0.25x</option>
+                    <option value="500" selected>0.5x</option>
+                    <option value="750">0.75x</option>
+                  </select>
+                </label>
+              </section>
             </section> <!-- settings-section Blade Preview -->
 
             <section class="settings-section">
