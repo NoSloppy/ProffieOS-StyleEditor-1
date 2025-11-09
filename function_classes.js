@@ -1675,10 +1675,6 @@ function LinearSectionF(POSITION, FRACTION) {
 
 var start = new Date().getTime();
 
-var current_focus;
-var current_focus_url;
-var style_tree;
-
 function newCall(Cls) {
   return new (Function.prototype.bind.apply(Cls, arguments));
 }

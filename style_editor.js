@@ -1698,6 +1698,10 @@ var good_fps = 0;
 
 var pixels;
 var AA = 1;
+
+var current_focus;
+var current_focus_url;
+var style_tree;
 var AA_STEP_SIZE = 1;
 
 // returns Float32Array with 3 * num_pixel values

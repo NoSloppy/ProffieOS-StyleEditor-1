@@ -348,7 +348,7 @@ AddIdentifier("ViolentViolet", Rgb.bind(null, 55, 0, 255));
     LockupPulseF : LockupPulseF,
 };
 
-// Initialize default style
+// Initialize variables that depend on classes defined in the separate files
 current_style = InOutHelper(SimpleClash(Lockup(new BlastClass(BLUE, WHITE), new AudioFlickerClass(BLUE, WHITE)), WHITE, 40), 300, 800);
 blade = new Blade();
 myWavLen = new WavLenClass();
