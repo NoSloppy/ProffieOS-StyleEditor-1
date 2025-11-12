@@ -3396,9 +3396,7 @@ var slowMotionSpeedState = new SavedStateNumber("slowmotion_speed", 50, (percent
 // Update the percentage display text for slow motion slider
 function updateSlowMotionDisplay() {
   const display = FIND("SLOWMOTION_SPEED_DISPLAY");
-  if (display && slowMotionSpeedState) {
-    display.textContent = slowMotionSpeedState.get() + "%";
-  }
+  display.textContent = slowMotionSpeedState.get() + "%";
 }
 
 // Enable/disable slow motion speed controls
@@ -3407,11 +3405,11 @@ function handleSlowMotionControls() {
   const speedSlider = FIND("SLOWMOTION_SPEED_VALUE");
   
   if (slowState.get()) {
-    if (slowLabel) slowLabel.classList.remove('disabled');
-    if (speedSlider) speedSlider.disabled = false;
+    slowLabel.classList.remove('disabled');
+    speedSlider.disabled = false;
   } else {
-    if (slowLabel) slowLabel.classList.add('disabled');
-    if (speedSlider) speedSlider.disabled = true;
+    slowLabel.classList.add('disabled');
+    speedSlider.disabled = true;
   }
   updateSlowMotionDisplay();
 }
@@ -3684,11 +3682,11 @@ function handleWavLenControls() {
   var wavlenInput = FIND('WAVLEN_VALUE');
 
   if (useFontWavLenState.get()) {
-    if (wavlenLabel) wavlenLabel.classList.add('disabled');
-    if (wavlenInput) wavlenInput.disabled = true;
+    wavlenLabel.classList.add('disabled');
+    wavlenInput.disabled = true;
   } else {
-    if (wavlenLabel) wavlenLabel.classList.remove('disabled');
-    if (wavlenInput) wavlenInput.disabled = false;
+    wavlenLabel.classList.remove('disabled');
+    wavlenInput.disabled = false;
   }
 }
 
