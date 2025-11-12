@@ -3401,9 +3401,9 @@ function updateSlowMotionDisplay() {
   }
 }
 
-// Enable/disable slow motion speed controls (reuses wavlen pattern)
+// Enable/disable slow motion speed controls
 function handleSlowMotionControls() {
-  const slowLabel = document.querySelector('.slowmotion-controls .wavlen-global-label');
+  const slowLabel = document.querySelector('.slowmotion-speed-label');
   const speedSlider = FIND("SLOWMOTION_SPEED_VALUE");
   
   if (slowState.get()) {
@@ -3680,8 +3680,7 @@ function handleSettings(element) {
 
 // User can choose one or the other
 function handleWavLenControls() {
-  var wavlenSection = document.querySelector('.wavlen-controls');
-  var wavlenLabel = wavlenSection ? wavlenSection.querySelector('.wavlen-global-label') : null;
+  var wavlenLabel = document.querySelector('.wavlen-global-label');
   var wavlenInput = FIND('WAVLEN_VALUE');
 
   if (useFontWavLenState.get()) {

@@ -6,3 +6,25 @@
 .slowmotion-controls {
   margin-left: 20px;
 }
+
+/* Slow motion speed label styling (matches wavlen-global-label) */
+.slowmotion-speed-label.disabled {
+  color: #aaa !important;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.slowmotion-speed-label.disabled input {
+  background-color: #eee;
+  color: #888;
+  cursor: not-allowed;
+}
+
+.dark-mode .slowmotion-speed-label.disabled {
+  color: #444 !important;
+}
+
+.dark-mode .slowmotion-speed-label.disabled input {
+  background-color: #555;
+  color: #bbb;
+}
