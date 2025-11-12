@@ -18,8 +18,8 @@
   https://www.renderhub.com/talon-3d
   https://www.cgtrader.com/designers/talon-3d -->
 
-  <script type="module" crossorigin src="./assets/index-DAs3MdaK.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-CB-Ha5nj.css">
+  <script type="module" crossorigin src="./assets/index-Bvd-yCs9.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-CgxdWrHT.css">
 </head>
 <body>
   <script defer src="pcb_draw.js"></script>
@@ -291,12 +291,12 @@ https://www.cgtrader.com/designers/talon-3d">
                 <input type="checkbox" id="SLOW_BUTTON" name="slow" onclick="handleSettings(this)">
                 <span>Slow-motion animations</span>
               </label>
-              <section class="slowmotion-controls" style="margin-left: 20px; display: flex; align-items: center; gap: 10px;">
-                <label id="slowmotion-speed-label" title="Slide to adjust animation speed: 1% is slowest, 100% is normal speed.">
+              <section class="slowmotion-controls">
+                <label class="slowmotion-speed-label" title="Slide to adjust animation speed: 1% is slowest, 100% is normal speed.">
                   Speed:
+                  <input type="range" id="SLOWMOTION_SPEED_VALUE" class="variant-slider" min="1" max="100" value="50" oninput="handleSettings(this)">
+                  <span id="SLOWMOTION_SPEED_DISPLAY">50%</span>
                 </label>
-                <input type="range" id="SLOWMOTION_SPEED_VALUE" class="variant-slider" min="1" max="100" value="50" oninput="handleSettings(this)">
-                <span id="SLOWMOTION_SPEED_DISPLAY" style="min-width: 40px;">50%</span>
               </section>
             </section> <!-- settings-section Blade Preview -->
 
