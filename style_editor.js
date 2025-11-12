@@ -1758,9 +1758,10 @@ function getSaberColors() {
     } else {
         S = show_style;
     }
-    numTick++;
-    if (S.getColor && S.getType && S.getType() == "COLOR" && numTick > framesPerUpdate) {
-        numTick = 0;
+    // numTick++;
+    // if (S.getColor && S.getType && S.getType() == "COLOR" && numTick > framesPerUpdate) {
+    //     numTick = 0;
+    if (S.getColor && S.getType && S.getType() == "COLOR") {
         S.run(blade);
         for (var i = 0; i < num_leds; i++) {
             var c = S.getColor(i);
@@ -1771,9 +1772,11 @@ function getSaberColors() {
         if (last_micros != 0) {
             current_micros += delta_us / 2;
         }
-        if (framesPerUpdate == 0) {
-            S.run(blade);
-        }
+        // if (framesPerUpdate == 0) {
+        //     S.run(blade);
+        // }
+        S.run(blade);
+
         for (var i = 0; i < num_leds; i++) {
             var c = S.getColor(i);
             pixels[i*3 + 0] += c.r / 2;
@@ -1884,9 +1887,10 @@ function drawScene() {
   } else {
     S = show_style;
   }
-  numTick++;
-  if (S.getColor && S.getType && S.getType() == "COLOR" && numTick > framesPerUpdate) {
-    numTick = 0;
+  // numTick++;
+  // if (S.getColor && S.getType && S.getType() == "COLOR" && numTick > framesPerUpdate) {
+  //   numTick = 0;
+  if (S.getColor && S.getType && S.getType() == "COLOR") {
     S.run(blade);
     for (var i = 0; i < num_leds; i++) {
         var c = S.getColor(i);
@@ -1922,9 +1926,11 @@ function drawScene() {
     if (last_micros != 0) {
       current_micros += delta_us / 2;
     }
-    if (framesPerUpdate == 0) {
-      S.run(blade);
-    }
+    // if (framesPerUpdate == 0) {
+    //   S.run(blade);
+    // }
+        S.run(blade);
+
     for (var i = 0; i < num_leds; i++) {
         var c = S.getColor(i);
         pixels[i*4 + 0 + num_leds * 4] = Math.round(c.r * 255);
@@ -3286,6 +3292,7 @@ window.addEventListener('DOMContentLoaded', onPageLoad);
 
 var all_saved_states = [];
 var state_by_checkbox = new Map();
+var state_by_select = new Map();
 var body = document.querySelector("body");
 var structuredView;
 //////////////// WAVLEN PR /////////////////
@@ -3336,10 +3343,19 @@ class SavedStateBool extends SavedState {
 class SavedStateNumber extends SavedState {
   constructor(name, def, update_function) {
     super(name, def, update_function);
+    // For select and range input elements, store the mapping for use in handleSettings().
+    const input = FIND(name.toUpperCase() + "_VALUE");
+    if (input && (input.tagName === 'SELECT' || input.type === 'range')) {
+      state_by_select.set(input, this);
+    }
   }
   set(value) {
     this.value = value;
-    FIND(this.name.toUpperCase() + "_VALUE").value = value;
+    // FIND(this.name.toUpperCase() + "_VALUE").value = value;
+    const input = FIND(this.name.toUpperCase() + "_VALUE");
+    if (input) {
+      input.value = value;
+    }
     saveState(this.name + "_Save", value);
     this.update_function(value);
   }
@@ -3377,7 +3393,39 @@ var mouseSwingsState = new SavedStateBool("mouse_swings", false, (on) => {});
 var bladeTrailsState = new SavedStateBool("blade_trails", true, (on) => { window.showBladeTrails = on; });
 var autoswingState = new SavedStateBool("autoswing", true, (on) => {});
 var inhiltState = new SavedStateBool("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
-var slowState = new SavedStateBool("slow", false, (on) => { framesPerUpdate = on ? 10 : 0; time_factor = framesPerUpdate == 0 ? 1000 : (500/framesPerUpdate)});
+// var slowState = new SavedStateBool("slow", false, (on) => { framesPerUpdate = on ? 10 : 0; time_factor = framesPerUpdate == 0 ? 1000 : (500/framesPerUpdate)});
+
+// Slow motion state: checkbox enables/disables, speed slider controls the speed (1-100%)
+var slowState = new SavedStateBool("slow", false, (on) => { 
+  const percentage = slowMotionSpeedState ? slowMotionSpeedState.get() : 50;
+  time_factor = on ? (percentage * 10) : 1000;
+
+  // Enable/disable the speed slider
+  const speedSlider = FIND("SLOWMOTION_SPEED_VALUE");
+  if (speedSlider) {
+    speedSlider.disabled = !on;
+  }
+  // Update display text
+  updateSlowMotionDisplay();
+});
+
+var slowMotionSpeedState = new SavedStateNumber("slowmotion_speed", 50, (percentage) => {
+  if (slowState && slowState.get()) {
+    time_factor = percentage * 10;
+  }
+  // Update display text
+  updateSlowMotionDisplay();
+});
+
+// Update the percentage display text for slow motion slider
+function updateSlowMotionDisplay() {
+  const display = FIND("SLOWMOTION_SPEED_DISPLAY");
+  if (display && slowMotionSpeedState) {
+    display.textContent = slowMotionSpeedState.get() + "%";
+  }
+}
+
+
 var benchmarkState = new SavedStateBool("benchmark", false, (on) => { AA=1; compile(); FIND("error_message").innerHTML = ""; });
 //////////////// WAVLEN PR /////////////////
 var wavlenState = new SavedStateNumber("wavlen", 500, (value) => {
@@ -3625,11 +3673,24 @@ document.addEventListener('mouseup', () => {
   }
 });
 
-function handleSettings(checkbox) {
-  var state = state_by_checkbox.get(checkbox);
-  state.set(!state.get());
+// function handleSettings(checkbox) {
+//   var state = state_by_checkbox.get(checkbox);
+//   state.set(!state.get());
+// }
+function handleSettings(element) {
+  // Handle checkboxes
+  if (element.type === 'checkbox') {
+    var state = state_by_checkbox.get(element);
+    state.set(!state.get());
+  }
+  // Handle select elements and range inputs (using mapping for better maintainability)
+  else if (element.tagName === 'SELECT' || element.type === 'range') {
+    const state = state_by_select.get(element);
+    if (state) {
+      state.set(parseInt(element.value));
+    }
+  }
 }
-
 // User can choose one or the other
 function handleWavLenControls() {
   var wavlenLabel = document.querySelector('.wavlen-global-label');
