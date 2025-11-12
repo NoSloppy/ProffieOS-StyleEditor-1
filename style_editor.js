@@ -3680,15 +3680,16 @@ function handleSettings(element) {
 
 // User can choose one or the other
 function handleWavLenControls() {
-  var wavlenLabel = document.querySelector('.wavlen-global-label');
+  var wavlenSection = document.querySelector('.wavlen-controls');
+  var wavlenLabel = wavlenSection ? wavlenSection.querySelector('.wavlen-global-label') : null;
   var wavlenInput = FIND('WAVLEN_VALUE');
 
   if (useFontWavLenState.get()) {
-    wavlenLabel.classList.add('disabled');
-    wavlenInput.disabled = true;
+    if (wavlenLabel) wavlenLabel.classList.add('disabled');
+    if (wavlenInput) wavlenInput.disabled = true;
   } else {
-    wavlenLabel.classList.remove('disabled');
-    wavlenInput.disabled = false;
+    if (wavlenLabel) wavlenLabel.classList.remove('disabled');
+    if (wavlenInput) wavlenInput.disabled = false;
   }
 }
 
