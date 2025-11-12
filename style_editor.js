@@ -3399,21 +3399,13 @@ var inhiltState = new SavedStateBool("inhilt", false, (on) => { STATE_NUM_LEDS =
 var slowState = new SavedStateBool("slow", false, (on) => { 
   const percentage = slowMotionSpeedState ? slowMotionSpeedState.get() : 50;
   time_factor = on ? (percentage * 10) : 1000;
-
-  // Enable/disable the speed slider
-  const speedSlider = FIND("SLOWMOTION_SPEED_VALUE");
-  if (speedSlider) {
-    speedSlider.disabled = !on;
-  }
-  // Update display text
-  updateSlowMotionDisplay();
+  handleSlowMotionControls();
 });
 
 var slowMotionSpeedState = new SavedStateNumber("slowmotion_speed", 50, (percentage) => {
   if (slowState && slowState.get()) {
     time_factor = percentage * 10;
   }
-  // Update display text
   updateSlowMotionDisplay();
 });
 
@@ -3424,6 +3416,23 @@ function updateSlowMotionDisplay() {
     display.textContent = slowMotionSpeedState.get() + "%";
   }
 }
+
+// Enable/disable slow motion speed controls
+function handleSlowMotionControls() {
+  const slowLabel = document.querySelector('.slowmotion-speed-label');
+  const speedSlider = FIND("SLOWMOTION_SPEED_VALUE");
+  
+  if (slowState.get()) {
+    if (slowLabel) slowLabel.classList.remove('disabled');
+    if (speedSlider) speedSlider.disabled = false;
+  } else {
+    if (slowLabel) slowLabel.classList.add('disabled');
+    if (speedSlider) speedSlider.disabled = true;
+  }
+  updateSlowMotionDisplay();
+}
+
+
 
 
 var benchmarkState = new SavedStateBool("benchmark", false, (on) => { AA=1; compile(); FIND("error_message").innerHTML = ""; });
