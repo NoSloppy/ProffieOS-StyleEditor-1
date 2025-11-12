@@ -3401,16 +3401,16 @@ function updateSlowMotionDisplay() {
   }
 }
 
-// Enable/disable slow motion speed controls
+// Enable/disable slow motion speed controls (reuses wavlen pattern)
 function handleSlowMotionControls() {
-  const controlsSection = document.querySelector('.slowmotion-controls');
+  const slowLabel = document.querySelector('.slowmotion-controls .wavlen-global-label');
   const speedSlider = FIND("SLOWMOTION_SPEED_VALUE");
   
   if (slowState.get()) {
-    if (controlsSection) controlsSection.classList.remove('disabled');
+    if (slowLabel) slowLabel.classList.remove('disabled');
     if (speedSlider) speedSlider.disabled = false;
   } else {
-    if (controlsSection) controlsSection.classList.add('disabled');
+    if (slowLabel) slowLabel.classList.add('disabled');
     if (speedSlider) speedSlider.disabled = true;
   }
   updateSlowMotionDisplay();

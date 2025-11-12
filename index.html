@@ -292,11 +292,11 @@ https://www.cgtrader.com/designers/talon-3d">
                 <span>Slow-motion animations</span>
               </label>
               <section class="slowmotion-controls">
-                <label class="slowmotion-controls-label" title="Slide to adjust animation speed: 1% is slowest, 100% is normal speed.">
+                <label class="wavlen-global-label" title="Slide to adjust animation speed: 1% is slowest, 100% is normal speed.">
                   Speed:
+                  <input type="range" id="SLOWMOTION_SPEED_VALUE" class="variant-slider" min="1" max="100" value="50" oninput="handleSettings(this)">
+                  <span id="SLOWMOTION_SPEED_DISPLAY">50%</span>
                 </label>
-                <input type="range" id="SLOWMOTION_SPEED_VALUE" class="variant-slider" min="1" max="100" value="50" oninput="handleSettings(this)">
-                <span class="slowmotion-controls-label" id="SLOWMOTION_SPEED_DISPLAY">50%</span>
               </section>
             </section> <!-- settings-section Blade Preview -->
 
