@@ -572,7 +572,7 @@ function startLockupLoop(lockupType, skipBgn = false) {
 
   const beginBuffers = pickLoopBuffers(b) || [];
   const loopBuffers  = pickLoopBuffers(l) || [];
-  if (!beginBuffers.length || !loopBuffers.length) {
+  if (!loopBuffers.length) {
     // Find lockup display name for the message
     const lockupLabel = ({
       [EFFECT_LOCKUP_BEGIN]: "Lockup",
@@ -590,8 +590,8 @@ function startLockupLoop(lockupType, skipBgn = false) {
 
   let startOffset = 0;
 
-  // Play the "begin" sound first, if we're not skipping it
-  if (!skipBgn) {
+  // Play the "begin" sound first, if we're not skipping it and if it exists
+  if (!skipBgn && beginBuffers.length > 0) {
     const bgnIdx = noRepeatRandom(beginBuffers.length, lastPlayedSoundIndex[b]);
     lastPlayedSoundIndex[b] = bgnIdx;
     const { src: bgnSrc } = playBuffer(beginBuffers[bgnIdx], 0, false, 1, gainNode);
