@@ -1739,8 +1739,12 @@ function getSaberColors() {
         }
     }
     var num_leds = blade.num_leds()
-    if (!pixels || pixels.length != num_leds * 3) {
-        pixels = new Float32Array(num_leds * 3);
+    // The Three.js renderer always samples exactly 144 pixels from the returned array.
+    // When InHilt mode is active (num_leds == 1) we must still return 144 entries so
+    // that the renderer can light the full blade instead of only a single pixel.
+    var display_leds = Math.max(num_leds, 144);
+    if (!pixels || pixels.length != display_leds * 3) {
+        pixels = new Float32Array(display_leds * 3);
     }
     var S = current_style;
     if (S != last_style) {
@@ -1782,6 +1786,15 @@ function getSaberColors() {
             pixels[i*3 + 0] += c.r / 2;
             pixels[i*3 + 1] += c.g / 2;
             pixels[i*3 + 2] += c.b / 2;
+        }
+        // InHilt mode: replicate the single LED color across all display positions
+        // so the renderer illuminates the full blade length.
+        if (num_leds < display_leds) {
+            for (var i = num_leds; i < display_leds; i++) {
+                pixels[i*3 + 0] = pixels[(num_leds - 1)*3 + 0];
+                pixels[i*3 + 1] = pixels[(num_leds - 1)*3 + 1];
+                pixels[i*3 + 2] = pixels[(num_leds - 1)*3 + 2];
+            }
         }
         S.update_displays();
     }
