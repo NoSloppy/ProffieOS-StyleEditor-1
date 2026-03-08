@@ -1696,6 +1696,10 @@ var timeFactor = 1.0;
 var bad_fps = 0;
 var good_fps = 0;
 
+// saberPixels is the dedicated Float32Array used exclusively by getSaberColors() for the
+// Three.js renderer.  It is kept separate from the Uint8Array `pixels` used by drawScene()
+// so the two functions never overwrite each other's typed arrays.
+var saberPixels;
 var pixels;
 var AA = 1;
 
@@ -1704,7 +1708,10 @@ var current_focus_url;
 var style_tree;
 var AA_STEP_SIZE = 1;
 
-// returns Float32Array with 3 * num_pixel values
+// returns Float32Array with 3 * 144 values (always 144 regardless of InHilt mode).
+// The Three.js renderer always samples exactly 144 positions from the returned array.
+// When InHilt mode is active (num_leds < 144) the single emitter color is replicated
+// across all 144 positions so the renderer illuminates the full blade.
 function getSaberColors() {
     var now_actual_millis = actual_millis();
     var delta_actual_millis = now_actual_millis - last_actual_millis;
@@ -1738,9 +1745,10 @@ function getSaberColors() {
             FIND("error_message").innerHTML = "AA="+AA;
         }
     }
-    var num_leds = blade.num_leds()
-    if (!pixels || pixels.length != num_leds * 3) {
-        pixels = new Float32Array(num_leds * 3);
+    var num_leds = blade.num_leds();
+    const RENDER_LEDS = 144;
+    if (!saberPixels || saberPixels.length != RENDER_LEDS * 3) {
+        saberPixels = new Float32Array(RENDER_LEDS * 3);
     }
     var S = current_style;
     if (S != last_style) {
@@ -1765,9 +1773,9 @@ function getSaberColors() {
         S.run(blade);
         for (var i = 0; i < num_leds; i++) {
             var c = S.getColor(i);
-            pixels[i*3 + 0] = c.r / 2;
-            pixels[i*3 + 1] = c.g / 2;
-            pixels[i*3 + 2] = c.b / 2;
+            saberPixels[i*3 + 0] = c.r / 2;
+            saberPixels[i*3 + 1] = c.g / 2;
+            saberPixels[i*3 + 2] = c.b / 2;
         }
         if (last_micros != 0) {
             current_micros += delta_us / 2;
@@ -1779,14 +1787,23 @@ function getSaberColors() {
 
         for (var i = 0; i < num_leds; i++) {
             var c = S.getColor(i);
-            pixels[i*3 + 0] += c.r / 2;
-            pixels[i*3 + 1] += c.g / 2;
-            pixels[i*3 + 2] += c.b / 2;
+            saberPixels[i*3 + 0] += c.r / 2;
+            saberPixels[i*3 + 1] += c.g / 2;
+            saberPixels[i*3 + 2] += c.b / 2;
+        }
+        // InHilt mode: replicate the single emitter color across all render positions
+        // so the Three.js renderer illuminates the full blade length.
+        if (num_leds < RENDER_LEDS) {
+            for (var i = num_leds; i < RENDER_LEDS; i++) {
+                saberPixels[i*3 + 0] = saberPixels[(num_leds - 1)*3 + 0];
+                saberPixels[i*3 + 1] = saberPixels[(num_leds - 1)*3 + 1];
+                saberPixels[i*3 + 2] = saberPixels[(num_leds - 1)*3 + 2];
+            }
         }
         S.update_displays();
     }
     t += 1;
-    return pixels;
+    return saberPixels;
 }
 
 function getSaberMove() {
