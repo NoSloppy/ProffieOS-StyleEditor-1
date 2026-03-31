@@ -2596,17 +2596,56 @@ function ClickPower() {
   STATE_LOCKUP=0;
   updateLockupDropdown();
 
+  // if (!STATE_ON && !STATE_WAIT_FOR_ON) {
+  //   STATE_WAIT_FOR_ON = true;
+  //   const preonBuffers = pickLoopBuffers('preon');
+  //   let ignitionDelay = 0;
+  //   if (preonBuffers.length) {
+  //     blade.addEffect(EFFECT_PREON, 0.0);
+  //     let idx = lastPlayedSoundIndex['preon'];
+  //     if (typeof idx !== 'number' || idx >= preonBuffers.length) idx = 0;
+  //     ignitionDelay = Math.round(preonBuffers[idx].duration * 1000);
+  //     console.log(`Delaying ignition by ${ignitionDelay} ms (preon.wav length)`);
+  //   }
+
+  //   // Store ignition timer for possible cancellation
+  //   if (ClickPower._pendingIgnite) clearTimeout(ClickPower._pendingIgnite);
+  //   ClickPower._pendingIgnite = setTimeout(() => {
+  //     STATE_WAIT_FOR_ON = false;
+  //     STATE_ON = true;
+  //     // Ignite and start hum
+  //     requestAnimationFrame(updateSmoothSwingGains)
+  //     blade.addEffect(EFFECT_IGNITION, Math.random() * 0.7 + 0.2);
+  //     setTimeout(() => {
+  //       // Only start hum if still powered on!
+  //       if (outerMostBracket) {
+  //         startHum();
+  //       } else {
+  //         console.log('[ClickPower] Not focused full. not starting hum.');
+  //       }
+  //     }, 200);  // pseudo ProffieOSHumDelay hardcoded
+
+  //     ClickPower._pendingIgnite = null;
+  //   }, ignitionDelay);
   if (!STATE_ON && !STATE_WAIT_FOR_ON) {
     STATE_WAIT_FOR_ON = true;
-    const preonBuffers = pickLoopBuffers('preon');
+
+    // Use SavedStateBool for sound state
+    const isSoundEnabled = soundOnState.get();
+
     let ignitionDelay = 0;
-    if (preonBuffers.length) {
-      blade.addEffect(EFFECT_PREON, 0.0);
-      let idx = lastPlayedSoundIndex['preon'];
-      if (typeof idx !== 'number' || idx >= preonBuffers.length) idx = 0;
-      ignitionDelay = Math.round(preonBuffers[idx].duration * 1000);
-      console.log(`Delaying ignition by ${ignitionDelay} ms (preon.wav length)`);
+
+    if (isSoundEnabled) {
+      const preonBuffers = pickLoopBuffers('preon');
+      if (preonBuffers.length) {
+        blade.addEffect(EFFECT_PREON, 0.0);
+        let idx = lastPlayedSoundIndex['preon'];
+        if (typeof idx !== 'number' || idx >= preonBuffers.length) idx = 0;
+        ignitionDelay = Math.round(preonBuffers[idx].duration * 1000);
+        console.log(`Delaying ignition by ${ignitionDelay} ms (preon.wav length)`);
+      }
     }
+    // if sound is OFF, ignitionDelay remains 0 (no delay, no preon effect)
 
     // Store ignition timer for possible cancellation
     if (ClickPower._pendingIgnite) clearTimeout(ClickPower._pendingIgnite);
@@ -2627,6 +2666,7 @@ function ClickPower() {
 
       ClickPower._pendingIgnite = null;
     }, ignitionDelay);
+
 
     power_button.classList.toggle("button-latched", true);
 
