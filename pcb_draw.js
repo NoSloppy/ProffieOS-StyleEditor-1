@@ -475,7 +475,13 @@ function padCoreOnly(w, h, color, px = -w/2, py = -h/2) {
     // Required tangential span per LED (rotated frame → tangential = ledH)
     var tangential = ledH + 2 * strokeW + gutter;
     var minR = tangential / (2 * Math.sin(Math.PI / PCBgLength));
-    var ledRadius = minR;
+    // var ledRadius = minR;
+    var ledRadius;
+    if (PCBgLength === 1) {
+      ledRadius = 0;
+    } else {
+      var minR = tangential / (2 * Math.sin(Math.PI / PCBgLength));
+      ledRadius = minR;
 
     // Keep a small floor so lanes don’t collapse for tiny rings
     var minLaneR = ledH / 2 + laneMargin + 10;
