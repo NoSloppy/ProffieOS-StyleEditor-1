@@ -474,16 +474,29 @@ function padCoreOnly(w, h, color, px = -w/2, py = -h/2) {
     // Use chord spacing so pads neither overlap at low counts nor drift apart at high counts.
     // Required tangential span per LED (rotated frame → tangential = ledH)
     var tangential = ledH + 2 * strokeW + gutter;
-    var minR = tangential / (2 * Math.sin(Math.PI / PCBgLength));
-    var ledRadius = minR;
 
-    // Keep a small floor so lanes don’t collapse for tiny rings
-    var minLaneR = ledH / 2 + laneMargin + 10;
-    if (ledRadius < minLaneR) ledRadius = minLaneR;
+    var ledRadius, outerLaneR, innerLaneR, ringR;
+    if (PCBgLength === 1) {
+      // Special-case: 1 LED goes right in the center
+      ledRadius = 0;
+      outerLaneR = ledH / 2 + laneMargin + 10;
+      innerLaneR = 8;
+      ringR = 0;
+    } else {
+      var minR = tangential / (2 * Math.sin(Math.PI / PCBgLength));
+      ledRadius = minR;
 
-    var outerLaneR = ledRadius + ledH/2 + laneMargin;
-    var innerLaneR = ledRadius - ledH/2 - laneMargin;
-    if (innerLaneR < 8) innerLaneR = 8;
+      // Keep a small floor so lanes don’t collapse for tiny rings
+      var minLaneR = ledH / 2 + laneMargin + 10;
+      if (ledRadius < minLaneR) ledRadius = minLaneR;
+
+      outerLaneR = ledRadius + ledH/2 + laneMargin;
+      innerLaneR = ledRadius - ledH/2 - laneMargin;
+      if (innerLaneR < 8) innerLaneR = 8;
+
+      // LED centers ride the midline between lanes
+      ringR = (outerLaneR + innerLaneR) / 2;
+    }
 
     if (!img) {
       // Ring Outlines
@@ -500,9 +513,6 @@ function padCoreOnly(w, h, color, px = -w/2, py = -h/2) {
       ctx.stroke();
     }
 
-    // LED centers ride the midline between lanes
-    var ringR = (outerLaneR + innerLaneR) / 2;
-
     // Start at 12 o’clock
     var startAngle = -Math.PI / 2;
 
@@ -510,12 +520,17 @@ function padCoreOnly(w, h, color, px = -w/2, py = -h/2) {
     var items = [];
     for (var i = 0; i < PCBgLength; i++) {
       var angle = startAngle + (i / PCBgLength) * 2 * Math.PI;
-      var x = centerX + Math.cos(angle) * ringR;
-      var y = centerY + Math.sin(angle) * ringR;
+      var x, y;
+      if (PCBgLength === 1) {
+        x = centerX;
+        y = centerY;
+      } else {
+        x = centerX + Math.cos(angle) * ringR;
+        y = centerY + Math.sin(angle) * ringR;
+      }
       var color = pickColor(i, null);
       items.push({ x, y, angle, w:ledW, h:ledH, color, label:i+1, fontPx: Math.round(sc(30)) });
     }
-
     renderPadsEqualized(items);
     return;
   }
