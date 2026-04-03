@@ -645,7 +645,7 @@ createBgPlane();
       const bladeHaloUniforms = {
         // iTime:       { value: 0 },
         // iResolution: { value: new THREE.Vector3(1, 1, 1) },
-        iChannel0:     { value: haze_texture }
+        iChannel0:     { value: haze_texture },
         uBladeScale:   { value: 1 }
       };
 
@@ -768,10 +768,10 @@ function animate() {
   if (hilt && blade) {
     const bladeScale = (window.STATE_NUM_LEDS || 144) / 144;
     blade.scale.y = bladeScale;
-    blade.position.y = 75 * (bladeScale - 1);
+    blade.position.y = 35 * (1 - bladeScale);
     if (blade_aura) {
       blade_aura.scale.y = bladeScale;
-      blade_aura.position.y = 75 * (bladeScale - 1);
+      blade_aura.position.y = 35 * (1 - bladeScale);
       blade_aura.material.uniforms.uBladeScale.value = bladeScale;
     }
 
