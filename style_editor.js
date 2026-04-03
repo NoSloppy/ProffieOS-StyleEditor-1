@@ -3326,8 +3326,46 @@ function toggleSettingsPanel() {
     console.log('*** INVALID INPUT - Not closing panel.');
     return;
   }
+  if (!settingsPanel.classList.contains('show')) {
+    // Reset to centered position each time the panel is opened
+    settingsPanel.style.left = '';
+    settingsPanel.style.top = '';
+    settingsPanel.style.transform = '';
+  }
   settingsPanel.classList.toggle('show');
 }
+
+// Draggable settings panel
+(function() {
+  let startX, startY, startLeft, startTop;
+
+  function onMouseMove(e) {
+    settingsPanel.style.left = (startLeft + e.clientX - startX) + 'px';
+    settingsPanel.style.top = (startTop + e.clientY - startY) + 'px';
+  }
+
+  function onMouseUp() {
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+  }
+
+  settingsPanel.addEventListener('mousedown', function(e) {
+    const dragHandle = settingsPanel.querySelector('.settings-drag-handle');
+    if (!dragHandle || !dragHandle.contains(e.target)) return;
+    const rect = settingsPanel.getBoundingClientRect();
+    settingsPanel.style.left = rect.left + 'px';
+    settingsPanel.style.top = rect.top + 'px';
+    settingsPanel.style.transform = 'none';
+    startX = e.clientX;
+    startY = e.clientY;
+    startLeft = rect.left;
+    startTop = rect.top;
+    e.preventDefault();
+    e.stopPropagation();
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  });
+})();
 
 // Click outside to close Settings Panel
 document.body.addEventListener('click', function(e) {

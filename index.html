@@ -36,6 +36,18 @@
 
   <script type="module" crossorigin src="./assets/index-Bvd-yCs9.js"></script>
   <link rel="stylesheet" crossorigin href="./assets/index-CgxdWrHT.css">
+  <style>
+    .settings-drag-handle {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 28px;
+      cursor: move;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+  </style>
 </head>
 <body>
   <script defer src="pcb_draw.js"></script>
@@ -252,6 +264,7 @@ Goto settings to change hilt model or toggle Mouse Swings mode (swinging with mo
 
         <div id="settings_panel" class="settings-panel"
           title="Turning on checkboxes saves your settings for future visits to the Style Editor page.">
+          <div class="settings-drag-handle" title="Drag to move"></div>
           <button
            title="Close Settings Panel."
             class="close-settings" onclick="toggleSettingsPanel()">X</button>
