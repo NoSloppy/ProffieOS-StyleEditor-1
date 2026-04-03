@@ -994,8 +994,13 @@ function animate() {
 
       const dir          = oldTipWorld.clone().sub(anchor).normalize();
       const quat         = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), dir);
-      const offset       = baseLocal.clone().applyQuaternion(quat);
-      const m4           = new THREE.Matrix4().compose(anchor.clone().sub(offset), quat, new THREE.Vector3(1, 1, 1));
+      // Extract the blade Y-scale baked into the captured matrix so trail ghosts
+      // render at the same shortened length as the blade, not always full 144.
+      const _p = new THREE.Vector3(), _q = new THREE.Quaternion(), _s = new THREE.Vector3();
+      ghostMat.decompose(_p, _q, _s);
+      const trailScale   = _s.y;
+      const offset       = new THREE.Vector3(0, 35 * trailScale, 0).applyQuaternion(quat);
+      const m4           = new THREE.Matrix4().compose(anchor.clone().sub(offset), quat, new THREE.Vector3(1, trailScale, 1));
 
       const mesh = meshes[k];
       mesh.matrixAutoUpdate = false;
