@@ -134,6 +134,7 @@ if (bloom) {
 var hilt;
 var blade;
 var blade_aura;
+var blade_tip;
 
 THREE.ShaderChunk.tonemapping_pars_fragment = THREE.ShaderChunk.tonemapping_pars_fragment.replace(
   'vec3 CustomToneMapping( vec3 color ) { return color; }',
@@ -144,6 +145,77 @@ THREE.ShaderChunk.tonemapping_pars_fragment = THREE.ShaderChunk.tonemapping_pars
 );
 
 renderer.toneMapping = THREE.CustomToneMapping;
+
+// Generates a standalone bullet-tip cap geometry, base ring at y=0, apex pointing in -y.
+// Matches the shape of generateCap(true) in BladeGeometry (same tipPower / tipScaleY).
+function makeTipCapGeometry(radius, radialSegments) {
+  const tipPower  = 1.2;
+  const tipScaleY = 2.20;
+  const segments  = Math.floor(radialSegments / 4);
+
+  const verts = [], norms = [], uvArr = [], idxArr = [];
+  let idx = 0;
+  const rings = [];
+
+  // Base ring — sits flush with the open end of the cylinder
+  const baseRing = [];
+  for (let x = 0; x < radialSegments; x++) {
+    const theta = (x / radialSegments) * Math.PI * 2;
+    const sinT = Math.sin(theta), cosT = Math.cos(theta);
+    verts.push(radius * sinT, 0, radius * cosT);
+    norms.push(sinT, 0, cosT);
+    uvArr.push(0.5, 1.0);
+    baseRing.push(idx++);
+  }
+  baseRing.push(baseRing[0]);
+  rings.push(baseRing);
+
+  // Intermediate rings — same bullet-profile maths as BladeGeometry.generateCap
+  for (let y = 1; y < segments; y++) {
+    const angle = y * Math.PI / 2 / segments;
+    const sinA  = Math.sin(angle), cosA = Math.cos(angle);
+    const sinP  = Math.pow(sinA, tipPower);
+    const cosP  = Math.pow(cosA, tipPower);
+    const ring  = [];
+    for (let x = 0; x < radialSegments; x++) {
+      const theta = (x / radialSegments) * Math.PI * 2;
+      const sinT  = Math.sin(theta), cosT = Math.cos(theta);
+      verts.push(radius * sinT * cosP, -(sinP * radius * tipScaleY), radius * cosT * cosP);
+      const nx = sinT * cosP, ny = sinP, nz = cosT * cosP;
+      const nl = Math.sqrt(nx*nx + ny*ny + nz*nz);
+      norms.push(nx/nl, -ny/nl, nz/nl);
+      uvArr.push(0.5, 1.0);
+      ring.push(idx++);
+    }
+    ring.push(ring[0]);
+    rings.push(ring);
+  }
+
+  // Apex
+  verts.push(0, -radius, 0);
+  norms.push(0, -1, 0);
+  uvArr.push(0.5, 1.0);
+  const apexRing = [];
+  for (let x = 0; x <= radialSegments; x++) apexRing.push(idx);
+  idx++;
+  rings.push(apexRing);
+
+  // Build faces — winding matches bottom-cap (pointing -y) of BladeGeometry
+  for (let y = 0; y < rings.length - 1; y++) {
+    for (let x = 0; x < radialSegments; x++) {
+      const a = rings[y][x], b = rings[y+1][x], c = rings[y+1][x+1], d = rings[y][x+1];
+      idxArr.push(a, b, d);
+      if (y < rings.length - 2) idxArr.push(b, c, d);
+    }
+  }
+
+  const geom = new THREE.BufferGeometry();
+  geom.setIndex(idxArr);
+  geom.setAttribute('position', new Float32BufferAttribute(verts, 3));
+  geom.setAttribute('normal',   new Float32BufferAttribute(norms, 3));
+  geom.setAttribute('uv',       new Float32BufferAttribute(uvArr, 2));
+  return geom;
+}
 
 class BladeGeometry extends THREE.BufferGeometry {
 
@@ -597,7 +669,7 @@ createBgPlane();
         .makeTranslation(0.0, -20, 0.0)
         .multiply(new THREE.Matrix4().makeRotationX(Math.PI));
 
-      const blade_geometry = new BladeGeometry(1.3, 1.3, 110, 64, 1);
+      const blade_geometry = new BladeGeometry(1.3, 1.3, 110, 64, 1, true); // openEnded — tip cap is a separate mesh
       blade_geometry.applyMatrix4(blade_translation);
 
       const blade_material = new THREE.MeshStandardMaterial({
@@ -610,6 +682,18 @@ createBgPlane();
 
       blade = new THREE.Mesh(blade_geometry, blade_material);
       hilt.add(blade);
+
+      // Tip cap — separate mesh so it never gets Y-scaled with the cylinder
+      const blade_tip_geometry = makeTipCapGeometry(1.3, 64);
+      const blade_tip_material = new THREE.MeshStandardMaterial({
+        color:             0xCCCCCC,
+        emissiveMap:       blade_texture,
+        emissiveIntensity: 1.7,
+        emissive:          0xffffffff,
+        envMap:            envMap
+      });
+      blade_tip = new THREE.Mesh(blade_tip_geometry, blade_tip_material);
+      hilt.add(blade_tip);
 
       // Trail
       for (let i = 0; i < TRAIL_LENGTH; ++i) {
@@ -702,11 +786,15 @@ function animate() {
   // --- LED + haze update (unchanged) ---
   if (blade_texture) {
     const pixels = window.getSaberColors();
+    // Stretch the N active LEDs across all 144 texture rows so the full scaled cylinder
+    // shows lit pixels from hilt to tip rather than leaving the tip end dark.
+    const activeLEDs = Math.max(1, window.STATE_NUM_LEDS || 144);
     for (let i = 0; i < 144; i++) {
+      const srcIdx = Math.min(Math.floor(i * activeLEDs / 144), activeLEDs - 1);
       const stride = i * 4;
-      blade_data[stride    ] = Math.round(255 * pixels[i*3    ]);
-      blade_data[stride + 1] = Math.round(255 * pixels[i*3 + 1]);
-      blade_data[stride + 2] = Math.round(255 * pixels[i*3 + 2]);
+      blade_data[stride    ] = Math.round(255 * pixels[srcIdx*3    ]);
+      blade_data[stride + 1] = Math.round(255 * pixels[srcIdx*3 + 1]);
+      blade_data[stride + 2] = Math.round(255 * pixels[srcIdx*3 + 2]);
       blade_data[stride + 3] = 255;
     }
     blade_texture.needsUpdate = true;
@@ -772,6 +860,10 @@ function animate() {
       blade_aura.scale.y = bladeScale;
       blade_aura.position.y = 35 * (1 - bladeScale);
       blade_aura.material.uniforms.uBladeScale.value = bladeScale;
+    }
+    // Keep the tip cap at the end of the scaled cylinder, without squashing it
+    if (blade_tip) {
+      blade_tip.position.y = 35 - 110 * bladeScale;
     }
 
     const mat = window.getSaberMove();
