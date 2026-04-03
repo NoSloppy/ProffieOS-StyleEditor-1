@@ -475,7 +475,7 @@ const bladeHaloFragmentShader = `
     dist           /= 30.0;
     vec3  haze_color = texture2D(
       iChannel0,
-      vec2(flyby_pt * uBladeScale, sqrt(dist) / 2.0 / cosA)
+      vec2((1.0 - flyby_pt) * uBladeScale, sqrt(dist) / 2.0 / cosA)
     ).rgb;
     // vec3 haze_color = texture2D(iChannel0, vec2(flyby_pt, 1.0)).rgb;
 //    haze_color    /= (dist * dist * dist * dist * 500.0 + 1.0);  // FH
