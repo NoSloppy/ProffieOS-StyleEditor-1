@@ -548,7 +548,7 @@ const bladeHaloFragmentShader = `
     dist           /= 30.0;
     vec3  haze_color = texture2D(
       iChannel0,
-      vec2((1.0 - flyby_pt) * uBladeScale, sqrt(dist) / 2.0 / cosA)
+      vec2(1.0 - flyby_pt, sqrt(dist) / 2.0 / cosA)
     ).rgb;
     // vec3 haze_color = texture2D(iChannel0, vec2(flyby_pt, 1.0)).rgb;
 //    haze_color    /= (dist * dist * dist * dist * 500.0 + 1.0);  // FH
@@ -801,14 +801,19 @@ function animate() {
     }
     blade_texture.needsUpdate = true;
 
-    const num_leds = 144;
+//    const num_leds = 144;
+    // Stretch the N active LEDs across all 144 haze columns, same as blade_data,
+    // so the glow at the cylinder tip samples the bright tip LED (not dark unused LEDs).
     for (let depth = 0; depth < max_haze_depth; depth++) {
-      for (let i = 0; i < num_leds; i++) {
+      // for (let i = 0; i < num_leds; i++) {
+      for (let i = 0; i < 144; i++) {
+        const centerLED = Math.min(Math.floor(i * activeLEDs / 144), activeLEDs - 1);
+
         let R = 0, G = 0, B = 0, W = 0;
         const haze_dist = 1 + 4 * depth;
         for (let D = -64; D <= 64; D++) {
-          let p = i + D;
-          if (p < 0 || p >= num_leds) continue;
+          let p = centerLED + D;
+          if (p < 0 || p >= activeLEDs) continue;
           const dist = (Math.abs(D) + 1) / haze_dist + 1;
           const wgt  = 1 / (dist * dist);
           R += pixels[p*3    ] * wgt;
@@ -817,7 +822,7 @@ function animate() {
           W += wgt;
         }
         R /= W; G /= W; B /= W;
-        const off = (i + depth * num_leds) * 4;
+        const off = (i + depth * 144) * 4;
         haze_data[off    ] = Math.round(R * 255);
         haze_data[off + 1] = Math.round(G * 255);
         haze_data[off + 2] = Math.round(B * 255);
