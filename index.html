@@ -34,8 +34,8 @@
   https://www.renderhub.com/talon-3d
   https://www.cgtrader.com/designers/talon-3d -->
 
-  <script type="module" crossorigin src="./assets/index-Bvd-yCs9.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-CgxdWrHT.css">
+  <script type="module" crossorigin src="./assets/index-BOlB1sPZ.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-DYy_-G5H.css">
 </head>
 <body>
   <script defer src="pcb_draw.js"></script>
@@ -252,6 +252,7 @@ Goto settings to change hilt model or toggle Mouse Swings mode (swinging with mo
 
         <div id="settings_panel" class="settings-panel"
           title="Turning on checkboxes saves your settings for future visits to the Style Editor page.">
+          <div class="settings-drag-handle" title="Drag to move"></div>
           <button
            title="Close Settings Panel."
             class="close-settings" onclick="toggleSettingsPanel()">X</button>
@@ -313,6 +314,13 @@ https://www.cgtrader.com/designers/talon-3d">
                   Speed:
                   <input type="range" id="SLOWMOTION_SPEED_VALUE" class="variant-slider" min="1" max="100" value="50" oninput="handleSettings(this)">
                   <span id="SLOWMOTION_SPEED_DISPLAY">50%</span>
+                </label>
+              </section>
+              <section class="blade-length-controls">
+                <label class="blade-length-label" title="Adjust the number of LEDs in the blade preview. Standard blades are 144 LEDs.">
+                  Blade length:
+                  <input type="range" id="BLADE_LENGTH_VALUE" class="variant-slider" min="10" max="144" value="144" oninput="handleSettings(this)">
+                  <span id="BLADE_LENGTH_DISPLAY">144 LEDs</span>
                 </label>
               </section>
             </section> <!-- settings-section Blade Preview -->
