@@ -1,3 +1,35 @@
+// All sound folder/filename bases that ProffieOS recognises.
+// Derived from EFFECT_SOUND_MAP (style_editor.js) plus the looping mid-sounds
+// (hum, lock, drag, melt, lb) that are referenced directly in startAudioLoop calls.
+const VALID_EFFECTS = new Set([
+  // One-shot effects
+  'battlevl', 'bladein', 'bladeout', 'blst', 'blstbgn', 'blstend',
+  'bmbegin', 'bmend', 'boom', 'boot',
+  'ccchange', 'clipin', 'clipout', 'clsh',
+  'destruct', 'dim',
+  'empty',
+  'fastout', 'fire', 'font', 'force', 'full',
+  'in',
+  'jam',
+  'mode',
+  'out',
+  'plion', 'plioff', 'preon', 'pstoff',
+  'quote',
+  'range', 'reload',
+  'slsh', 'spin', 'stab', 'stun', 'swng',
+  'tr', 'trloop',
+  'unjam',
+  'volup',
+  // Lockup begin / loop / end sounds
+  'bgnauto', 'endauto',
+  'bgndrag', 'drag', 'enddrag',
+  'bgnlb',   'lb',   'endlb',
+  'bgnlock', 'lock', 'endlock',
+  'bgnmelt', 'melt', 'endmelt',
+  // Hum loop
+  'hum',
+]);
+
 // Default font data loaded from GitHub
 const defaultFontSoundBuffers   = {};
 const defaultFontSoundDurations = {};
@@ -127,25 +159,34 @@ fileInput.addEventListener('change', (e) => {
   // });
 
   // Build an array of Promises—one per file—to decode & stash buffers
-  // Also account for sub-sub sounds
   const loadPromises = files.map(file => {
     const relPath = file.webkitRelativePath || file.name;
 
     // Only process WAVs
     if (!/\.wav$/i.test(file.name)) return Promise.resolve();
 
-    // Prefer effect name from the filename (e.g., clsh01.wav); if missing,
-    // fall back to the top-level effect folder (e.g., clsh/01/000.wav → "clsh").
-    const nameMatch = file.name.match(/^([a-z]+)[0-9]*\.wav$/i);
-    let effect = nameMatch ? nameMatch[1].toLowerCase() : null;
+    // ProffieOS only plays sounds from exactly two locations:
+    //   1. Font root:        font/clsh01.wav   (filename base must be a known effect)
+    //   2. Named subfolder:  font/clsh/01.wav  (depth-1 folder name must be a known effect)
+    // Anything deeper (font/clsh/01/000.wav) is ignored — ProffieOS does not recurse further.
+    const parts = relPath.split('/'); // [fontFolder, ...path, filename]
+    let effect = null;
 
-    if (!effect && relPath.includes('/')) {
-      const parts = relPath.split('/');          // [font, effectDir, maybe subdir, filename]
-      const effectDir = parts[1] || '';
-      effect = effectDir.replace(/[^a-z]/gi, '').toLowerCase();  // "clsh." → "clsh"
+    if (parts.length === 2) {
+      // Root-level file — derive effect from the filename base
+      const nameMatch = file.name.match(/^([a-z]+)[0-9]*\.wav$/i);
+      if (nameMatch) {
+        const base = nameMatch[1].toLowerCase();
+        if (VALID_EFFECTS.has(base)) effect = base;
+      }
+    } else if (parts.length === 3) {
+      // One subfolder deep — effect is the folder name
+      const folderBase = parts[1].replace(/[^a-z]/gi, '').toLowerCase();
+      if (VALID_EFFECTS.has(folderBase)) effect = folderBase;
     }
+    // parts.length > 3 → deeply nested, skip
 
-    // Still unknown? Skip.
+    // Skip if not a recognised ProffieOS sound location
     if (!effect) return Promise.resolve();
 
     customFontSoundBuffers  [effect] ||= [];
