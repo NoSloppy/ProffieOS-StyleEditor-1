@@ -1739,9 +1739,11 @@ function getSaberColors() {
         }
     }
     var num_leds = blade.num_leds()
-    if (!pixels || pixels.length != num_leds * 3) {
-        pixels = new Float32Array(num_leds * 3);
+    if (!pixels || pixels.length != 144 * 3) {
+        pixels = new Float32Array(144 * 3);
     }
+    for (var z = num_leds * 3; z < 144 * 3; z++) pixels[z] = 0;
+
     var S = current_style;
     if (S != last_style) {
         last_style = S;
@@ -2667,7 +2669,7 @@ function ClickPower() {
       ClickPower._pendingIgnite = null;
     }, ignitionDelay);
 
-
+  
     power_button.classList.toggle("button-latched", true);
 
   } else if (STATE_WAIT_FOR_ON) {
@@ -3326,8 +3328,42 @@ function toggleSettingsPanel() {
     console.log('*** INVALID INPUT - Not closing panel.');
     return;
   }
+  if (!settingsPanel.classList.contains('show')) {
+    // Reset to centered position each time the panel is opened
+    settingsPanel.style.left = '';
+    settingsPanel.style.top = '';
+    settingsPanel.style.transform = '';
+  }
   settingsPanel.classList.toggle('show');
 }
+
+// Draggable settings panel
+(function() {
+  let isDragging = false;
+  let startX, startY, startLeft, startTop;
+  const dragHandle = settingsPanel.querySelector('.settings-drag-handle');
+  dragHandle.addEventListener('mousedown', function(e) {
+    const rect = settingsPanel.getBoundingClientRect();
+    settingsPanel.style.left = rect.left + 'px';
+    settingsPanel.style.top = rect.top + 'px';
+    settingsPanel.style.transform = 'none';
+    isDragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    startLeft = rect.left;
+    startTop = rect.top;
+    e.preventDefault();
+    e.stopPropagation();
+  });
+  document.addEventListener('mousemove', function(e) {
+    if (!isDragging) return;
+    settingsPanel.style.left = (startLeft + e.clientX - startX) + 'px';
+    settingsPanel.style.top = (startTop + e.clientY - startY) + 'px';
+  });
+  document.addEventListener('mouseup', function() {
+    isDragging = false;
+  });
+})();
 
 // Click outside to close Settings Panel
 document.body.addEventListener('click', function(e) {
@@ -3448,7 +3484,23 @@ var backgroundState = new SavedStateBool("background", true, (on) => {
 var mouseSwingsState = new SavedStateBool("mouse_swings", false, (on) => {});
 var bladeTrailsState = new SavedStateBool("blade_trails", true, (on) => { window.showBladeTrails = on; });
 var autoswingState = new SavedStateBool("autoswing", true, (on) => {});
-var inhiltState = new SavedStateBool("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
+// var inhiltState = new SavedStateBool("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
+var inhiltState = new SavedStateBool("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : (bladeLengthState ? bladeLengthState.get() : 144); });
+
+var bladeLengthState = new SavedStateNumber("blade_length", 144, (value) => {
+  if (!inhiltState || !inhiltState.get()) {
+    STATE_NUM_LEDS = value;
+  }
+  updateBladeLengthDisplay();
+});
+
+function updateBladeLengthDisplay() {
+  const display = FIND("BLADE_LENGTH_DISPLAY");
+  if (display && bladeLengthState) {
+    display.textContent = bladeLengthState.get() + " LEDs";
+  }
+}
+
 // var slowState = new SavedStateBool("slow", false, (on) => { framesPerUpdate = on ? 10 : 0; time_factor = framesPerUpdate == 0 ? 1000 : (500/framesPerUpdate)});
 
 // Slow motion state: checkbox enables/disables, speed slider controls the speed (1-100%)

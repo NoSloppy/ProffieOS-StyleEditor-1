@@ -59,6 +59,34 @@ fetch('default_font_urls.txt')
   })
   .catch(err => console.error("Could not load default_font_urls.txt:", err));
 
+// All sound folder/filename bases that ProffieOS recognises as valid effects.
+const VALID_EFFECTS = new Set([
+  'battlevl', 'bladein', 'bladeout', 'blst', 'blstbgn', 'blstend',
+  'bmbegin', 'bmend', 'boom', 'boot',
+  'ccchange', 'clipin', 'clipout', 'clsh',
+  'destruct', 'dim',
+  'empty',
+  'fastout', 'fire', 'font', 'force', 'full',
+  'in',
+  'jam',
+  'mode',
+  'out',
+  'plion', 'plioff', 'preon', 'pstoff',
+  'quote',
+  'range', 'reload',
+  'slsh', 'spin', 'stab', 'stun', 'swng',
+  'tr', 'trloop',
+  'unjam',
+  'volup',
+  // looping mid-sounds
+  'hum', 'lock', 'drag', 'melt', 'lb',
+  'bmlock', 'bgnlock', 'endlock',
+  'bgndrag', 'enddrag',
+  'bgnmelt', 'endmelt',
+  'bgnlb', 'endlb',
+  'bgnauto', 'endauto',
+]);
+
 const chooseLocalFontBtn = FIND('choose_local_font');
 const fileInput          = FIND('files');
 
@@ -134,19 +162,38 @@ fileInput.addEventListener('change', (e) => {
     // Only process WAVs
     if (!/\.wav$/i.test(file.name)) return Promise.resolve();
 
-    // Prefer effect name from the filename (e.g., clsh01.wav); if missing,
-    // fall back to the top-level effect folder (e.g., clsh/01/000.wav → "clsh").
-    const nameMatch = file.name.match(/^([a-z]+)[0-9]*\.wav$/i);
-    let effect = nameMatch ? nameMatch[1].toLowerCase() : null;
+    // // Prefer effect name from the filename (e.g., clsh01.wav); if missing,
+    // // fall back to the top-level effect folder (e.g., clsh/01/000.wav → "clsh").
+    // const nameMatch = file.name.match(/^([a-z]+)[0-9]*\.wav$/i);
+    // let effect = nameMatch ? nameMatch[1].toLowerCase() : null;
 
-    if (!effect && relPath.includes('/')) {
-      const parts = relPath.split('/');          // [font, effectDir, maybe subdir, filename]
-      const effectDir = parts[1] || '';
-      effect = effectDir.replace(/[^a-z]/gi, '').toLowerCase();  // "clsh." → "clsh"
+    // if (!effect && relPath.includes('/')) {
+    //   const parts = relPath.split('/');          // [font, effectDir, maybe subdir, filename]
+    //   const effectDir = parts[1] || '';
+    //   effect = effectDir.replace(/[^a-z]/gi, '').toLowerCase();  // "clsh." → "clsh"
+    // }
+
+    // // Still unknown? Skip.
+    // if (!effect) return Promise.resolve();
+
+    // Determine effect from path:
+    //   - Root-level file (font/clsh01.wav): derive from filename base
+    //   - Any subfolder (font/clsh/..., font/swng/01/000.wav): depth-1 folder decides
+    // Files inside non-effect folders (e.g., font/Extras/...) are rejected.
+    const parts = relPath.split('/');
+    let effect = null;
+
+    if (parts.length === 2) {
+      // Root-level: use filename base (e.g., clsh01.wav → "clsh")
+      const nameMatch = file.name.match(/^([a-z]+)[0-9]*\.wav$/i);
+      if (nameMatch) effect = nameMatch[1].toLowerCase();
+    } else {
+      // Any subfolder depth: only the depth-1 folder name matters
+      effect = (parts[1] || '').replace(/[^a-z]/gi, '').toLowerCase();
     }
 
-    // Still unknown? Skip.
-    if (!effect) return Promise.resolve();
+    // Reject if not a recognised ProffieOS effect
+    if (!effect || !VALID_EFFECTS.has(effect)) return Promise.resolve();
 
     customFontSoundBuffers  [effect] ||= [];
     customFontSoundDurations[effect] ||= [];
