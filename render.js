@@ -134,6 +134,7 @@ if (bloom) {
 
 var hilt;
 var blade;
+var blade_aura;
 
 THREE.ShaderChunk.tonemapping_pars_fragment = THREE.ShaderChunk.tonemapping_pars_fragment.replace(
   'vec3 CustomToneMapping( vec3 color ) { return color; }',
@@ -400,6 +401,7 @@ const bladeHaloFragmentShader = `
   varying vec3        vB;
   varying vec3        vTarget;
   uniform sampler2D   iChannel0;
+  uniform float       uBladeScale;
 
   float line_dist(vec3 pt1, vec3 dir1, vec3 pt2, vec3 dir2) {
     vec3 n = normalize(cross(dir1, dir2));
@@ -473,7 +475,7 @@ const bladeHaloFragmentShader = `
     dist           /= 30.0;
     vec3  haze_color = texture2D(
       iChannel0,
-      vec2(1.0 - flyby_pt, sqrt(dist) / 2.0 / cosA)
+      vec2(flyby_pt * uBladeScale, sqrt(dist) / 2.0 / cosA)
     ).rgb;
     // vec3 haze_color = texture2D(iChannel0, vec2(flyby_pt, 1.0)).rgb;
 //    haze_color    /= (dist * dist * dist * dist * 500.0 + 1.0);  // FH
@@ -644,6 +646,7 @@ createBgPlane();
         // iTime:       { value: 0 },
         // iResolution: { value: new THREE.Vector3(1, 1, 1) },
         iChannel0:     { value: haze_texture }
+        uBladeScale:   { value: 1 }
       };
 
       const blade_halo_material = new THREE.ShaderMaterial({
@@ -654,7 +657,7 @@ createBgPlane();
         blending:       THREE.AdditiveBlending
       });
 
-      var blade_aura = new THREE.Mesh(blade_aura_geometry, blade_halo_material);
+      blade_aura = new THREE.Mesh(blade_aura_geometry, blade_halo_material);
       hilt.add(blade_aura);
     }
   }, undefined, function(error) {
@@ -763,6 +766,15 @@ function animate() {
 
   // Update hilt (always), capture/decay trails only when enabled
   if (hilt && blade) {
+    const bladeScale = (window.STATE_NUM_LEDS || 144) / 144;
+    blade.scale.y = bladeScale;
+    blade.position.y = 75 * (bladeScale - 1);
+    if (blade_aura) {
+      blade_aura.scale.y = bladeScale;
+      blade_aura.position.y = 75 * (bladeScale - 1);
+      blade_aura.material.uniforms.uBladeScale.value = bladeScale;
+    }
+
     const mat = window.getSaberMove();
     hilt.matrixAutoUpdate = false;
     hilt.matrix.fromArray(mat.values);
