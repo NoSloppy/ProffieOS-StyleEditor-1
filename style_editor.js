@@ -3485,9 +3485,13 @@ var mouseSwingsState = new SavedStateBool("mouse_swings", false, (on) => {});
 var bladeTrailsState = new SavedStateBool("blade_trails", true, (on) => { window.showBladeTrails = on; });
 var autoswingState = new SavedStateBool("autoswing", true, (on) => {});
 // var inhiltState = new SavedStateBool("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
-var inhiltState = new SavedStateBool("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : (bladeLengthState ? bladeLengthState.get() : 144); });
+var inhiltState = new SavedStateBool("inhilt", false, (on) => {
+  STATE_NUM_LEDS = on ? 1 : (bladeLengthState ? bladeLengthState.get() : 144);
+  window.bladeVisualLEDs = bladeLengthState ? bladeLengthState.get() : 144;
+});
 
 var bladeLengthState = new SavedStateNumber("blade_length", 144, (value) => {
+  window.bladeVisualLEDs = value;
   if (!inhiltState || !inhiltState.get()) {
     STATE_NUM_LEDS = value;
   }
