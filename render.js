@@ -860,7 +860,7 @@ function animate() {
 
   // Update hilt (always), capture/decay trails only when enabled
   if (hilt && blade) {
-    const bladeScale = (window.STATE_NUM_LEDS || 144) / 144;
+    const bladeScale = (window.bladeVisualLEDs || window.STATE_NUM_LEDS || 144) / 144;
     blade.scale.y = bladeScale;
     blade.position.y = 35 * (1 - bladeScale);
     if (blade_aura) {
