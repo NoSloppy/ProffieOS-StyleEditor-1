@@ -677,14 +677,14 @@ createBgPlane();
       blade_geometry.applyMatrix4(blade_translation);
 
       const blade_material = new THREE.MeshStandardMaterial({
-  color:             0xCCCCCC,
-  emissiveMap:       blade_texture,
-  emissiveIntensity: 1.7,
-  emissive:          0xffffffff,
-  transparent:       true,
-  alphaTest:         0.01,
-  depthWrite:        false,
-  envMap:            envMap
+      color:             0xCCCCCC,
+      emissiveMap:       blade_texture,
+      emissiveIntensity: 1.7,
+      emissive:          0xffffffff,
+      transparent:       true,
+      alphaTest:         0.01,
+      depthWrite:        false,
+      envMap:            envMap
       });
 
       blade = new THREE.Mesh(blade_geometry, blade_material);
@@ -693,14 +693,14 @@ createBgPlane();
      // Tip cap — separate mesh so it never gets Y-scaled with the cylinder
       const blade_tip_geometry = makeTipCapGeometry(1.3, 64);
       const blade_tip_material = new THREE.MeshStandardMaterial({
-  color:             0xCCCCCC,
-  emissiveMap:       blade_texture,
-  emissiveIntensity: 1.7,
-  emissive:          0xffffffff,
-  transparent:       true,
-  alphaTest:         0.01,
-  depthWrite:        false,
-  envMap:            envMap
+      color:             0xCCCCCC,
+      emissiveMap:       blade_texture,
+      emissiveIntensity: 1.7,
+      emissive:          0xffffffff,
+      transparent:       true,
+      alphaTest:         0.01,
+      depthWrite:        false,
+      envMap:            envMap
       });
       blade_tip = new THREE.Mesh(blade_tip_geometry, blade_tip_material);
       hilt.add(blade_tip);
@@ -820,15 +820,14 @@ function animate() {
     for (let i = 0; i < 144; i++) {
       const srcIdx = Math.min(Math.floor(i * activeLEDs / 144), activeLEDs - 1);
       const stride = i * 4;
-
-const r = pixels[srcIdx*3    ];
-const g = pixels[srcIdx*3 + 1];
-const b = pixels[srcIdx*3 + 2];
-const lit = r > PIXEL_LIT_THRESHOLD || g > PIXEL_LIT_THRESHOLD || b > PIXEL_LIT_THRESHOLD;
-blade_data[stride    ] = Math.round(255 * r);
-blade_data[stride + 1] = Math.round(255 * g);
-blade_data[stride + 2] = Math.round(255 * b);
-blade_data[stride + 3] = lit ? 255 : 0;
+      const r = pixels[srcIdx*3    ];
+      const g = pixels[srcIdx*3 + 1];
+      const b = pixels[srcIdx*3 + 2];
+      const lit = r > PIXEL_LIT_THRESHOLD || g > PIXEL_LIT_THRESHOLD || b > PIXEL_LIT_THRESHOLD;
+      blade_data[stride    ] = Math.round(255 * r);
+      blade_data[stride + 1] = Math.round(255 * g);
+      blade_data[stride + 2] = Math.round(255 * b);
+      blade_data[stride + 3] = lit ? 255 : 0;
     }
     blade_texture.needsUpdate = true;
 
