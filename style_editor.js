@@ -3441,14 +3441,15 @@ class SavedStateNumber extends SavedState {
     }
   }
   set(value) {
-    this.value = value;
+    const numericValue = Number(value);
+    this.value = Number.isFinite(numericValue) ? numericValue : this.def;
     // FIND(this.name.toUpperCase() + "_VALUE").value = value;
     const input = FIND(this.name.toUpperCase() + "_VALUE");
     if (input) {
-      input.value = value;
+      input.value = this.value;
     }
-    saveState(this.name + "_Save", value);
-    this.update_function(value);
+    saveState(this.name + "_Save", this.value);
+    this.update_function(this.value);
   }
 }
 //////////////// WAVLEN PR /////////////////
