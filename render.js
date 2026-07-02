@@ -808,6 +808,7 @@ function animate() {
       }
     }
     const showPlasticBlade = (window.showPlasticBlade !== false);
+    const unlitPlasticColor = 0xCC / 255;
     const showBladeMeshes = bladeIsLit || showPlasticBlade;
     if (blade) blade.visible = showBladeMeshes;
     if (blade_tip) blade_tip.visible = showBladeMeshes;
@@ -824,9 +825,12 @@ function animate() {
       const g = pixels[srcIdx*3 + 1];
       const b = pixels[srcIdx*3 + 2];
       const lit = r > PIXEL_LIT_THRESHOLD || g > PIXEL_LIT_THRESHOLD || b > PIXEL_LIT_THRESHOLD;
-      blade_data[stride    ] = Math.round(255 * r);
-      blade_data[stride + 1] = Math.round(255 * g);
-      blade_data[stride + 2] = Math.round(255 * b);
+      const baseR = (showPlasticBlade && !lit) ? unlitPlasticColor : r;
+      const baseG = (showPlasticBlade && !lit) ? unlitPlasticColor : g;
+      const baseB = (showPlasticBlade && !lit) ? unlitPlasticColor : b;
+      blade_data[stride    ] = Math.round(255 * baseR);
+      blade_data[stride + 1] = Math.round(255 * baseG);
+      blade_data[stride + 2] = Math.round(255 * baseB);
       blade_data[stride + 3] = (lit || showPlasticBlade) ? 255 : 0;
     }
     blade_texture.needsUpdate = true;
