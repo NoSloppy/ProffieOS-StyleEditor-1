@@ -675,10 +675,14 @@ createBgPlane();
       blade_geometry.applyMatrix4(blade_translation);
 
       const blade_material = new THREE.MeshStandardMaterial({
-        color:             0xCCCCCC,
+        color:             0xffffff,
+        map:               blade_texture,
         emissiveMap:       blade_texture,
         emissiveIntensity: 1.7,
-        emissive:          0xffffffff,
+        emissive:          0xffffff,
+        transparent:       true,
+        alphaTest:         0.01,
+        depthWrite:        false,
         envMap:            envMap
       });
 
@@ -688,10 +692,14 @@ createBgPlane();
      // Tip cap — separate mesh so it never gets Y-scaled with the cylinder
       const blade_tip_geometry = makeTipCapGeometry(1.3, 64);
       const blade_tip_material = new THREE.MeshStandardMaterial({
-        color:             0xCCCCCC,
+        color:             0xffffff,
+        map:               blade_texture,
         emissiveMap:       blade_texture,
         emissiveIntensity: 1.7,
-        emissive:          0xffffffff,
+        emissive:          0xffffff,
+        transparent:       true,
+        alphaTest:         0.01,
+        depthWrite:        false,
         envMap:            envMap
       });
       blade_tip = new THREE.Mesh(blade_tip_geometry, blade_tip_material);
@@ -791,13 +799,34 @@ function animate() {
     // Stretch the N active LEDs across all 144 texture rows so the full scaled cylinder
     // shows lit pixels from hilt to tip rather than leaving the tip end dark.
     const activeLEDs = Math.max(1, window.STATE_NUM_LEDS || 144);
+    let bladeIsLit = false;
+    for (let i = 0; i < activeLEDs; i++) {
+      if (pixels[i*3] > 0.001 || pixels[i*3 + 1] > 0.001 || pixels[i*3 + 2] > 0.001) {
+        bladeIsLit = true;
+        break;
+      }
+    }
+    const showPlasticBlade = (window.showPlasticBlade !== false);
+    const showBladeMeshes = bladeIsLit || showPlasticBlade;
+    if (blade) blade.visible = showBladeMeshes;
+    if (blade_tip) blade_tip.visible = showBladeMeshes;
+    if (blade_aura) blade_aura.visible = bladeIsLit;
+    if (!bladeIsLit) {
+      bladeTrailMeshes.forEach(m => { m.visible = false; });
+      window.bladeTrailTransforms.length = 0;
+      wasOverTrailThreshold = false;
+    }
     for (let i = 0; i < 144; i++) {
       const srcIdx = Math.min(Math.floor(i * activeLEDs / 144), activeLEDs - 1);
       const stride = i * 4;
-      blade_data[stride    ] = Math.round(255 * pixels[srcIdx*3    ]);
-      blade_data[stride + 1] = Math.round(255 * pixels[srcIdx*3 + 1]);
-      blade_data[stride + 2] = Math.round(255 * pixels[srcIdx*3 + 2]);
-      blade_data[stride + 3] = 255;
+      const r = pixels[srcIdx*3    ];
+      const g = pixels[srcIdx*3 + 1];
+      const b = pixels[srcIdx*3 + 2];
+      const lit = r > 0.001 || g > 0.001 || b > 0.001;
+      blade_data[stride    ] = Math.round(255 * r);
+      blade_data[stride + 1] = Math.round(255 * g);
+      blade_data[stride + 2] = Math.round(255 * b);
+      blade_data[stride + 3] = (lit || showPlasticBlade) ? 255 : 0;
     }
     blade_texture.needsUpdate = true;
 
@@ -846,7 +875,7 @@ function animate() {
     }
   }
 
-  const trailsEnabled = !!window.showBladeTrails && IN_FRAME;
+  const trailsEnabled = !!window.showBladeTrails && IN_FRAME && (!blade || blade.visible);
   if (!trailsEnabled) {
     bladeTrailMeshes.forEach(m => { m.visible = false; });
     window.bladeTrailTransforms.length = 0;

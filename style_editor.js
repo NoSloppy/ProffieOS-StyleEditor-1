@@ -3483,6 +3483,7 @@ var backgroundState = new SavedStateBool("background", true, (on) => {
 });
 var mouseSwingsState = new SavedStateBool("mouse_swings", false, (on) => {});
 var bladeTrailsState = new SavedStateBool("blade_trails", true, (on) => { window.showBladeTrails = on; });
+var visiblePlasticBladeState = new SavedStateBool("visible_plastic_blade", true, (on) => { window.showPlasticBlade = on; });
 var autoswingState = new SavedStateBool("autoswing", true, (on) => {});
 // var inhiltState = new SavedStateBool("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
 var inhiltState = new SavedStateBool("inhilt", false, (on) => {
