@@ -561,6 +561,7 @@ const bladeHaloFragmentShader = `
 // good point
 
 const max_haze_depth = 8;
+const PIXEL_LIT_THRESHOLD = 0.001;
 const blade_data =  new Uint8Array(4 * 144);
 const haze_data =  new Uint8Array(4 * 144 * max_haze_depth);
 var blade_texture;
@@ -801,7 +802,7 @@ function animate() {
     const activeLEDs = Math.max(1, window.STATE_NUM_LEDS || 144);
     let bladeIsLit = false;
     for (let i = 0; i < activeLEDs; i++) {
-      if (pixels[i*3] > 0.001 || pixels[i*3 + 1] > 0.001 || pixels[i*3 + 2] > 0.001) {
+      if (pixels[i*3] > PIXEL_LIT_THRESHOLD || pixels[i*3 + 1] > PIXEL_LIT_THRESHOLD || pixels[i*3 + 2] > PIXEL_LIT_THRESHOLD) {
         bladeIsLit = true;
         break;
       }
@@ -822,7 +823,7 @@ function animate() {
       const r = pixels[srcIdx*3    ];
       const g = pixels[srcIdx*3 + 1];
       const b = pixels[srcIdx*3 + 2];
-      const lit = r > 0.001 || g > 0.001 || b > 0.001;
+      const lit = r > PIXEL_LIT_THRESHOLD || g > PIXEL_LIT_THRESHOLD || b > PIXEL_LIT_THRESHOLD;
       blade_data[stride    ] = Math.round(255 * r);
       blade_data[stride + 1] = Math.round(255 * g);
       blade_data[stride + 2] = Math.round(255 * b);
