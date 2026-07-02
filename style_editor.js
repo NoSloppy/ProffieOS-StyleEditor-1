@@ -1739,10 +1739,9 @@ function getSaberColors() {
         }
     }
     var num_leds = blade.num_leds()
-    if (!pixels || pixels.length != 144 * 3) {
-        pixels = new Float32Array(144 * 3);
+    if (!pixels || pixels.length != num_leds * 3) {
+        pixels = new Float32Array(num_leds * 3);
     }
-    for (var z = num_leds * 3; z < 144 * 3; z++) pixels[z] = 0;
 
     var S = current_style;
     if (S != last_style) {
