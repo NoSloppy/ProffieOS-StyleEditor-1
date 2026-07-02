@@ -570,7 +570,7 @@ const TRAIL_LENGTH = 100;  // ~100
 let bladeTrailMeshes = [];
 window.bladeTrailTransforms = [];
 let bladeTrailMeshesReady = false;
-let bladeMaterialMode = null;
+let bladeWasLit = null;
 let trailCaptureInterval = 2;
 const LERP_STEPS = 50;  //40-50 else it's distinct repeats
 let frameCounter = 0;
@@ -591,25 +591,6 @@ function lerpMatrix4(m1, m2, alpha) {
     scale1.clone().lerp(scale2, alpha)
   );
   return mLerp;
-}
-
-function setBladeMaterialMode(mode) {
-  if (bladeMaterialMode === mode) return;
-  bladeMaterialMode = mode;
-
-  const useBladeTexture = (mode === "lit");
-  const bladeHex = useBladeTexture ? 0xffffff : 0xcccccc;
-  const emissiveIntensity = useBladeTexture ? 1.7 : 1.0;
-
-  [blade, blade_tip].forEach((mesh) => {
-    if (!mesh || !mesh.material) return;
-    mesh.material.map = useBladeTexture ? blade_texture : null;
-    mesh.material.emissiveMap = useBladeTexture ? blade_texture : null;
-    mesh.material.color.setHex(bladeHex);
-    mesh.material.emissive.setHex(bladeHex);
-    mesh.material.emissiveIntensity = emissiveIntensity;
-    mesh.material.needsUpdate = true;
-  });
 }
 
 var loader = new RGBELoader().setPath('./');
@@ -696,11 +677,9 @@ createBgPlane();
       blade_geometry.applyMatrix4(blade_translation);
 
       const blade_material = new THREE.MeshStandardMaterial({
-        color:             0xffffff,
-        map:               blade_texture,
-        emissiveMap:       blade_texture,
-        emissiveIntensity: 1.7,
-        emissive:          0xffffff,
+        color:             0xcccccc,
+        emissiveIntensity: 1.0,
+        emissive:          0xcccccc,
         transparent:       true,
         alphaTest:         0.01,
         depthWrite:        false,
@@ -713,11 +692,9 @@ createBgPlane();
      // Tip cap — separate mesh so it never gets Y-scaled with the cylinder
       const blade_tip_geometry = makeTipCapGeometry(1.3, 64);
       const blade_tip_material = new THREE.MeshStandardMaterial({
-        color:             0xffffff,
-        map:               blade_texture,
-        emissiveMap:       blade_texture,
-        emissiveIntensity: 1.7,
-        emissive:          0xffffff,
+        color:             0xcccccc,
+        emissiveIntensity: 1.0,
+        emissive:          0xcccccc,
         transparent:       true,
         alphaTest:         0.01,
         depthWrite:        false,
@@ -829,7 +806,21 @@ function animate() {
     }
     const showPlasticBlade = (window.showPlasticBlade !== false);
     const showBladeMeshes = bladeIsLit || showPlasticBlade;
-    setBladeMaterialMode(bladeIsLit ? "lit" : "plastic");
+    if (bladeWasLit !== bladeIsLit) {
+      const useBladeTexture = bladeIsLit;
+      const bladeHex = useBladeTexture ? 0xffffff : 0xcccccc;
+      const emissiveIntensity = useBladeTexture ? 1.7 : 1.0;
+      [blade, blade_tip].forEach((mesh) => {
+        if (!mesh || !mesh.material) return;
+        mesh.material.map = useBladeTexture ? blade_texture : null;
+        mesh.material.emissiveMap = useBladeTexture ? blade_texture : null;
+        mesh.material.color.setHex(bladeHex);
+        mesh.material.emissive.setHex(bladeHex);
+        mesh.material.emissiveIntensity = emissiveIntensity;
+        mesh.material.needsUpdate = true;
+      });
+      bladeWasLit = bladeIsLit;
+    }
     if (blade) blade.visible = showBladeMeshes;
     if (blade_tip) blade_tip.visible = showBladeMeshes;
     if (blade_aura) blade_aura.visible = bladeIsLit;
