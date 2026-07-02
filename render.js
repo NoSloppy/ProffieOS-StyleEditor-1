@@ -570,6 +570,7 @@ const TRAIL_LENGTH = 100;  // ~100
 let bladeTrailMeshes = [];
 window.bladeTrailTransforms = [];
 let bladeTrailMeshesReady = false;
+let bladeMaterialMode = null;
 let trailCaptureInterval = 2;
 const LERP_STEPS = 50;  //40-50 else it's distinct repeats
 let frameCounter = 0;
@@ -590,6 +591,25 @@ function lerpMatrix4(m1, m2, alpha) {
     scale1.clone().lerp(scale2, alpha)
   );
   return mLerp;
+}
+
+function setBladeMaterialMode(mode) {
+  if (bladeMaterialMode === mode) return;
+  bladeMaterialMode = mode;
+
+  const useBladeTexture = (mode === "lit");
+  const bladeHex = useBladeTexture ? 0xffffff : 0xcccccc;
+  const emissiveIntensity = useBladeTexture ? 1.7 : 1.0;
+
+  [blade, blade_tip].forEach((mesh) => {
+    if (!mesh || !mesh.material) return;
+    mesh.material.map = useBladeTexture ? blade_texture : null;
+    mesh.material.emissiveMap = useBladeTexture ? blade_texture : null;
+    mesh.material.color.setHex(bladeHex);
+    mesh.material.emissive.setHex(bladeHex);
+    mesh.material.emissiveIntensity = emissiveIntensity;
+    mesh.material.needsUpdate = true;
+  });
 }
 
 var loader = new RGBELoader().setPath('./');
@@ -808,8 +828,8 @@ function animate() {
       }
     }
     const showPlasticBlade = (window.showPlasticBlade !== false);
-    const unlitPlasticColor = 0xCC / 255;
     const showBladeMeshes = bladeIsLit || showPlasticBlade;
+    setBladeMaterialMode(bladeIsLit ? "lit" : "plastic");
     if (blade) blade.visible = showBladeMeshes;
     if (blade_tip) blade_tip.visible = showBladeMeshes;
     if (blade_aura) blade_aura.visible = bladeIsLit;
@@ -825,13 +845,10 @@ function animate() {
       const g = pixels[srcIdx*3 + 1];
       const b = pixels[srcIdx*3 + 2];
       const lit = r > PIXEL_LIT_THRESHOLD || g > PIXEL_LIT_THRESHOLD || b > PIXEL_LIT_THRESHOLD;
-      const baseR = (showPlasticBlade && !lit) ? unlitPlasticColor : r;
-      const baseG = (showPlasticBlade && !lit) ? unlitPlasticColor : g;
-      const baseB = (showPlasticBlade && !lit) ? unlitPlasticColor : b;
-      blade_data[stride    ] = Math.round(255 * baseR);
-      blade_data[stride + 1] = Math.round(255 * baseG);
-      blade_data[stride + 2] = Math.round(255 * baseB);
-      blade_data[stride + 3] = (lit || showPlasticBlade) ? 255 : 0;
+      blade_data[stride    ] = Math.round(255 * r);
+      blade_data[stride + 1] = Math.round(255 * g);
+      blade_data[stride + 2] = Math.round(255 * b);
+      blade_data[stride + 3] = lit ? 255 : 0;
     }
     blade_texture.needsUpdate = true;
 
