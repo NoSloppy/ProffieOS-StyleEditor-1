@@ -609,7 +609,7 @@ loader.load('1965hallway_sky.hdr', function(texture) {
   bgUniforms = {
     envMap: { value: bgCustomTexture || envMap },
     zoom: { value: 2.1 },  // >1 zooms in <1 zooms out
-    brightness: { value: 3.0 }
+    brightness: { value: 5.0 }
   };
 
   bgMaterial = new THREE.ShaderMaterial({
@@ -1188,7 +1188,7 @@ renderer.setAnimationLoop(animate);
         bgCustomTexture = null;
       }
       bgUniforms.envMap.value = bgDefaultTexture;
-      bgUniforms.brightness.value = 3.0;  // restore HDR brightness boost
+      bgUniforms.brightness.value = 5.0;  // restore HDR brightness boost
       bgResetBtn.style.display = 'none';
     });
   }
