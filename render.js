@@ -46,6 +46,8 @@ renderer.setSize( CANVAS.clientWidth, CANVAS.clientHeight );
 let bgPlane = null;
 let bgMaterial = null;
 let bgUniforms = null;
+let bgDefaultTexture = null;   // the original HDR texture (for reset)
+let bgCustomTexture  = null;   // a user-uploaded CanvasTexture (or null)
 
 function createBgPlane() {
   // depth of the plane (same as  .position.z)
@@ -603,12 +605,13 @@ loader.load('1965hallway_sky.hdr', function(texture) {
   texture.mapping = THREE.EquirectangularReflectionMapping;
   //  scene.background = texture;
   var envMap = texture;
+  bgDefaultTexture = texture;   // keep a reference for the reset button
 
   // Background “painting” behind the saber
   bgUniforms = {
-    envMap: { value: envMap },
+    envMap: { value: bgCustomTexture || envMap },
     zoom: { value: 2.1 },  // >1 zooms in <1 zooms out
-    brightness: { value: 3.0 }
+    brightness: { value: 5.0 }
   };
 
   bgMaterial = new THREE.ShaderMaterial({
@@ -1098,3 +1101,86 @@ function animate() {
   renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);
+
+// ---------------------------------------------------------------------------
+// Custom background image upload
+// ---------------------------------------------------------------------------
+(function () {
+  const bgFileInput = document.getElementById('bg_image_file');
+  const bgResetBtn  = document.getElementById('bg_image_reset');
+  if (!bgFileInput) return;
+  bgFileInput.addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    if (!file || !bgUniforms) return;
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = function () {
+      // The background shader zooms into the texture by bgUniforms.zoom, so only
+      // the center 1/zoom fraction of the texture is visible on screen.
+      // Composite the user's image into the center of a canvas that matches the
+      // default HDR dimensions, scaled (cover) to fill the visible area exactly,
+      // with a white border for the surrounding off-screen region.
+      const zoom = (bgUniforms && bgUniforms.zoom) ? bgUniforms.zoom.value : 2.1;
+      const TOTAL_W = 1965;
+      const TOTAL_H = 1062;
+      const visibleW = Math.round(TOTAL_W / zoom);
+      const visibleH = Math.round(TOTAL_H / zoom);
+      // Scale uploaded image to cover the visible area (object-fit: cover)
+      const scale = Math.max(visibleW / img.naturalWidth, visibleH / img.naturalHeight);
+      const drawW  = Math.round(img.naturalWidth  * scale);
+      const drawH  = Math.round(img.naturalHeight * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width  = TOTAL_W;
+      canvas.height = TOTAL_H;
+      const ctx = canvas.getContext('2d');
+      // Bright white fill for the area outside the visible center
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, TOTAL_W, TOTAL_H);
+      // Position the visible window in the center of the canvas
+      const visibleX = Math.round((TOTAL_W - visibleW) / 2);
+      const visibleY = Math.round((TOTAL_H - visibleH) / 2);
+      // Clip to the visible area, then draw the image centered within it
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(visibleX, visibleY, visibleW, visibleH);
+      ctx.clip();
+      ctx.drawImage(img,
+        visibleX + Math.round((visibleW - drawW) / 2),
+        visibleY + Math.round((visibleH - drawH) / 2),
+        drawW, drawH);
+      ctx.restore();
+
+      URL.revokeObjectURL(url);
+      // Dispose any previous custom texture to free GPU memory
+      if (bgCustomTexture) {
+        bgCustomTexture.dispose();
+        bgCustomTexture = null;
+      }
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      bgCustomTexture = tex;
+      bgUniforms.envMap.value = tex;
+      // Uploaded images are standard sRGB (already full brightness);
+      // the HDR brightness boost would blow them out, so reset it to 1.
+      bgUniforms.brightness.value = 1.8;
+      // Show reset button
+      if (bgResetBtn) bgResetBtn.style.display = '';
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); };
+    img.src = url;
+    // Reset input so the same file can be re-selected
+    bgFileInput.value = '';
+  });
+  if (bgResetBtn) {
+    bgResetBtn.addEventListener('click', function () {
+      if (!bgUniforms || !bgDefaultTexture) return;
+      if (bgCustomTexture) {
+        bgCustomTexture.dispose();
+        bgCustomTexture = null;
+      }
+      bgUniforms.envMap.value = bgDefaultTexture;
+      bgUniforms.brightness.value = 5.0;  // restore HDR brightness boost
+      bgResetBtn.style.display = 'none';
+    });
+  }
+})();
