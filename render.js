@@ -45,6 +45,8 @@ renderer.setSize( CANVAS.clientWidth, CANVAS.clientHeight );
 let bgPlane = null;
 let bgMaterial = null;
 let bgUniforms = null;
+let bgDefaultTexture = null;   // the original HDR texture (for reset)
+let bgCustomTexture  = null;   // a user-uploaded CanvasTexture (or null)
 
 function createBgPlane() {
   // depth of the plane (same as  .position.z)
@@ -601,10 +603,11 @@ loader.load('1965hallway_sky.hdr', function(texture) {
   texture.mapping = THREE.EquirectangularReflectionMapping;
   //  scene.background = texture;
   var envMap = texture;
+  bgDefaultTexture = texture;   // keep a reference for the reset button
 
-  // Background “painting” behind the saber
+  // Background "painting" behind the saber
   bgUniforms = {
-    envMap: { value: envMap },
+    envMap: { value: bgCustomTexture || envMap },
     zoom: { value: 2.1 },  // >1 zooms in <1 zooms out
     brightness: { value: 3.0 }
   };
@@ -1095,3 +1098,59 @@ function animate() {
   renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);
+
+// ---------------------------------------------------------------------------
+// Custom background image upload
+// ---------------------------------------------------------------------------
+(function () {
+  const bgFileInput = document.getElementById('bg_image_file');
+  const bgResetBtn  = document.getElementById('bg_image_reset');
+  if (!bgFileInput) return;
+
+  bgFileInput.addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    if (!file || !bgUniforms) return;
+
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = function () {
+      // Draw the image onto a canvas so Three.js can consume it
+      const canvas = document.createElement('canvas');
+      canvas.width  = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      canvas.getContext('2d').drawImage(img, 0, 0);
+      URL.revokeObjectURL(url);
+
+      // Dispose any previous custom texture to free GPU memory
+      if (bgCustomTexture) {
+        bgCustomTexture.dispose();
+        bgCustomTexture = null;
+      }
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      bgCustomTexture = tex;
+      bgUniforms.envMap.value = tex;
+
+      // Show reset button
+      if (bgResetBtn) bgResetBtn.style.display = '';
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); };
+    img.src = url;
+
+    // Reset input so the same file can be re-selected
+    bgFileInput.value = '';
+  });
+
+  if (bgResetBtn) {
+    bgResetBtn.addEventListener('click', function () {
+      if (!bgUniforms || !bgDefaultTexture) return;
+      if (bgCustomTexture) {
+        bgCustomTexture.dispose();
+        bgCustomTexture = null;
+      }
+      bgUniforms.envMap.value = bgDefaultTexture;
+      bgResetBtn.style.display = 'none';
+    });
+  }
+})();
