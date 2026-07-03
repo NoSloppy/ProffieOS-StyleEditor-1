@@ -1166,6 +1166,9 @@ renderer.setAnimationLoop(animate);
       tex.colorSpace = THREE.SRGBColorSpace;
       bgCustomTexture = tex;
       bgUniforms.envMap.value = tex;
+      // Uploaded images are standard sRGB (already full brightness);
+      // the HDR brightness boost would blow them out, so reset it to 1.
+      bgUniforms.brightness.value = 1.0;
 
       // Show reset button
       if (bgResetBtn) bgResetBtn.style.display = '';
@@ -1185,6 +1188,7 @@ renderer.setAnimationLoop(animate);
         bgCustomTexture = null;
       }
       bgUniforms.envMap.value = bgDefaultTexture;
+      bgUniforms.brightness.value = 3.0;  // restore HDR brightness boost
       bgResetBtn.style.display = 'none';
     });
   }
