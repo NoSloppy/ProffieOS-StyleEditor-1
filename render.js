@@ -1114,11 +1114,46 @@ renderer.setAnimationLoop(animate);
     const img = new Image();
     const url = URL.createObjectURL(file);
     img.onload = function () {
-      // Draw the image onto a canvas so Three.js can consume it
+      // The background shader zooms into the texture by bgUniforms.zoom, so only
+      // the center 1/zoom fraction of the texture is visible on screen.
+      // Composite the user's image into the center of a canvas that matches the
+      // default HDR dimensions, scaled (cover) to fill the visible area exactly,
+      // with a white border for the surrounding off-screen region.
+      const zoom = (bgUniforms && bgUniforms.zoom) ? bgUniforms.zoom.value : 2.1;
+      const TOTAL_W = 1965;
+      const TOTAL_H = 1062;
+      const visibleW = Math.round(TOTAL_W / zoom);
+      const visibleH = Math.round(TOTAL_H / zoom);
+
+      // Scale uploaded image to cover the visible area (object-fit: cover)
+      const scale = Math.max(visibleW / img.naturalWidth, visibleH / img.naturalHeight);
+      const drawW  = Math.round(img.naturalWidth  * scale);
+      const drawH  = Math.round(img.naturalHeight * scale);
+
       const canvas = document.createElement('canvas');
-      canvas.width  = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      canvas.getContext('2d').drawImage(img, 0, 0);
+      canvas.width  = TOTAL_W;
+      canvas.height = TOTAL_H;
+      const ctx = canvas.getContext('2d');
+
+      // Bright white fill for the area outside the visible center
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, TOTAL_W, TOTAL_H);
+
+      // Position the visible window in the center of the canvas
+      const visibleX = Math.round((TOTAL_W - visibleW) / 2);
+      const visibleY = Math.round((TOTAL_H - visibleH) / 2);
+
+      // Clip to the visible area, then draw the image centered within it
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(visibleX, visibleY, visibleW, visibleH);
+      ctx.clip();
+      ctx.drawImage(img,
+        visibleX + Math.round((visibleW - drawW) / 2),
+        visibleY + Math.round((visibleH - drawH) / 2),
+        drawW, drawH);
+      ctx.restore();
+
       URL.revokeObjectURL(url);
 
       // Dispose any previous custom texture to free GPU memory
