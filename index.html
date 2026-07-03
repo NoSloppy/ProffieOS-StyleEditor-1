@@ -289,6 +289,11 @@ https://www.cgtrader.com/designers/talon-3d">
                 <input type="checkbox" id="BACKGROUND_BUTTON" name="background" onclick="handleSettings(this)">
                 <span>Show background image</span>
               </label>
+              <div class="bg-upload-row" title="Upload a custom background image (jpg, png, webp, etc.)">
+                <input type="file" id="bg_image_file" accept="image/*" style="display:none">
+                <button type="button" class="restore-defaults-btn" onclick="document.getElementById('bg_image_file').click()">Upload custom background image</button>
+                <button type="button" class="restore-defaults-btn" id="bg_image_reset" style="display:none" title="Restore the default background">Reset default image</button>
+              </div>
               <label title="Toggles the option for swinging around the preview blade above using mouse control.">
                 <input type="checkbox" id="MOUSE_SWINGS_BUTTON" name="mouseswings" onclick="handleSettings(this)">
                 <span>Disable mouse swings</span>
