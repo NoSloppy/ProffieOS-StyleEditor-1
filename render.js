@@ -804,6 +804,11 @@ function animate() {
   Q++;
 
   // --- LED + haze  ---
+  // effectiveVisualLEDs drives blade scale/position and texture mapping.
+  // When the plastic blade is visible it equals the user-set blade length.
+  // When the plastic blade is hidden it dynamically tracks the lit front so the
+  // tip cap follows the leading edge during wipe-in / wipe-out extensions.
+  let effectiveVisualLEDs = Math.max(1, window.bladeVisualLEDs || window.STATE_NUM_LEDS || 144);
   if (blade_texture) {
     const pixels = window.getSaberColors();
     // Stretch the N active LEDs across all 144 texture rows so the full scaled cylinder
@@ -819,6 +824,19 @@ function animate() {
     // Visibility toggle: hide unlit blade when showPlasticBlade is false
     const showPlasticBlade = (window.showPlasticBlade !== false);
     const showBladeMeshes = bladeIsLit || showPlasticBlade;
+
+    // When the plastic blade is hidden, track the leading lit LED so the tip cap
+    // and cylinder length match the lit front (tapered edge during wipe in/out).
+    if (!showPlasticBlade && bladeIsLit) {
+      let lastLitIdx = 0;
+      for (let i = activeLEDs - 1; i >= 0; i--) {
+        if (pixels[i*3] > PIXEL_LIT_THRESHOLD || pixels[i*3+1] > PIXEL_LIT_THRESHOLD || pixels[i*3+2] > PIXEL_LIT_THRESHOLD) {
+          lastLitIdx = i;
+          break;
+        }
+      }
+      effectiveVisualLEDs = Math.max(1, lastLitIdx + 1);
+    }
     if (blade) blade.visible = showBladeMeshes;
     if (blade_tip) blade_tip.visible = showBladeMeshes;
     if (blade_aura) blade_aura.visible = bladeIsLit;
@@ -828,7 +846,7 @@ function animate() {
       wasOverTrailThreshold = false;
     }
     for (let i = 0; i < 144; i++) {
-      const srcIdx = Math.min(Math.floor(i * activeLEDs / 144), activeLEDs - 1);
+      const srcIdx = Math.min(Math.floor(i * effectiveVisualLEDs / 144), effectiveVisualLEDs - 1);
       const stride = i * 4;
       const r = pixels[srcIdx*3    ];
       const g = pixels[srcIdx*3 + 1];
@@ -853,13 +871,13 @@ function animate() {
     for (let depth = 0; depth < max_haze_depth; depth++) {
       // for (let i = 0; i < num_leds; i++) {
       for (let i = 0; i < 144; i++) {
-        const centerLED = Math.min(Math.floor(i * activeLEDs / 144), activeLEDs - 1);
+        const centerLED = Math.min(Math.floor(i * effectiveVisualLEDs / 144), effectiveVisualLEDs - 1);
 
         let R = 0, G = 0, B = 0, W = 0;
         const haze_dist = 1 + 4 * depth;
         for (let D = -64; D <= 64; D++) {
           let p = centerLED + D;
-          if (p < 0 || p >= activeLEDs) continue;
+          if (p < 0 || p >= effectiveVisualLEDs) continue;
           const dist = (Math.abs(D) + 1) / haze_dist + 1;
           const wgt  = 1 / (dist * dist);
           R += pixels[p*3    ] * wgt;
@@ -906,7 +924,7 @@ function animate() {
 
   // Update hilt (always), capture/decay trails only when enabled
   if (hilt && blade) {
-    const bladeScale = (window.bladeVisualLEDs || window.STATE_NUM_LEDS || 144) / 144;
+    const bladeScale = effectiveVisualLEDs / 144;
     blade.scale.y = bladeScale;
     blade.position.y = 35 * (1 - bladeScale);
     if (blade_aura) {
