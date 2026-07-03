@@ -1,3 +1,4 @@
+
 import * as THREE from 'three';
 import {VRButton} from 'three/addons/webxr/VRButton.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -561,9 +562,12 @@ const bladeHaloFragmentShader = `
 // good point
 
 const max_haze_depth = 8;
+const PIXEL_LIT_THRESHOLD = 0.001;
 const blade_data =  new Uint8Array(4 * 144);
+const alpha_data = new Uint8Array(4 * 144);
 const haze_data =  new Uint8Array(4 * 144 * max_haze_depth);
 var blade_texture;
+var alpha_texture;
 var haze_texture;
 const TRAIL_LENGTH = 100;  // ~100
 let bladeTrailMeshes = [];
@@ -660,6 +664,12 @@ createBgPlane();
       blade_texture.minFilter       = THREE.LinearFilter;
       blade_texture.needsUpdate     = true;
 
+      alpha_texture = new THREE.DataTexture(alpha_data, 1, 144);
+      alpha_texture.generateMipmaps = false;
+      alpha_texture.magFilter       = THREE.NearestFilter;
+      alpha_texture.minFilter       = THREE.NearestFilter;
+      alpha_texture.needsUpdate     = true;
+
       haze_texture = new THREE.DataTexture(haze_data, height, max_haze_depth);
       haze_texture.colorSpace      = THREE.LinearSRGBColorSpace;
       haze_texture.generateMipmaps = false;
@@ -676,9 +686,13 @@ createBgPlane();
 
       const blade_material = new THREE.MeshStandardMaterial({
         color:             0xCCCCCC,
+        alphaMap:          alpha_texture,
         emissiveMap:       blade_texture,
         emissiveIntensity: 1.7,
         emissive:          0xffffffff,
+        transparent:       true,
+        alphaTest:         0.01,
+        depthWrite:        false,
         envMap:            envMap
       });
 
@@ -689,9 +703,13 @@ createBgPlane();
       const blade_tip_geometry = makeTipCapGeometry(1.3, 64);
       const blade_tip_material = new THREE.MeshStandardMaterial({
         color:             0xCCCCCC,
+        alphaMap:          alpha_texture,
         emissiveMap:       blade_texture,
         emissiveIntensity: 1.7,
         emissive:          0xffffffff,
+        transparent:       true,
+        alphaTest:         0.01,
+        depthWrite:        false,
         envMap:            envMap
       });
       blade_tip = new THREE.Mesh(blade_tip_geometry, blade_tip_material);
@@ -791,15 +809,43 @@ function animate() {
     // Stretch the N active LEDs across all 144 texture rows so the full scaled cylinder
     // shows lit pixels from hilt to tip rather than leaving the tip end dark.
     const activeLEDs = Math.max(1, window.STATE_NUM_LEDS || 144);
+    let bladeIsLit = false;
+    for (let i = 0; i < activeLEDs; i++) {
+      if (pixels[i*3] > PIXEL_LIT_THRESHOLD || pixels[i*3 + 1] > PIXEL_LIT_THRESHOLD || pixels[i*3 + 2] > PIXEL_LIT_THRESHOLD) {
+        bladeIsLit = true;
+        break;
+      }
+    }
+    // Visibility toggle: hide unlit blade when showPlasticBlade is false
+    const showPlasticBlade = (window.showPlasticBlade !== false);
+    const showBladeMeshes = bladeIsLit || showPlasticBlade;
+    if (blade) blade.visible = showBladeMeshes;
+    if (blade_tip) blade_tip.visible = showBladeMeshes;
+    if (blade_aura) blade_aura.visible = bladeIsLit;
+    if (!bladeIsLit) {
+      bladeTrailMeshes.forEach(m => { m.visible = false; });
+      window.bladeTrailTransforms.length = 0;
+      wasOverTrailThreshold = false;
+    }
     for (let i = 0; i < 144; i++) {
       const srcIdx = Math.min(Math.floor(i * activeLEDs / 144), activeLEDs - 1);
       const stride = i * 4;
-      blade_data[stride    ] = Math.round(255 * pixels[srcIdx*3    ]);
-      blade_data[stride + 1] = Math.round(255 * pixels[srcIdx*3 + 1]);
-      blade_data[stride + 2] = Math.round(255 * pixels[srcIdx*3 + 2]);
-      blade_data[stride + 3] = 255;
+      const r = pixels[srcIdx*3    ];
+      const g = pixels[srcIdx*3 + 1];
+      const b = pixels[srcIdx*3 + 2];
+      const lit = r > PIXEL_LIT_THRESHOLD || g > PIXEL_LIT_THRESHOLD || b > PIXEL_LIT_THRESHOLD;
+      const alphaVal = (lit || showPlasticBlade) ? 255 : 0;
+      alpha_data[i * 4    ] = alphaVal;
+      alpha_data[i * 4 + 1] = alphaVal;
+      alpha_data[i * 4 + 2] = alphaVal;
+      alpha_data[i * 4 + 3] = alphaVal;
+      blade_data[stride    ] = Math.round(255 * r);
+      blade_data[stride + 1] = Math.round(255 * g);
+      blade_data[stride + 2] = Math.round(255 * b);
+      blade_data[stride + 3] = lit ? 255 : 0;
     }
     blade_texture.needsUpdate = true;
+    alpha_texture.needsUpdate = true;
 
 //    const num_leds = 144;
     // Stretch the N active LEDs across all 144 haze columns, same as blade_data,
