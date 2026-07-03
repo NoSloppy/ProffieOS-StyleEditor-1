@@ -74,7 +74,7 @@ const VALID_EFFECTS = new Set([
   'plion', 'plioff', 'preon', 'pstoff',
   'quote',
   'range', 'reload',
-  'slsh', 'spin', 'stab', 'stun', 'swng',
+  'slsh', 'spin', 'stab', 'stun', 'swng', 'swingl', 'swingh',
   'tr', 'trloop',
   'unjam',
   'volup',
