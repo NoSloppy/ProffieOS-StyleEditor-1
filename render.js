@@ -797,11 +797,19 @@ function animate() {
   // --- LED + haze  ---
   // effectiveVisualLEDs drives blade scale/position and texture mapping.
   // When the plastic blade is visible it equals the user-set blade length.
-  // When the plastic blade is hidden it dynamically tracks the lit front so the
-  // tip cap follows the leading edge during wipe-in / wipe-out extensions.
+  // When the plastic blade is hidden:
+  //   - During extension (wipe-in) or retraction (wipe-out): tip cap tracks the
+  //     leading lit LED so the blade length matches the lit front.
+  //   - When fully on (no transition in progress): treated identically to the
+  //     plastic-visible case — full length is used so effects like sparkle on a
+  //     black base render correctly without segmentation or a jumping tip.
   let effectiveVisualLEDs = Math.max(1, window.bladeVisualLEDs || window.STATE_NUM_LEDS || 144);
 
   if (blade_texture) {
+    // Reset per-frame transition flags; InOutTrLClass.run() sets them if a
+    // wipe-in/wipe-out is currently in progress.
+    window.bladeOutActive = false;
+    window.bladeInActive = false;
     const pixels = window.getSaberColors();
     // Stretch the N active LEDs across all 144 texture rows so the full scaled cylinder
     // shows lit pixels from hilt to tip rather than leaving the tip end dark.
@@ -816,9 +824,12 @@ function animate() {
     const showPlasticBlade = (window.showPlasticBlade !== false);
     const showBladeMeshes = bladeIsLit || showPlasticBlade;
 
-    // When the plastic blade is hidden, track the leading lit LED so the tip cap
-    // and cylinder length match the lit front (tapered edge during wipe in/out).
-    if (!showPlasticBlade && bladeIsLit) {
+    // When the plastic blade is hidden AND a wipe transition is active, track the
+    // leading lit LED so the tip cap follows the lit front during extension/retraction.
+    // When fully on (no transition), use the full blade length so the style renders
+    // correctly regardless of how many pixels are lit (e.g. black-base sparkle).
+    const bladeIsTransitioning = window.bladeOutActive || window.bladeInActive;
+    if (!showPlasticBlade && bladeIsLit && bladeIsTransitioning) {
       let lastLitIdx = 0;
       for (let i = activeLEDs - 1; i >= 0; i--) {
         if (pixels[i*3] > PIXEL_LIT_THRESHOLD || pixels[i*3+1] > PIXEL_LIT_THRESHOLD || pixels[i*3+2] > PIXEL_LIT_THRESHOLD) {

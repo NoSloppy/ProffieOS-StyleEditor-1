@@ -3402,6 +3402,11 @@ class InOutTrLClass extends STYLE {
         this.in_active_ = false;
       }
     }
+
+    // Signal render.js whether any extension/retraction is in progress so the
+    // tip-tracking code only runs during wipe-in/wipe-out, not when fully on.
+    if (this.out_active_) window.bladeOutActive = true;
+    if (this.in_active_) window.bladeInActive = true;
   }
 
   runIn(A, B, led) {
