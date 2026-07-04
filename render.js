@@ -828,9 +828,28 @@ function animate() {
     const showPlasticBlade = (window.showPlasticBlade !== false);
     const showBladeMeshes = bladeIsLit || showPlasticBlade;
 
-    // When the plastic blade is hidden, track the leading lit LED so the tip cap
-    // and cylinder length match the lit front (tapered edge during wipe in/out).
+    // When showPlasticBlade is OFF, detect whether the blade is mid-extension/retraction
+    // or fully on.  During extension/retraction the tip tracks the last lit LED (tapered
+    // edge effect).  When fully on, render as if plastic is visible so effects like
+    // Sparkle<Black,...> don't produce disconnected transparent segments or a wandering tip.
+    let bladeFullyOn = false;
     if (!showPlasticBlade && bladeIsLit) {
+      const cs = window.current_style;
+      const inoutLayer = Array.isArray(cs?.LAYERS)
+        ? cs.LAYERS.find(l => l?.constructor?.name === 'InOutTrLClass')
+        : null;
+      if (inoutLayer) {
+        // Fully on = blade power is on AND neither extension nor retraction is running
+        bladeFullyOn = inoutLayer.on_ && !inoutLayer.out_active_ && !inoutLayer.in_active_;
+      } else {
+        // No InOutTrL in this style (no extension animation) — treat as fully on whenever lit
+        bladeFullyOn = true;
+      }
+    }
+
+    // When plastic is hidden and the blade is extending or retracting (not fully on),
+    // track the leading lit LED so the tip cap follows the lit front.
+    if (!showPlasticBlade && bladeIsLit && !bladeFullyOn) {
       let lastLitIdx = 0;
       for (let i = activeLEDs - 1; i >= 0; i--) {
         if (pixels[i*3] > PIXEL_LIT_THRESHOLD || pixels[i*3+1] > PIXEL_LIT_THRESHOLD || pixels[i*3+2] > PIXEL_LIT_THRESHOLD) {
@@ -848,6 +867,9 @@ function animate() {
       window.bladeTrailTransforms.length = 0;
       wasOverTrailThreshold = false;
     }
+    // When fully on with plastic hidden, give all blade pixels full alpha so effects
+    // with black base colors render with proper diffusion instead of transparent gaps.
+    const effectiveShowPlastic = showPlasticBlade || bladeFullyOn;
     for (let i = 0; i < 144; i++) {
       const srcIdx = Math.min(Math.floor(i * effectiveVisualLEDs / 144), effectiveVisualLEDs - 1);
       const stride = i * 4;
@@ -855,7 +877,7 @@ function animate() {
       const g = pixels[srcIdx*3 + 1];
       const b = pixels[srcIdx*3 + 2];
       const lit = r > PIXEL_LIT_THRESHOLD || g > PIXEL_LIT_THRESHOLD || b > PIXEL_LIT_THRESHOLD;
-      const alphaVal = (lit || showPlasticBlade) ? 255 : 0;
+      const alphaVal = (lit || effectiveShowPlastic) ? 255 : 0;
       alpha_data[i * 4    ] = alphaVal;
       alpha_data[i * 4 + 1] = alphaVal;
       alpha_data[i * 4 + 2] = alphaVal;
