@@ -867,9 +867,11 @@ function animate() {
       window.bladeTrailTransforms.length = 0;
       wasOverTrailThreshold = false;
     }
-    // When fully on with plastic hidden, give all blade pixels full alpha so effects
-    // with black base colors render with proper diffusion instead of transparent gaps.
-    const effectiveShowPlastic = showPlasticBlade || bladeFullyOn;
+    // Whenever the blade is lit (extending, fully on, or retracting) with plastic hidden,
+    // give all blade pixels full alpha so effects with black base colors (e.g.
+    // Sparkle<Black,...>) don't produce transparent gaps.  The blade cylinder is already
+    // scaled to cover only the lit portion, so this is safe for all lit stages.
+    const effectiveShowPlastic = showPlasticBlade || bladeIsLit;
     for (let i = 0; i < 144; i++) {
       const srcIdx = Math.min(Math.floor(i * effectiveVisualLEDs / 144), effectiveVisualLEDs - 1);
       const stride = i * 4;
