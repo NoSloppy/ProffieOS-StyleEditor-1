@@ -796,6 +796,41 @@ function actual_millis() {
   return new Date().getTime() - start_millis;
 }
 
+// Traverse a transition tree to find the wipe-front position in LED units.
+//   TrWipeX   → fade_       (float, 0 → num_leds, increases as blade extends)
+//   TrWipeInX → fade_.start (float, num_leds → 0, counts still-visible LEDs during retraction)
+// Returns null for transition types that don't define a single linear wipe front.
+function findWipeFrontLEDs(tr) {
+  if (!tr) return null;
+  const name = tr.constructor?.name;
+  if (name === 'TrWipeXClass') {
+    return typeof tr.fade_ === 'number' ? tr.fade_ : null;
+  }
+  if (name === 'TrWipeInXClass') {
+    return (tr.fade_ !== null && tr.fade_ !== undefined && typeof tr.fade_.start === 'number') ? tr.fade_.start : null;
+  }
+  // MACRO delegates to its expansion
+  if (tr.expansion) {
+    const r = findWipeFrontLEDs(tr.expansion);
+    if (r !== null) return r;
+  }
+  // TrConcat: only the currently active sub-transition (pos_) is meaningful
+  if (name === 'TrConcatClass') {
+    if (Array.isArray(tr.ARGS) && tr.pos_ < tr.ARGS.length) {
+      return findWipeFrontLEDs(tr.ARGS[tr.pos_]);
+    }
+    return null;
+  }
+  // TrJoin / TrJoinR / other compound: search all ARGS for first wipe found
+  if (Array.isArray(tr.ARGS)) {
+    for (const a of tr.ARGS) {
+      const r = findWipeFrontLEDs(a);
+      if (r !== null) return r;
+    }
+  }
+  return null;
+}
+
 function animate() {
   if (!bladeTrailMeshesReady) return;
 
@@ -828,16 +863,17 @@ function animate() {
     const showPlasticBlade = (window.showPlasticBlade !== false);
     const showBladeMeshes = bladeIsLit || showPlasticBlade;
 
+    // Hoist inoutLayer so both the bladeFullyOn check and the tip-tracking block can use it.
+    const cs = window.current_style;
+    const inoutLayer = (!showPlasticBlade && bladeIsLit && Array.isArray(cs?.LAYERS))
+      ? cs.LAYERS.find(l => typeof l?.isInOutTrL === 'function' && l.isInOutTrL())
+      : null;
+
     // When showPlasticBlade is OFF, detect whether the blade is mid-extension/retraction
-    // or fully on.  During extension/retraction the tip tracks the last lit LED (tapered
-    // edge effect).  When fully on, render as if plastic is visible so effects like
-    // Sparkle<Black,...> don't produce disconnected transparent segments or a wandering tip.
+    // or fully on.  When fully on, render as if plastic is visible so effects like
+    // Sparkle<Black,...> don't produce transparent gaps.
     let bladeFullyOn = false;
     if (!showPlasticBlade && bladeIsLit) {
-      const cs = window.current_style;
-      const inoutLayer = Array.isArray(cs?.LAYERS)
-        ? cs.LAYERS.find(l => typeof l?.isInOutTrL === 'function' && l.isInOutTrL())
-        : null;
       if (inoutLayer) {
         // Fully on = blade power is on AND neither extension nor retraction is running
         bladeFullyOn = !!(inoutLayer.on_) && !(inoutLayer.out_active_) && !(inoutLayer.in_active_);
@@ -848,16 +884,37 @@ function animate() {
     }
 
     // When plastic is hidden and the blade is extending or retracting (not fully on),
-    // track the leading lit LED so the tip cap follows the lit front.
+    // read the wipe-front position directly from the active transition for smooth tip
+    // tracking (avoids jitter from stochastic effects like Sparkle).
+    // tipBrightnessCap is the last fully-lit LED before the fractional wipe-front pixel;
+    // texture rows beyond it are clamped to it so the tip cap renders at full brightness.
+    let tipBrightnessCap = -1;
     if (!showPlasticBlade && bladeIsLit && !bladeFullyOn) {
-      let lastLitIdx = 0;
-      for (let i = activeLEDs - 1; i >= 0; i--) {
-        if (pixels[i*3] > PIXEL_LIT_THRESHOLD || pixels[i*3+1] > PIXEL_LIT_THRESHOLD || pixels[i*3+2] > PIXEL_LIT_THRESHOLD) {
-          lastLitIdx = i;
-          break;
-        }
+      let wipeFront = null;
+      if (inoutLayer) {
+        wipeFront = inoutLayer.out_active_
+          ? findWipeFrontLEDs(inoutLayer.OUT_TR)
+          : inoutLayer.in_active_
+            ? findWipeFrontLEDs(inoutLayer.IN_TR)
+            : null;
       }
-      effectiveVisualLEDs = Math.max(1, lastLitIdx + 1);
+      if (wipeFront !== null) {
+        // ceil: include the partial leading-edge LED so the cylinder just covers the wipe front
+        effectiveVisualLEDs = Math.max(1, Math.ceil(wipeFront));
+        // Last fully-lit LED is the one just before the partial wipe-front pixel
+        tipBrightnessCap = Math.max(0, Math.floor(wipeFront) - 1);
+      } else {
+        // Fallback for non-wipe transitions (e.g. TrFade): scan pixels for last lit LED.
+        // No tipBrightnessCap needed — non-wipe transitions don't have a dim leading edge.
+        let lastLitIdx = 0;
+        for (let i = activeLEDs - 1; i >= 0; i--) {
+          if (pixels[i*3] > PIXEL_LIT_THRESHOLD || pixels[i*3+1] > PIXEL_LIT_THRESHOLD || pixels[i*3+2] > PIXEL_LIT_THRESHOLD) {
+            lastLitIdx = i;
+            break;
+          }
+        }
+        effectiveVisualLEDs = Math.max(1, lastLitIdx + 1);
+      }
     }
     if (blade) blade.visible = showBladeMeshes;
     if (blade_tip) blade_tip.visible = showBladeMeshes;
@@ -872,8 +929,11 @@ function animate() {
     // Sparkle<Black,...>) don't produce transparent gaps.  The blade cylinder is already
     // scaled to cover only the lit portion, so this is safe for all lit stages.
     const effectiveShowPlastic = showPlasticBlade || bladeIsLit;
+    // Pre-compute the effective max source index: clamp to last fully-lit LED when tracking
+    // the wipe front (tipBrightnessCap >= 0), otherwise allow the full range.
+    const tipClampMax = tipBrightnessCap >= 0 ? tipBrightnessCap : effectiveVisualLEDs - 1;
     for (let i = 0; i < 144; i++) {
-      const srcIdx = Math.min(Math.floor(i * effectiveVisualLEDs / 144), effectiveVisualLEDs - 1);
+      const srcIdx = Math.min(Math.floor(i * effectiveVisualLEDs / 144), tipClampMax);
       const stride = i * 4;
       const r = pixels[srcIdx*3    ];
       const g = pixels[srcIdx*3 + 1];
