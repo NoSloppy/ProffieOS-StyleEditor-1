@@ -836,11 +836,11 @@ function animate() {
     if (!showPlasticBlade && bladeIsLit) {
       const cs = window.current_style;
       const inoutLayer = Array.isArray(cs?.LAYERS)
-        ? cs.LAYERS.find(l => l?.constructor?.name === 'InOutTrLClass')
+        ? cs.LAYERS.find(l => typeof l?.isInOutTrL === 'function' && l.isInOutTrL())
         : null;
       if (inoutLayer) {
         // Fully on = blade power is on AND neither extension nor retraction is running
-        bladeFullyOn = inoutLayer.on_ && !inoutLayer.out_active_ && !inoutLayer.in_active_;
+        bladeFullyOn = !!(inoutLayer.on_) && !(inoutLayer.out_active_) && !(inoutLayer.in_active_);
       } else {
         // No InOutTrL in this style (no extension animation) — treat as fully on whenever lit
         bladeFullyOn = true;

@@ -3359,6 +3359,7 @@ function TransitionPulseL(TRANSITION, PULSE) {
 
 class InOutTrLClass extends STYLE {
   isEffect() { return true; }
+  isInOutTrL() { return true; }
   constructor(OUT_TR, IN_TR, OFF, AD) {
     super("In-out based on transitions", arguments);
     this.add_arg("OUT_TR", "TRANSITION", "IN-OUT transition");
