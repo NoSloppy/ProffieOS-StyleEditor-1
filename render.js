@@ -804,7 +804,12 @@ function findWipeFrontLEDs(tr) {
   if (!tr) return null;
   const name = tr.constructor?.name;
   if (name === 'TrWipeXClass') {
-    return typeof tr.fade_ === 'number' ? tr.fade_ : null;
+    if (typeof tr.fade_ === 'number') return tr.fade_;
+    // Defensive fallback: tolerate accidental object-shape reads (fade_.start)
+    // so tip tracking still works if TrWipeX internals are refactored.
+    return (tr.fade_ !== null && tr.fade_ !== undefined && typeof tr.fade_.start === 'number')
+      ? tr.fade_.start
+      : null;
   }
   if (name === 'TrWipeInXClass') {
     return (tr.fade_ !== null && tr.fade_ !== undefined && typeof tr.fade_.start === 'number') ? tr.fade_.start : null;
