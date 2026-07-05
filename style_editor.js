@@ -3331,10 +3331,18 @@ function toggleSettingsPanel() {
     return;
   }
   if (!settingsPanel.classList.contains('show')) {
-    // Reset to centered position each time the panel is opened
-    settingsPanel.style.left = '';
-    settingsPanel.style.top = '';
-    settingsPanel.style.transform = '';
+    // Restore last saved position, or fall back to CSS-centered default
+    const savedLeft = localStorage.getItem('settingsPanelLeft');
+    const savedTop  = localStorage.getItem('settingsPanelTop');
+    if (savedLeft !== null && savedTop !== null) {
+      settingsPanel.style.left      = savedLeft;
+      settingsPanel.style.top       = savedTop;
+      settingsPanel.style.transform = 'none';
+    } else {
+      settingsPanel.style.left      = '';
+      settingsPanel.style.top       = '';
+      settingsPanel.style.transform = '';
+    }
   }
   settingsPanel.classList.toggle('show');
 }
@@ -3363,6 +3371,11 @@ function toggleSettingsPanel() {
     settingsPanel.style.top = (startTop + e.clientY - startY) + 'px';
   });
   document.addEventListener('mouseup', function() {
+    if (isDragging) {
+      // Persist the new position so the panel reopens here next time
+      localStorage.setItem('settingsPanelLeft', settingsPanel.style.left);
+      localStorage.setItem('settingsPanelTop',  settingsPanel.style.top);
+    }
     isDragging = false;
   });
 })();
