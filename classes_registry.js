@@ -186,6 +186,7 @@ AddIdentifier("ViolentViolet", Rgb.bind(null, 55, 0, 255));
     Sparkle : Sparkle,
     SparkleL : SparkleL,
     SparkleF : SparkleF,
+    SparkleFX : SparkleFX,
     Strobe : Strobe,
     StrobeX : StrobeX,
     StrobeL : StrobeL,
