@@ -540,6 +540,7 @@ AddFunction("RandomPerLEDF");
 AddFunction("RampF");
 AddFunction("SequenceF<100, 37, 0b0001010100011100, 0b0111000111000101, 0b0100000000000000>");
 AddFunction("SparkleF");
+AddFunction("SparkleFX<Int<300>, Int<1024>>");
 AddFunction("StrobeF<Int<15>, Int<1>>");
 AddFunction("BlastFadeoutF");
 AddFunction("OriginalBlastF");
@@ -1079,11 +1080,11 @@ function Pulsing(COLOR1, COLOR2, PULSE_MILLIS) {
   return new PulsingClass(COLOR1, COLOR2, PULSE_MILLIS);
 }
 
-class SparkleFClass extends FUNCTION {
+class SparkleFXClass extends FUNCTION {
   constructor(SPARK_CHANCE_PROMILLE, SPARK_INTENSITY) {
     super("Sparkles!!", Array.from(arguments));
-    this.add_arg("SPARK_CHANCE_PROMILLE", "INT", "Chance of new sparks.", 300);
-    this.add_arg("SPARK_INTENSITY", "INT", "Initial spark intensity", 1024);
+    this.add_arg("SPARK_CHANCE_PROMILLE", "FUNCTION", "Chance of new sparks.", Int(300));
+    this.add_arg("SPARK_INTENSITY", "FUNCTION", "Initial spark intensity", Int(1024));
     this.sparks = new Uint16Array(144 + 4);
     this.last_update = 0;
   }
@@ -1100,13 +1101,26 @@ class SparkleFClass extends FUNCTION {
         fifo = x;
       }
       this.sparks[N] = fifo;
-      if (random(1000) < this.SPARK_CHANCE_PROMILLE) {
-        this.sparks[random(blade.num_leds()) + 2] += this.SPARK_INTENSITY;
+      if (random(1000) < this.SPARK_CHANCE_PROMILLE.getInteger(0)) {
+        this.sparks[random(blade.num_leds()) + 2] += this.SPARK_INTENSITY.getInteger(0);
       }
     }
   }
   getInteger(led) {
     return clamp(this.sparks[led + 2], 0, 255) << 7;
+  }
+}
+
+function SparkleFX(SPARK_CHANCE_PROMILLE, SPARK_INTENSITY) {
+  return new SparkleFXClass(SPARK_CHANCE_PROMILLE, SPARK_INTENSITY);
+}
+
+class SparkleFClass extends MACRO {
+  constructor(SPARK_CHANCE_PROMILLE, SPARK_INTENSITY) {
+    super("Sparkles!!", Array.from(arguments));
+    this.add_arg("SPARK_CHANCE_PROMILLE", "INT", "Chance of new sparks.", 300);
+    this.add_arg("SPARK_INTENSITY", "INT", "Initial spark intensity", 1024);
+    this.SetExpansion(SparkleFX(Int(this.SPARK_CHANCE_PROMILLE), Int(this.SPARK_INTENSITY)));
   }
 }
 
@@ -1120,7 +1134,7 @@ class SparkleLClass extends MACRO {
     this.add_arg("SPARKLE_COLOR", "COLOR", "Spark color", Rgb(255,255,255));
     this.add_arg("SPARK_CHANCE_PROMILLE", "INT", "Chance of new sparks.", 300);
     this.add_arg("SPARK_INTENSITY", "INT", "Initial spark intensity", 1024);
-    this.SetExpansion(AlphaL(this.SPARKLE_COLOR, SparkleF(this.SPARK_CHANCE_PROMILLE, this.SPARK_INTENSITY)));
+    this.SetExpansion(AlphaL(this.SPARKLE_COLOR, SparkleFX(Int(this.SPARK_CHANCE_PROMILLE), Int(this.SPARK_INTENSITY))));
   }
 }
 
