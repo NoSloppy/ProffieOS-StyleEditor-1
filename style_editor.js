@@ -344,8 +344,13 @@ function style_base_check_detail(style, forceTopLevel = false) {
   function isOpaque(c) { return c && c.a === 1.0; }
   function isBlack(c)  { return isOpaque(c) && c.r === 0 && c.g === 0 && c.b === 0; }
 
+  // Unwrap MACRO expansion chain so that e.g. InOutHelper<T,...> (a MACRO wrapping
+  // Layers) is treated the same as a bare Layers<> at the top level.
+  let actual = style;
+  while (actual && actual.expansion) actual = actual.expansion;
+
   // Non-Layers - forceTopLevel during Copy() to reject transparent only
-  if (!(style instanceof LayersClass)) {
+  if (!(actual instanceof LayersClass)) {
     if (!forceTopLevel) return { ok: true };
     if (isOverlayNode(style)) return { ok:false, msg:"Style is transparent." };
     const c = style.getColor(0);
@@ -354,7 +359,7 @@ function style_base_check_detail(style, forceTopLevel = false) {
   }
 
   // Flatten top-level sequence: [BASE, ...LAYERS]
-  const seq = [style.BASE].concat(style.LAYERS || []);
+  const seq = [actual.BASE].concat(actual.LAYERS || []);
 
   let baseIndex = -1;
   let baseColor = null;
