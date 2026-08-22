@@ -343,12 +343,26 @@ function style_base_check_detail(style, forceTopLevel = false) {
   }
   function isOpaque(c) { return c && c.a === 1.0; }
   function isBlack(c)  { return isOpaque(c) && c.r === 0 && c.g === 0 && c.b === 0; }
+  // Safely sample a node's color. Nodes that were just parsed/copied may not
+  // have had run() called on them yet, so some FUNCTION/COLOR classes can
+  // throw if they depend on state that run() normally initializes. Treat
+  // that as "unknown color" rather than letting the error crash the caller
+  // (e.g. clicking Duplicate Layer in the structured view).
+  function safeGetColor(node) {
+    try {
+      return node.getColor(0);
+    } catch (e) {
+      console.log("style_base_check_detail: getColor(0) failed", e);
+      return null;
+    }
+  }
 
   // Non-Layers - forceTopLevel during Copy() to reject transparent only
   if (!(style instanceof LayersClass)) {
     if (!forceTopLevel) return { ok: true };
     if (isOverlayNode(style)) return { ok:false, msg:"Style is transparent." };
-    const c = style.getColor(0);
+    const c = safeGetColor(style);
+    if (!c)                  return { ok: true };
     if (!isOpaque(c))        return { ok:false, msg:"Style is transparent." };
     return { ok:true };
   }
@@ -369,7 +383,7 @@ function style_base_check_detail(style, forceTopLevel = false) {
     const node = seq[i];
     if (isOverlayNode(node)) continue;
 
-    const c = node.getColor(0);
+    const c = safeGetColor(node);
     if (!c || c.a === 0) continue;         // transparent → keep going
 
     if (isBlack(c)) {                       // black → “counts as nothing”, keep going
@@ -398,7 +412,7 @@ function style_base_check_detail(style, forceTopLevel = false) {
   for (let j = baseIndex + 1; j < seq.length; j++) {
     const node = seq[j];
     if (isOverlayNode(node)) continue;
-    const c = node.getColor(0);
+    const c = safeGetColor(node);
     if (!isOpaque(c)) continue;
     solidsAbove++;
     if (solidsAbove > 0) {
@@ -2384,7 +2398,19 @@ function Run() {
       compile();
       return;
     } else {
-      throw e;
+      // Unexpected runtime error (not a parser error). Don't let this
+      // propagate uncaught: an uncaught exception here (e.g. triggered from
+      // the structured view's Duplicate Layer button) can leave the editor
+      // in a broken state, and if the offending style got persisted to the
+      // URL/localStorage beforehand, every subsequent page load would hit
+      // the same crash again. Fall back to BLACK instead.
+      err.innerHTML = "Internal error: " + (e && e.message ? e.message : e);
+      parser = new Parser("BLACK",
+                          classes,
+                          identifiers);
+      current_style = parser.parse();
+      compile();
+      return;
     }
   }
   compile();
