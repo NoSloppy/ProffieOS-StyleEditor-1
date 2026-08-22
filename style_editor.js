@@ -2404,7 +2404,7 @@ function Run() {
       // in a broken state, and if the offending style got persisted to the
       // URL/localStorage beforehand, every subsequent page load would hit
       // the same crash again. Fall back to BLACK instead.
-      err.innerHTML = "Internal error: " + (e && e.message ? e.message : e);
+      err.textContent = "Internal error: " + (e && e.message ? e.message : e);
       parser = new Parser("BLACK",
                           classes,
                           identifiers);
