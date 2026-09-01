@@ -84,7 +84,8 @@ const VALID_EFFECTS = new Set([
   'bgndrag', 'enddrag',
   'bgnmelt', 'endmelt',
   'bgnlb', 'endlb',
-  'auto', 'bgnauto', 'endauto',]);
+  'auto', 'bgnauto', 'endauto',
+]);
 
 const chooseLocalFontBtn = FIND('choose_local_font');
 const fileInput          = FIND('files');
