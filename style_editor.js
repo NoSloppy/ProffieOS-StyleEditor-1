@@ -343,37 +343,18 @@ function style_base_check_detail(style, forceTopLevel = false) {
   }
   function isOpaque(c) { return c && c.a === 1.0; }
   function isBlack(c)  { return isOpaque(c) && c.r === 0 && c.g === 0 && c.b === 0; }
-  // Safely sample a node's color. Nodes that were just parsed/copied may not
-  // have had run() called on them yet, so some FUNCTION/COLOR classes can
-  // throw if they depend on state that run() normally initializes. Treat
-  // that as "unknown color" rather than letting the error crash the caller
-  // (e.g. clicking Duplicate Layer in the structured view).
-  function safeGetColor(node) {
-    try {
-      return node.getColor(0);
-    } catch (e) {
-      console.log("style_base_check_detail: getColor(0) failed", e);
-      return null;
-    }
-  }
-
-  // Unwrap MACRO expansion chain so that e.g. InOutHelper<T,...> (a MACRO wrapping
-  // Layers) is treated the same as a bare Layers<> at the top level.
-  let actual = style;
-  while (actual && actual.expansion) actual = actual.expansion;
 
   // Non-Layers - forceTopLevel during Copy() to reject transparent only
-  if (!(actual instanceof LayersClass)) {
+  if (!(style instanceof LayersClass)) {
     if (!forceTopLevel) return { ok: true };
     if (isOverlayNode(style)) return { ok:false, msg:"Style is transparent." };
-    const c = safeGetColor(style);
-    if (!c)                  return { ok: true };
+    const c = style.getColor(0);
     if (!isOpaque(c))        return { ok:false, msg:"Style is transparent." };
     return { ok:true };
   }
 
   // Flatten top-level sequence: [BASE, ...LAYERS]
-  const seq = [actual.BASE].concat(actual.LAYERS || []);
+  const seq = [style.BASE].concat(style.LAYERS || []);
 
   let baseIndex = -1;
   let baseColor = null;
@@ -388,7 +369,7 @@ function style_base_check_detail(style, forceTopLevel = false) {
     const node = seq[i];
     if (isOverlayNode(node)) continue;
 
-    const c = safeGetColor(node);
+    const c = node.getColor(0);
     if (!c || c.a === 0) continue;         // transparent → keep going
 
     if (isBlack(c)) {                       // black → “counts as nothing”, keep going
@@ -417,7 +398,7 @@ function style_base_check_detail(style, forceTopLevel = false) {
   for (let j = baseIndex + 1; j < seq.length; j++) {
     const node = seq[j];
     if (isOverlayNode(node)) continue;
-    const c = safeGetColor(node);
+    const c = node.getColor(0);
     if (!isOpaque(c)) continue;
     solidsAbove++;
     if (solidsAbove > 0) {
@@ -1193,7 +1174,8 @@ const EFFECT_SOUND_MAP = {
   [EFFECT_SOUND_LOOP]:       "trloop",
 
   [EFFECT_STUN]:             "stun",
-  [EFFECT_FIRE]:             "fire",
+  // Blaster fire uses "blast", not to be confused with "blst"/"blaster" (saber blocking sounds)
+  [EFFECT_FIRE]:             "blast",
   [EFFECT_CLIP_IN]:          "clipin",
   [EFFECT_CLIP_OUT]:         "clipout",
   [EFFECT_RELOAD]:           "reload",
@@ -2403,19 +2385,7 @@ function Run() {
       compile();
       return;
     } else {
-      // Unexpected runtime error (not a parser error). Don't let this
-      // propagate uncaught: an uncaught exception here (e.g. triggered from
-      // the structured view's Duplicate Layer button) can leave the editor
-      // in a broken state, and if the offending style got persisted to the
-      // URL/localStorage beforehand, every subsequent page load would hit
-      // the same crash again. Fall back to BLACK instead.
-      err.textContent = "Internal error: " + (e && e.message ? e.message : e);
-      parser = new Parser("BLACK",
-                          classes,
-                          identifiers);
-      current_style = parser.parse();
-      compile();
-      return;
+      throw e;
     }
   }
   compile();
@@ -3362,18 +3332,10 @@ function toggleSettingsPanel() {
     return;
   }
   if (!settingsPanel.classList.contains('show')) {
-    // Restore last saved position, or fall back to CSS-centered default
-    const savedLeft = localStorage.getItem('settingsPanelLeft');
-    const savedTop  = localStorage.getItem('settingsPanelTop');
-    if (savedLeft !== null && savedTop !== null) {
-      settingsPanel.style.left      = savedLeft;
-      settingsPanel.style.top       = savedTop;
-      settingsPanel.style.transform = 'none';
-    } else {
-      settingsPanel.style.left      = '';
-      settingsPanel.style.top       = '';
-      settingsPanel.style.transform = '';
-    }
+    // Reset to centered position each time the panel is opened
+    settingsPanel.style.left = '';
+    settingsPanel.style.top = '';
+    settingsPanel.style.transform = '';
   }
   settingsPanel.classList.toggle('show');
 }
@@ -3402,11 +3364,6 @@ function toggleSettingsPanel() {
     settingsPanel.style.top = (startTop + e.clientY - startY) + 'px';
   });
   document.addEventListener('mouseup', function() {
-    if (isDragging) {
-      // Persist the new position so the panel reopens here next time
-      localStorage.setItem('settingsPanelLeft', settingsPanel.style.left);
-      localStorage.setItem('settingsPanelTop',  settingsPanel.style.top);
-    }
     isDragging = false;
   });
 })();
