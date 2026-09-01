@@ -1193,7 +1193,8 @@ const EFFECT_SOUND_MAP = {
   [EFFECT_SOUND_LOOP]:       "trloop",
 
   [EFFECT_STUN]:             "stun",
-  [EFFECT_FIRE]:             "fire",
+  // Blaster fire uses "blast", not to be confused with "blst"/"blaster" (saber blocking sounds)
+  [EFFECT_FIRE]:             "blast",
   [EFFECT_CLIP_IN]:          "clipin",
   [EFFECT_CLIP_OUT]:         "clipout",
   [EFFECT_RELOAD]:           "reload",
