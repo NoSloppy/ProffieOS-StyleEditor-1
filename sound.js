@@ -61,12 +61,12 @@ fetch('default_font_urls.txt')
 
 // All sound folder/filename bases that ProffieOS recognises as valid effects.
 const VALID_EFFECTS = new Set([
-  'battlevl', 'bladein', 'bladeout', 'blst', 'blstbgn', 'blstend',
+  'battlevl', 'bladein', 'bladeout', 'blast', 'blst', 'blstbgn', 'blstend',
   'bmbegin', 'bmend', 'boom', 'boot',
   'ccchange', 'clipin', 'clipout', 'clsh',
   'destruct', 'dim',
   'empty',
-  'fastout', 'fire', 'font', 'force', 'full',
+  'fastout', 'font', 'force', 'full',
   'in',
   'jam',
   'mode',
@@ -84,7 +84,7 @@ const VALID_EFFECTS = new Set([
   'bgndrag', 'enddrag',
   'bgnmelt', 'endmelt',
   'bgnlb', 'endlb',
-  'bgnauto', 'endauto',
+  'auto', 'bgnauto', 'endauto',
 ]);
 
 const chooseLocalFontBtn = FIND('choose_local_font');
@@ -489,10 +489,7 @@ function playRandomEffect(effectName, isAllowed = true) {
 
   // No sound file exists, show orange message
   if (total === 0) {
-    const key = Object.keys(window).find(
-      k => window[k] === effectName ||
-           k.replace(/^EFFECT_/, '').toLowerCase() === effectName.toLowerCase()
-    );
+    const key = effectConstantForSound(effectName);
     showNoSoundMsg(effectName, key ? ` (${key})` : "");
     return;
   }
@@ -530,6 +527,14 @@ function playRandomEffect(effectName, isAllowed = true) {
   src.buffer = buf;
   src.connect(masterGain);
   src.start();
+}
+
+// Reverse-map a sound key back to its EFFECT_* constant name, e.g. "blast" → "EFFECT_FIRE"
+function effectConstantForSound(effectName) {
+  for (const [type, name] of Object.entries(EFFECT_SOUND_MAP)) {
+    if (name === effectName) return EFFECT_ENUM_BUILDER.value_to_name[type];
+  }
+  return null;
 }
 
 function showNoSoundMsg(effectName, idText = "") {
@@ -609,6 +614,7 @@ function startLockupLoop(lockupType, skipBgn = false) {
     [EFFECT_DRAG_BEGIN]:   { b: 'bgndrag', l: 'drag', e: 'enddrag' },
     [EFFECT_MELT_BEGIN]:   { b: 'bgnmelt', l: 'melt', e: 'endmelt' },
     [EFFECT_LB_BEGIN]:     { b: 'bgnlb',   l: 'lb',   e: 'endlb' },
+    [EFFECT_AUTOFIRE_BEGIN]: { b: 'bgnauto', l: 'auto', e: 'endauto' },
   })[lockupType];
   if (!mapEntry) return;
 
@@ -625,7 +631,8 @@ function startLockupLoop(lockupType, skipBgn = false) {
       [EFFECT_LOCKUP_BEGIN]: "Lockup",
       [EFFECT_DRAG_BEGIN]:   "Drag",
       [EFFECT_MELT_BEGIN]:   "Melt",
-      [EFFECT_LB_BEGIN]:     "Lightning Block"
+      [EFFECT_LB_BEGIN]:     "Lightning Block",
+      [EFFECT_AUTOFIRE_BEGIN]: "Autofire"
     })[lockupType] || lockupType;
     showNoSoundMsg(lockupLabel, "");
     return;
