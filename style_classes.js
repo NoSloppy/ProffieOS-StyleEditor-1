@@ -729,7 +729,8 @@ const LOCKUP_TYPE_NAMES = {
   2: "LOCKUP_DRAG",
   3: "LOCKUP_LIGHTNING_BLOCK",
   4: "LOCKUP_MELT",
-  5: "LOCKUP_AUTOFIRE"
+  5: "LOCKUP_AUTOFIRE",
+  6: "LOCKUP_ARMED"
 };
 
 function lockupNameFromValue(val) {
@@ -2473,7 +2474,7 @@ class LockupLClass extends STYLE {
       var blend = this.single_pixel_ ? 32768 : this.DRAG_SHAPE.getInteger(led);
       ret = ret.mix(this.DRAG_COLOR.getColor(led), blend / 32768.0);
     }
-    if (STATE_LOCKUP == LOCKUP_NORMAL) {
+    if (STATE_LOCKUP == LOCKUP_NORMAL || STATE_LOCKUP == LOCKUP_ARMED) {
       ret = ret.mix(this.LOCKUP.getColor(led), this.LOCKUP_SHAPE.getInteger(led) / 32768.0);
     }
     return ret;
@@ -2483,6 +2484,7 @@ class LockupLClass extends STYLE {
     if (STATE_LOCKUP == LOCKUP_LIGHTNING_BLOCK) true;
     if (STATE_LOCKUP == LOCKUP_DRAG) return true;
     if (STATE_LOCKUP == LOCKUP_NORMAL) return true;
+    if (STATE_LOCKUP == LOCKUP_ARMED) return true;
     return false;
   }
   argify(state) {
@@ -2693,6 +2695,10 @@ Blade.prototype.addEffect = function(type, location) {
   // A boom always detonates the prop, turning it off without a retraction.
   if (type === EFFECT_BOOM) {
     DetonatorPowerOff();
+  }
+  // BC detonator prop uses USER2 for the disarm effect, so it ends an armed lockup with endarm.
+  if (type === EFFECT_USER2) {
+    Disarm(this, location);
   }
 
   const allowedByStyle = new Set(

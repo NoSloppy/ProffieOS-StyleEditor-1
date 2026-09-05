@@ -1248,7 +1248,9 @@ function getAllowedEventsFromText(text) {
     ResponsiveLightningBlockL:[EFFECT_LB_BEGIN, EFFECT_LB_END,     LOCKUP_LIGHTNING_BLOCK],
 
     InOutTrL:             [EFFECT_IGNITION,     EFFECT_RETRACTION],
-    LockupL:              [LOCKUP_NORMAL, LOCKUP_DRAG, LOCKUP_LIGHTNING_BLOCK],
+    /* LockupL draws LOCKUP_ARMED with the lockup color too, so an armed
+    Thermal Detonator gets its bgnarm/armhum/endarm sounds from it as well. */
+    LockupL:              [LOCKUP_NORMAL, LOCKUP_DRAG, LOCKUP_LIGHTNING_BLOCK, LOCKUP_ARMED],
   };
 
   for (var macro in macroMap) {
@@ -1289,6 +1291,9 @@ function getAllowedLockupsFromText(text) {
     allowed.add(LOCKUP_NORMAL);
     allowed.add(LOCKUP_DRAG);
     allowed.add(LOCKUP_LIGHTNING_BLOCK);
+    /* LockupL also draws LOCKUP_ARMED, but only fonts that can arm should offer
+    it, so saber fonts don't get a Thermal Detonator entry with no sounds. */
+    if (hasArmedLockupSounds()) allowed.add(LOCKUP_ARMED);
   }
 
   // LockupTrL's specific lockup type.
@@ -2775,6 +2780,11 @@ const LOCKUP_SOUNDS = {
   [LOCKUP_AUTOFIRE]:        { bgn: "bgnauto", loop: "auto",   end: "endauto", label: "Autofire" },
   [LOCKUP_ARMED]:           { bgn: "bgnarm",  loop: "armhum", end: "endarm",  label: "Arm", mono: true }
 };
+
+/* True if a user uploaded a Thermal Detonator font apart from a saber font. */
+function hasArmedLockupSounds() {
+  return pickLoopBuffers(LOCKUP_SOUNDS[LOCKUP_ARMED].loop).length > 0;
+}
 // Every effect that begins or ends a lockup.
 const lockup_begin_events = new Set(Object.values(lockups_to_event).map(pair => pair[0]));
 const lockup_end_events   = new Set(Object.values(lockups_to_event).map(pair => pair[1]));
@@ -2946,7 +2956,18 @@ function DetonatorArmed() {
   return STATE_LOCKUP === LOCKUP_ARMED || activeLockup === LOCKUP_ARMED;
 }
 
-/* Detonate() in the BC detonator prop. EFFECT_USER1 is what the prop fires for the
+/* BC detonator uses EFFECT_USER2 for disarm, so USER2 while armed
+ends the armed lockup here too: endarm plays and the hum comes back once it has
+finished. Choosing "End Arm" in the lockup dropdown does the same thing. */
+function Disarm(blade, location) {
+  if (!DetonatorArmed()) return;
+  console.log("Disarming, ending armed lockup.");
+  STATE_LOCKUP = 0;
+  updateLockupDropdown();
+  blade.addEffect(EFFECT_LOCKUP_END, location);
+}
+
+/* BC detonator prop uses EFFECT_USER1 for the
 countdown blade effect, so triggering USER1 while armed starts the countdown here
 too. cntdown.wav has no effect of its own, the prop plays it monophonically and
 uses its length as the delay. Without it, armhum keeps looping for the default
