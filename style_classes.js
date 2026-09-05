@@ -2691,6 +2691,14 @@ const origAddEffect = Blade.prototype.addEffect;
 
 Blade.prototype.addEffect = function(type, location) {
   type = Number(type);
+////////// Add THERMAL DETONATOR PR /////////////////
+  /* The detonator prop only fires EFFECT_USER1 from Detonate(), so USER1 while
+  armed starts the countdown. Done before the style runs, since the countdown
+  blade effect syncs to the Variation the prop sets (TrDelayX<Variation>). */
+  if (type === EFFECT_USER1 && DetonatorArmed()) {
+    Detonate(this, location);
+  }
+////////// Add THERMAL DETONATOR PR /////////////////
   // Run the original so visuals still trigger
   origAddEffect.call(this, type, location);
 
@@ -2707,27 +2715,6 @@ Blade.prototype.addEffect = function(type, location) {
   }
 
 ////////// Add THERMAL DETONATOR PR /////////////////
-  // Auto-follow COUNTDOWN → BOOM, like Detonate() in the detonator prop.
-  if (type === EFFECT_COUNTDOWN) {
-    // Wait for the countdown sound to start so we can time the file that played.
-    setTimeout(() => {
-      const countdownLength = soundDurationFor('cntdown');
-      const boomDelay = countdownLength || DETONATOR_TIMER_DURATION;
-      if (countdownLength) {
-        // cntdown takes over from armhum, so end the armed lockup silently.
-        EndArmedLockup();
-        maskHum();
-      }
-      SetCountdownVariation(boomDelay);
-      // USER1 is what the prop uses for the countdown blade effect.
-      this.addEffect(EFFECT_USER1, location);
-      console.log(`Detonating in ${boomDelay} ms.`);
-      setTimeout(() => {
-        this.addEffect(EFFECT_BOOM, location);
-      }, boomDelay);
-    }, 10);
-  }
-
   // A boom always detonates the prop, turning it off without a retraction.
   if (type === EFFECT_BOOM) {
     DetonatorPowerOff();

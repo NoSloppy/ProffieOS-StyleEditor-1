@@ -693,7 +693,7 @@ function startLockupLoop(lockupType, skipBgn = false) {
       [EFFECT_MELT_BEGIN]:   "Melt",
       [EFFECT_LB_BEGIN]:     "Lightning Block",
       [EFFECT_AUTOFIRE_BEGIN]: "Autofire",
-      [EFFECT_ARM_BEGIN]:    "Armed"
+      [EFFECT_ARM_BEGIN]:    "Arm"
     })[lockupType] || lockupType;
     showNoSoundMsg(lockupLabel, "");
     return;

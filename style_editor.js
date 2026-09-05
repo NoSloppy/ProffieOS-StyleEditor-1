@@ -1044,11 +1044,10 @@ EFFECT_ENUM_BUILDER.addValue("EFFECT_AUTOFIRE_END");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_DESTRUCT");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_BOOM");
 ////////// Add THERMAL DETONATOR PR /////////////////
-// Arming is LOCKUP_ARMED in ProffieOS, the countdown is a prop sound.
+// Arming is LOCKUP_ARMED in ProffieOS.
 // PSEUDO FOR NOW
 EFFECT_ENUM_BUILDER.addValue("EFFECT_ARM_BEGIN");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_ARM_END");
-EFFECT_ENUM_BUILDER.addValue("EFFECT_COUNTDOWN");
 // Mini game effects
 EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_START");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_ACTION1");
@@ -1196,9 +1195,9 @@ const EFFECT_SOUND_MAP = {
   [EFFECT_DESTRUCT]:         "destruct",
   [EFFECT_BOOM]:             "boom",
 ////////// Add THERMAL DETONATOR PR /////////////////
+  // cntdown has no effect of its own, the prop plays it directly in Detonate().
   [EFFECT_ARM_BEGIN]:        "bgnarm",
-  [EFFECT_ARM_END]:          "endarm",
-  [EFFECT_COUNTDOWN]:        "cntdown"
+  [EFFECT_ARM_END]:          "endarm"
 };
 
 /* Some effects use different sound file names in different fonts.
@@ -2829,7 +2828,7 @@ if ((!STATE_LOCKUP || STATE_LOCKUP === LOCKUP_NONE) && lockupLoopSrc) {
     [LOCKUP_MELT]: "Melt",
     [LOCKUP_LIGHTNING_BLOCK]: "LB",
     [LOCKUP_AUTOFIRE]: "Autofire",
-    [LOCKUP_ARMED]: "Armed"
+    [LOCKUP_ARMED]: "Arm"
     // Add more here if needed
   };
 
@@ -2889,6 +2888,17 @@ matching DETONATOR_TIMER_DURATION in the detonator prop files. */
 const DETONATOR_TIMER_DURATION = 6000;
 
 var variant_before_countdown = null;
+var countdown_timer = null;
+
+// Once a countdown is running it can't be restarted, same as the prop.
+function CountdownActive() {
+  return countdown_timer !== null;
+}
+
+function StopCountdown() {
+  clearTimeout(countdown_timer);
+  countdown_timer = null;
+}
 
 /* Detonating ends an armed lockup without playing endarm, the way
 Detonate() clears the lockup before the blast in the detonator prop. */
@@ -2914,10 +2924,43 @@ function RestoreCountdownVariation() {
   variant_before_countdown = null;
 }
 
+function DetonatorArmed() {
+  return STATE_LOCKUP === LOCKUP_ARMED || currentLockupType === EFFECT_ARM_BEGIN;
+}
+
+/* Detonate() in the detonator prop. EFFECT_USER1 is what the prop fires for the
+countdown blade effect, so triggering USER1 while armed starts the countdown here
+too. cntdown.wav has no effect of its own, the prop plays it monophonically and
+uses its length as the delay. Without it, armhum keeps looping for the default
+DETONATOR_TIMER_DURATION instead. */
+function Detonate(blade, location) {
+  if (CountdownActive()) {
+    console.log("**** TOO LATE!! RUN!!!");
+    return;
+  }
+  let boom_delay = DETONATOR_TIMER_DURATION;
+
+  if (pickLoopBuffers('cntdown').length) {
+    // cntdown takes over from armhum, so end the armed lockup without endarm.
+    EndArmedLockup();
+    maskHum();
+    playRandomEffect('cntdown', true);
+    boom_delay = soundDurationFor('cntdown', DETONATOR_TIMER_DURATION);
+  }
+
+  SetCountdownVariation(boom_delay);
+  console.log(`Detonating in ${boom_delay} ms.`);
+  countdown_timer = setTimeout(() => {
+    countdown_timer = null;
+    blade.addEffect(EFFECT_BOOM, location);
+  }, boom_delay);
+}
+
 /* EFFECT_BOOM always shuts things down, and without a retraction,
 like Off(OFF_BLAST) does in ProffieOS. Styles show the detonation with
 EFFECT_BOOM instead of an InOut retraction. */
 function DetonatorPowerOff() {
+  StopCountdown();  // A direct BOOM interrupts any countdown, like a Clash does.
   EndArmedLockup();
   RestoreCountdownVariation();
   if (!STATE_ON && !STATE_WAIT_FOR_ON) return;
@@ -3338,7 +3381,6 @@ function rebuildMoreEffectsMenu() {
           break;
         case EFFECT_ARM_BEGIN:
         case EFFECT_ARM_END:
-        case EFFECT_COUNTDOWN:
           tdEffectsMenu.appendChild(option);
           break;
 ////////// Add THERMAL DETONATOR PR /////////////////
