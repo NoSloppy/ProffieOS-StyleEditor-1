@@ -1663,11 +1663,6 @@ class LinearSectionFClass extends FUNCTION {
   }
   getInteger(led) {
     var led_range = new Range(led * 32768, led * 32768 + 32768);
-    // this.range is only populated by run(). Some code paths (e.g. structured
-    // view validation) call getInteger()/getColor() on a freshly parsed/copied
-    // tree before run() has ever been invoked on it. Fall back to a "fully lit"
-    // range in that case instead of throwing on this.range being undefined.
-    if (!this.range) return led_range.Size();
     return this.range.Intersect(led_range).Size();
   }
 }
