@@ -518,7 +518,8 @@ class WavLenClass extends FUNCTION {
   }
   getInteger(led) {
     const effectArg  = this.EFFECT?.value;
-    const effectName = EFFECT_SOUND_MAP[effectArg];
+    // Resolves TD sound names, so WavLen<EFFECT_IGNITION> can measure poweron.wav.
+    const effectName = soundKeyForEffect(effectArg);
     // Build durations array from loaded buffers
     const durations  = pickLoopBuffers(effectName)
                           .map(b => b?.duration ? Math.round(b.duration * 1000) : null);

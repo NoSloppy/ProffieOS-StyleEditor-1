@@ -541,7 +541,6 @@ AddFunction("RandomPerLEDF");
 AddFunction("RampF");
 AddFunction("SequenceF<100, 37, 0b0001010100011100, 0b0111000111000101, 0b0100000000000000>");
 AddFunction("SparkleF");
-AddFunction("SparkleFX<Int<300>, Int<1024>>");
 AddFunction("StrobeF<Int<15>, Int<1>>");
 AddFunction("BlastFadeoutF");
 AddFunction("OriginalBlastF");
@@ -1081,19 +1080,11 @@ function Pulsing(COLOR1, COLOR2, PULSE_MILLIS) {
   return new PulsingClass(COLOR1, COLOR2, PULSE_MILLIS);
 }
 
-// class SparkleFClass extends FUNCTION {
-//   constructor(SPARK_CHANCE_PROMILLE, SPARK_INTENSITY) {
-//     super("Sparkles!!", Array.from(arguments));
-//     this.add_arg("SPARK_CHANCE_PROMILLE", "INT", "Chance of new sparks.", 300);
-//     this.add_arg("SPARK_INTENSITY", "INT", "Initial spark intensity", 1024);
-//     this.sparks = new Uint16Array(144 + 4);
-//     this.last_update = 0;
-//   }
-class SparkleFXClass extends FUNCTION {
+class SparkleFClass extends FUNCTION {
   constructor(SPARK_CHANCE_PROMILLE, SPARK_INTENSITY) {
     super("Sparkles!!", Array.from(arguments));
-    this.add_arg("SPARK_CHANCE_PROMILLE", "FUNCTION", "Chance of new sparks.", Int(300));
-    this.add_arg("SPARK_INTENSITY", "FUNCTION", "Initial spark intensity", Int(1024));
+    this.add_arg("SPARK_CHANCE_PROMILLE", "INT", "Chance of new sparks.", 300);
+    this.add_arg("SPARK_INTENSITY", "INT", "Initial spark intensity", 1024);
     this.sparks = new Uint16Array(144 + 4);
     this.last_update = 0;
   }
@@ -1110,27 +1101,13 @@ class SparkleFXClass extends FUNCTION {
         fifo = x;
       }
       this.sparks[N] = fifo;
-      // if (random(1000) < this.SPARK_CHANCE_PROMILLE) {
-      //   this.sparks[random(blade.num_leds()) + 2] += this.SPARK_INTENSITY;
-      if (random(1000) < this.SPARK_CHANCE_PROMILLE.getInteger(0)) {
-        this.sparks[random(blade.num_leds()) + 2] += this.SPARK_INTENSITY.getInteger(0);
+      if (random(1000) < this.SPARK_CHANCE_PROMILLE) {
+        this.sparks[random(blade.num_leds()) + 2] += this.SPARK_INTENSITY;
       }
     }
   }
   getInteger(led) {
     return clamp(this.sparks[led + 2], 0, 255) << 7;
-  }
-}
-
-function SparkleFX(SPARK_CHANCE_PROMILLE, SPARK_INTENSITY) {
-  return new SparkleFXClass(SPARK_CHANCE_PROMILLE, SPARK_INTENSITY);
-}
-class SparkleFClass extends MACRO {
-  constructor(SPARK_CHANCE_PROMILLE, SPARK_INTENSITY) {
-    super("Sparkles!!", Array.from(arguments));
-    this.add_arg("SPARK_CHANCE_PROMILLE", "INT", "Chance of new sparks.", 300);
-    this.add_arg("SPARK_INTENSITY", "INT", "Initial spark intensity", 1024);
-    this.SetExpansion(SparkleFX(Int(this.SPARK_CHANCE_PROMILLE), Int(this.SPARK_INTENSITY)));
   }
 }
 
@@ -1144,8 +1121,7 @@ class SparkleLClass extends MACRO {
     this.add_arg("SPARKLE_COLOR", "COLOR", "Spark color", Rgb(255,255,255));
     this.add_arg("SPARK_CHANCE_PROMILLE", "INT", "Chance of new sparks.", 300);
     this.add_arg("SPARK_INTENSITY", "INT", "Initial spark intensity", 1024);
-    // this.SetExpansion(AlphaL(this.SPARKLE_COLOR, SparkleF(this.SPARK_CHANCE_PROMILLE, this.SPARK_INTENSITY)));
-    this.SetExpansion(AlphaL(this.SPARKLE_COLOR, SparkleFX(Int(this.SPARK_CHANCE_PROMILLE), Int(this.SPARK_INTENSITY))));
+    this.SetExpansion(AlphaL(this.SPARKLE_COLOR, SparkleF(this.SPARK_CHANCE_PROMILLE, this.SPARK_INTENSITY)));
   }
 }
 
@@ -2691,6 +2667,14 @@ const origAddEffect = Blade.prototype.addEffect;
 
 Blade.prototype.addEffect = function(type, location) {
   type = Number(type);
+
+  /* The BC detonator prop only fires EFFECT_USER1 from Detonate(), so USER1 while
+  armed starts the countdown. Done before the style runs, since the countdown
+  blade effect syncs to the Variation the prop sets (TrDelayX<Variation>). */
+  if (type === EFFECT_USER1 && DetonatorArmed()) {
+    Detonate(this, location);
+  }
+
   // Run the original so visuals still trigger
   origAddEffect.call(this, type, location);
 
@@ -2706,6 +2690,11 @@ Blade.prototype.addEffect = function(type, location) {
     }, 10);
   }
 
+  // A boom always detonates the prop, turning it off without a retraction.
+  if (type === EFFECT_BOOM) {
+    DetonatorPowerOff();
+  }
+
   const allowedByStyle = new Set(
     Array.from(getAllowedEventsFromStyleText())
       .filter(x =>
@@ -2713,47 +2702,39 @@ Blade.prototype.addEffect = function(type, location) {
         LOCKUP_ENUM_BUILDER.value_to_name.hasOwnProperty(x)
       )
   );
-  const BEGIN_EFFECT_MAP = {
-    [EFFECT_LOCKUP_BEGIN]:    "bgnlock",
-    [EFFECT_DRAG_BEGIN]:      "bgndrag",
-    [EFFECT_MELT_BEGIN]:      "bgnmelt",
-    [EFFECT_LB_BEGIN]:        "bgnlb",
-    [EFFECT_AUTOFIRE_BEGIN]:  "bgnauto"
-  };
-  if (BEGIN_EFFECT_MAP[type]) {
+  /* Lockup sounds come from the lockup, not from the effect, since LOCKUP_ARMED
+  shares EFFECT_LOCKUP_BEGIN/EFFECT_LOCKUP_END with a normal lockup. */
+  if (lockup_begin_events.has(type)) {
     const lockupType = lockupTypeForEffect(type);
     if (allowedByStyle.has(lockupType)) {
       // Triggered by Do Selected Effect button
-      if (lockupLoopSrc) playRandomEffect(BEGIN_EFFECT_MAP[type], true);
+      if (lockupLoopSrc) playRandomEffect(LOCKUP_SOUNDS[lockupType].bgn, true);
       // Triggered by Lockup chooser dropdown
       if (!lockupLoopSrc) startLockupLoop(type);
     }
     return;
   }
 
-    const END_EFFECT_MAP = {
-      [EFFECT_LOCKUP_END]:    "endlock",
-      [EFFECT_DRAG_END]:      "enddrag",
-      [EFFECT_MELT_END]:      "endmelt",
-      [EFFECT_LB_END]:        "endlb",
-      [EFFECT_AUTOFIRE_END]:  "endauto"
-    };
-    // if (END_EFFECT_MAP[type]) {
+    // if (lockup_end_events.has(type)) {
 // needed this for some reason, now not...?
     //   // If being called because we are forcibly ending a lockup with "Stop"
     //   // always end the lockup loop (even if sound is denied by style)
     //   const forceEnd = !allowedByStyle.has(type) && lockupLoopSrc;
-    //   endLockupLoop(type, (allowedByStyle.has(type) || forceEnd) ? END_EFFECT_MAP[type] : null, true);
+    //   endLockupLoop(type, (allowedByStyle.has(type) || forceEnd) ? sounds.end : null, true);
     //   return;
     // }
-    if (END_EFFECT_MAP[type]) {
+    if (lockup_end_events.has(type)) {
+      // Look the sounds up before ending, ending forgets which lockup was running.
+      const sounds = lockupSoundsForEffect(type);
       // Always play the end sound for lockup ends, regardless of allowedByStyle
-      endLockupLoop(type, END_EFFECT_MAP[type], true);
+      endLockupLoop(type, sounds ? sounds.end : null, true);
+      // Let endarm finish before the hum comes back, since it replaced it.
+      if (sounds && sounds.mono) unmaskHum(soundDurationFor(sounds.end));
       return;
     }
 
   // Else, only play sound if it's in the textarea.
-  const effectName = EFFECT_SOUND_MAP[type];
+  const effectName = soundKeyForEffect(type);
   if (effectName) {
   const isAllowed = outerMostBracket || allowedByStyle.has(type);
   playRandomEffect(effectName, isAllowed);
