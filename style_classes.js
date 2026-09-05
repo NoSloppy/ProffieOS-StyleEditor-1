@@ -456,6 +456,7 @@ AddEffect("Stripes<1000, 1000, Cyan, Magenta, Yellow, Blue>");
 AddEffect("Strobe<Black, White, 15, 1>");
 AddLayer("StrobeL<White, Int<15>, Int<1>>");
 AddEffect("StyleFire<Blue, Cyan>");
+AddEffect("StaticFire<Red, Orange>");
 AddEffect("MultiTransitionEffect<Blue, White, TrWipe<50>, TrWipe<50>, EFFECT_BLAST>");
 AddEffect("TransitionEffect<Blue,Green,TrFade<500>,TrBoing<500,3>,EFFECT_BLAST>");
 AddEffectWL("TransitionLoop<Blue, TrConcat<TrFade<200>, Red, TrFade<200>>>");
@@ -2666,6 +2667,14 @@ const origAddEffect = Blade.prototype.addEffect;
 
 Blade.prototype.addEffect = function(type, location) {
   type = Number(type);
+
+  /* The BC detonator prop only fires EFFECT_USER1 from Detonate(), so USER1 while
+  armed starts the countdown. Done before the style runs, since the countdown
+  blade effect syncs to the Variation the prop sets (TrDelayX<Variation>). */
+  if (type === EFFECT_USER1 && DetonatorArmed()) {
+    Detonate(this, location);
+  }
+
   // Run the original so visuals still trigger
   origAddEffect.call(this, type, location);
 
@@ -2681,6 +2690,11 @@ Blade.prototype.addEffect = function(type, location) {
     }, 10);
   }
 
+  // A boom always detonates the prop, turning it off without a retraction.
+  if (type === EFFECT_BOOM) {
+    DetonatorPowerOff();
+  }
+
   const allowedByStyle = new Set(
     Array.from(getAllowedEventsFromStyleText())
       .filter(x =>
@@ -2688,47 +2702,39 @@ Blade.prototype.addEffect = function(type, location) {
         LOCKUP_ENUM_BUILDER.value_to_name.hasOwnProperty(x)
       )
   );
-  const BEGIN_EFFECT_MAP = {
-    [EFFECT_LOCKUP_BEGIN]:    "bgnlock",
-    [EFFECT_DRAG_BEGIN]:      "bgndrag",
-    [EFFECT_MELT_BEGIN]:      "bgnmelt",
-    [EFFECT_LB_BEGIN]:        "bgnlb",
-    [EFFECT_AUTOFIRE_BEGIN]:  "bgnauto"
-  };
-  if (BEGIN_EFFECT_MAP[type]) {
+  /* Lockup sounds come from the lockup, not from the effect, since LOCKUP_ARMED
+  shares EFFECT_LOCKUP_BEGIN/EFFECT_LOCKUP_END with a normal lockup. */
+  if (lockup_begin_events.has(type)) {
     const lockupType = lockupTypeForEffect(type);
     if (allowedByStyle.has(lockupType)) {
       // Triggered by Do Selected Effect button
-      if (lockupLoopSrc) playRandomEffect(BEGIN_EFFECT_MAP[type], true);
+      if (lockupLoopSrc) playRandomEffect(LOCKUP_SOUNDS[lockupType].bgn, true);
       // Triggered by Lockup chooser dropdown
       if (!lockupLoopSrc) startLockupLoop(type);
     }
     return;
   }
 
-    const END_EFFECT_MAP = {
-      [EFFECT_LOCKUP_END]:    "endlock",
-      [EFFECT_DRAG_END]:      "enddrag",
-      [EFFECT_MELT_END]:      "endmelt",
-      [EFFECT_LB_END]:        "endlb",
-      [EFFECT_AUTOFIRE_END]:  "endauto"
-    };
-    // if (END_EFFECT_MAP[type]) {
+    // if (lockup_end_events.has(type)) {
 // needed this for some reason, now not...?
     //   // If being called because we are forcibly ending a lockup with "Stop"
     //   // always end the lockup loop (even if sound is denied by style)
     //   const forceEnd = !allowedByStyle.has(type) && lockupLoopSrc;
-    //   endLockupLoop(type, (allowedByStyle.has(type) || forceEnd) ? END_EFFECT_MAP[type] : null, true);
+    //   endLockupLoop(type, (allowedByStyle.has(type) || forceEnd) ? sounds.end : null, true);
     //   return;
     // }
-    if (END_EFFECT_MAP[type]) {
+    if (lockup_end_events.has(type)) {
+      // Look the sounds up before ending, ending forgets which lockup was running.
+      const sounds = lockupSoundsForEffect(type);
       // Always play the end sound for lockup ends, regardless of allowedByStyle
-      endLockupLoop(type, END_EFFECT_MAP[type], true);
+      endLockupLoop(type, sounds ? sounds.end : null, true);
+      // Let endarm finish before the hum comes back, since it replaced it.
+      if (sounds && sounds.mono) unmaskHum(soundDurationFor(sounds.end));
       return;
     }
 
   // Else, only play sound if it's in the textarea.
-  const effectName = EFFECT_SOUND_MAP[type];
+  const effectName = soundKeyForEffect(type);
   if (effectName) {
   const isAllowed = outerMostBracket || allowedByStyle.has(type);
   playRandomEffect(effectName, isAllowed);
@@ -3359,6 +3365,7 @@ function TransitionPulseL(TRANSITION, PULSE) {
 
 class InOutTrLClass extends STYLE {
   isEffect() { return true; }
+  isInOutTrL() { return true; }
   constructor(OUT_TR, IN_TR, OFF, AD) {
     super("In-out based on transitions", arguments);
     this.add_arg("OUT_TR", "TRANSITION", "IN-OUT transition");
