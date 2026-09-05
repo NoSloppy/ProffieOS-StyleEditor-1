@@ -25,6 +25,10 @@ masterGain.connect(audioCtx.destination);
 let lockupGainNode              = null;
 let lockupLoopSrc               = null;
 let currentLockupType = null;
+/* The SaberBase::LOCKUP_* whose sounds are playing. LOCKUP_ARMED shares its
+effects with a normal lockup, so this is what tells them apart once the dropdown
+has cleared STATE_LOCKUP. */
+let activeLockup = null;
 let errorMessageTimeout = null;
 // Thermal Detonator sounds are monophonic, so they mask the hum while playing.
 let humMasked                   = false;
@@ -668,39 +672,26 @@ function clearHumMask() {
 }
 
 function startLockupLoop(lockupType, skipBgn = false) {
-  const mapEntry = ({
-    [EFFECT_LOCKUP_BEGIN]: { b: 'bgnlock', l: 'lock', e: 'endlock' },
-    [EFFECT_DRAG_BEGIN]:   { b: 'bgndrag', l: 'drag', e: 'enddrag' },
-    [EFFECT_MELT_BEGIN]:   { b: 'bgnmelt', l: 'melt', e: 'endmelt' },
-    [EFFECT_LB_BEGIN]:     { b: 'bgnlb',   l: 'lb',   e: 'endlb' },
-    [EFFECT_AUTOFIRE_BEGIN]: { b: 'bgnauto', l: 'auto', e: 'endauto' },
-    [EFFECT_ARM_BEGIN]:    { b: 'bgnarm',  l: 'armhum', e: 'endarm' },
-  })[lockupType];
+  // Which lockup this is decides the sounds, the same way hybrid_font does it.
+  const lockup = lockupTypeForEffect(lockupType);
+  const mapEntry = LOCKUP_SOUNDS[lockup];
   if (!mapEntry) return;
 
-  const { b, l, e } = mapEntry;
+  const { bgn: b, loop: l } = mapEntry;
 
   currentLockupType = lockupType;
+  activeLockup = lockup;
   if (!soundOnState.get()) return;
 
   const beginBuffers = pickLoopBuffers(b) || [];
   const loopBuffers  = pickLoopBuffers(l) || [];
   if (!loopBuffers.length) {
-    // Find lockup display name for the message
-    const lockupLabel = ({
-      [EFFECT_LOCKUP_BEGIN]: "Lockup",
-      [EFFECT_DRAG_BEGIN]:   "Drag",
-      [EFFECT_MELT_BEGIN]:   "Melt",
-      [EFFECT_LB_BEGIN]:     "Lightning Block",
-      [EFFECT_AUTOFIRE_BEGIN]: "Autofire",
-      [EFFECT_ARM_BEGIN]:    "Arm"
-    })[lockupType] || lockupType;
-    showNoSoundMsg(lockupLabel, "");
+    showNoSoundMsg(mapEntry.label, "");
     return;
   }
 
   // The armed hum replaces the hum on the real prop, so quiet the hum down.
-  if (lockupType === EFFECT_ARM_BEGIN) maskHum();
+  if (mapEntry.mono) maskHum();
 
   const gainNode = audioCtx.createGain();
   gainNode.gain.value = globalVolume;
@@ -736,7 +727,7 @@ function endLockupLoop(effectType, endEffectName, shouldClear) {
   // If sound is OFF, do not play the end sound; just clean up state  //
   if (!soundOnState.get()) {
     if (lockupGainNode) { lockupGainNode.disconnect(); lockupGainNode = null; }
-    if (shouldClear) currentLockupType = null;
+    if (shouldClear) { currentLockupType = null; activeLockup = null; }
     return;
   }
   
@@ -752,7 +743,7 @@ function endLockupLoop(effectType, endEffectName, shouldClear) {
         const dur   = Math.round(durs[endIdx]);
         console.log(`▶ ${fontLabel}: ** playing ${fname} – ${dur}ms`);
         playBuffer(buf, 0, false, globalVolume, masterGain);
-        if (shouldClear) currentLockupType = null;
+        if (shouldClear) { currentLockupType = null; activeLockup = null; }
         return true;
       }
       return false;
@@ -778,7 +769,7 @@ function endLockupLoop(effectType, endEffectName, shouldClear) {
     }
   }
   if (lockupGainNode) { lockupGainNode.disconnect(); lockupGainNode = null; }
-  if (shouldClear) currentLockupType = null;
+  if (shouldClear) { currentLockupType = null; activeLockup = null; }
 }
 
 function resumeLoops() {

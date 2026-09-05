@@ -1043,11 +1043,6 @@ EFFECT_ENUM_BUILDER.addValue("EFFECT_AUTOFIRE_END");
 ////////// Add DESTRUCT PR /////////////////
 EFFECT_ENUM_BUILDER.addValue("EFFECT_DESTRUCT");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_BOOM");
-////////// Add THERMAL DETONATOR PR /////////////////
-// Arming is LOCKUP_ARMED in ProffieOS.
-// PSEUDO FOR NOW
-EFFECT_ENUM_BUILDER.addValue("EFFECT_ARM_BEGIN");
-EFFECT_ENUM_BUILDER.addValue("EFFECT_ARM_END");
 // Mini game effects
 EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_START");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_ACTION1");
@@ -1193,11 +1188,7 @@ const EFFECT_SOUND_MAP = {
   [EFFECT_PLI_ON]:           "plion",
   [EFFECT_PLI_OFF]:          "plioff",
   [EFFECT_DESTRUCT]:         "destruct",
-  [EFFECT_BOOM]:             "boom",
-////////// Add THERMAL DETONATOR PR /////////////////
-  // cntdown has no effect of its own, the prop plays it directly in Detonate().
-  [EFFECT_ARM_BEGIN]:        "bgnarm",
-  [EFFECT_ARM_END]:          "endarm"
+  [EFFECT_BOOM]:             "boom"
 };
 
 /* Some effects use different sound file names in different fonts.
@@ -2768,16 +2759,46 @@ lockups_to_event[LOCKUP_DRAG]            = [ EFFECT_DRAG_BEGIN, EFFECT_DRAG_END 
 lockups_to_event[LOCKUP_MELT]            = [EFFECT_MELT_BEGIN, EFFECT_MELT_END];
 lockups_to_event[LOCKUP_LIGHTNING_BLOCK] = [EFFECT_LB_BEGIN, EFFECT_LB_END];
 lockups_to_event[LOCKUP_AUTOFIRE]        = [EFFECT_AUTOFIRE_BEGIN, EFFECT_AUTOFIRE_END];
-lockups_to_event[LOCKUP_ARMED]           = [EFFECT_ARM_BEGIN, EFFECT_ARM_END];
+/* Arming a Thermal Detonator is a plain lockup in ProffieOS, so it shares
+EFFECT_LOCKUP_BEGIN/EFFECT_LOCKUP_END with a normal lockup. */
+lockups_to_event[LOCKUP_ARMED]           = [EFFECT_LOCKUP_BEGIN, EFFECT_LOCKUP_END];
 
-// Reverse mapping bgn->lockup
+/* Which sounds each lockup uses. hybrid_font looks at SaberBase::Lockup() rather
+than at the effect, which is how LOCKUP_ARMED plays bgnarm/armhum/endarm from the
+same effects a normal lockup uses. "mono" marks a lockup whose loop replaces the
+hum instead of playing over it. */
+const LOCKUP_SOUNDS = {
+  [LOCKUP_NORMAL]:          { bgn: "bgnlock", loop: "lock",   end: "endlock", label: "Lockup" },
+  [LOCKUP_DRAG]:            { bgn: "bgndrag", loop: "drag",   end: "enddrag", label: "Drag" },
+  [LOCKUP_MELT]:            { bgn: "bgnmelt", loop: "melt",   end: "endmelt", label: "Melt" },
+  [LOCKUP_LIGHTNING_BLOCK]: { bgn: "bgnlb",   loop: "lb",     end: "endlb",   label: "Lightning Block" },
+  [LOCKUP_AUTOFIRE]:        { bgn: "bgnauto", loop: "auto",   end: "endauto", label: "Autofire" },
+  [LOCKUP_ARMED]:           { bgn: "bgnarm",  loop: "armhum", end: "endarm",  label: "Arm", mono: true }
+};
+
+// Every effect that begins or ends a lockup.
+const lockup_begin_events = new Set(Object.values(lockups_to_event).map(pair => pair[0]));
+const lockup_end_events   = new Set(Object.values(lockups_to_event).map(pair => pair[1]));
+
+// Reverse mapping lockup effect -> lockup
 function lockupTypeForEffect(effect) {
+  /* LOCKUP_ARMED shares its effects with a normal lockup, so the chosen lockup
+  decides which one an effect means. The dropdown clears STATE_LOCKUP before the
+  end effect fires, so fall back to the lockup that is still running, and to the
+  first lockup using that effect when nothing is running at all. */
+  if ((lockups_to_event[STATE_LOCKUP] || []).includes(effect)) return Number(STATE_LOCKUP);
+  if ((lockups_to_event[activeLockup] || []).includes(effect)) return Number(activeLockup);
   for (const lockupType in lockups_to_event) {
-    if (lockups_to_event[lockupType][0] === effect) {
+    if (lockups_to_event[lockupType].includes(effect)) {
       return Number(lockupType);  // make sure it’s a number
     }
   }
   return undefined;
+}
+
+// The sounds a lockup begin/end effect should play right now.
+function lockupSoundsForEffect(effect) {
+  return LOCKUP_SOUNDS[lockupTypeForEffect(effect)];
 }
 
 function OnLockupChange() {
@@ -2903,10 +2924,10 @@ function StopCountdown() {
 /* Detonating ends an armed lockup without playing endarm, the way
 Detonate() clears the lockup before the blast in the detonator prop. */
 function EndArmedLockup() {
-  if (currentLockupType !== EFFECT_ARM_BEGIN) return;
+  if (!DetonatorArmed()) return;
   console.log("Ending armed lockup without endarm.");
   STATE_LOCKUP = 0;
-  endLockupLoop(EFFECT_ARM_END, null, true);
+  endLockupLoop(EFFECT_LOCKUP_END, null, true);
   updateLockupDropdown();
 }
 
@@ -2925,7 +2946,7 @@ function RestoreCountdownVariation() {
 }
 
 function DetonatorArmed() {
-  return STATE_LOCKUP === LOCKUP_ARMED || currentLockupType === EFFECT_ARM_BEGIN;
+  return STATE_LOCKUP === LOCKUP_ARMED || activeLockup === LOCKUP_ARMED;
 }
 
 /* Detonate() in the detonator prop. EFFECT_USER1 is what the prop fires for the
@@ -3378,10 +3399,6 @@ function rebuildMoreEffectsMenu() {
           // Both blaster self-destruct and thermal detonators end with a boom.
           tdEffectsMenu.appendChild(option.cloneNode(true));
           blasterEffectsMenu.appendChild(option);
-          break;
-        case EFFECT_ARM_BEGIN:
-        case EFFECT_ARM_END:
-          tdEffectsMenu.appendChild(option);
           break;
 ////////// Add THERMAL DETONATOR PR /////////////////
         case EFFECT_STUN:

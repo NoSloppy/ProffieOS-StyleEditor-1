@@ -2728,46 +2728,34 @@ Blade.prototype.addEffect = function(type, location) {
         LOCKUP_ENUM_BUILDER.value_to_name.hasOwnProperty(x)
       )
   );
-  const BEGIN_EFFECT_MAP = {
-    [EFFECT_LOCKUP_BEGIN]:    "bgnlock",
-    [EFFECT_DRAG_BEGIN]:      "bgndrag",
-    [EFFECT_MELT_BEGIN]:      "bgnmelt",
-    [EFFECT_LB_BEGIN]:        "bgnlb",
-    [EFFECT_AUTOFIRE_BEGIN]:  "bgnauto",
-    [EFFECT_ARM_BEGIN]:       "bgnarm"
-  };
-  if (BEGIN_EFFECT_MAP[type]) {
+  /* Lockup sounds come from the lockup, not from the effect, since LOCKUP_ARMED
+  shares EFFECT_LOCKUP_BEGIN/EFFECT_LOCKUP_END with a normal lockup. */
+  if (lockup_begin_events.has(type)) {
     const lockupType = lockupTypeForEffect(type);
     if (allowedByStyle.has(lockupType)) {
       // Triggered by Do Selected Effect button
-      if (lockupLoopSrc) playRandomEffect(BEGIN_EFFECT_MAP[type], true);
+      if (lockupLoopSrc) playRandomEffect(LOCKUP_SOUNDS[lockupType].bgn, true);
       // Triggered by Lockup chooser dropdown
       if (!lockupLoopSrc) startLockupLoop(type);
     }
     return;
   }
 
-    const END_EFFECT_MAP = {
-      [EFFECT_LOCKUP_END]:    "endlock",
-      [EFFECT_DRAG_END]:      "enddrag",
-      [EFFECT_MELT_END]:      "endmelt",
-      [EFFECT_LB_END]:        "endlb",
-      [EFFECT_AUTOFIRE_END]:  "endauto",
-      [EFFECT_ARM_END]:       "endarm"
-    };
-    // if (END_EFFECT_MAP[type]) {
+    // if (lockup_end_events.has(type)) {
 // needed this for some reason, now not...?
     //   // If being called because we are forcibly ending a lockup with "Stop"
     //   // always end the lockup loop (even if sound is denied by style)
     //   const forceEnd = !allowedByStyle.has(type) && lockupLoopSrc;
-    //   endLockupLoop(type, (allowedByStyle.has(type) || forceEnd) ? END_EFFECT_MAP[type] : null, true);
+    //   endLockupLoop(type, (allowedByStyle.has(type) || forceEnd) ? sounds.end : null, true);
     //   return;
     // }
-    if (END_EFFECT_MAP[type]) {
+    if (lockup_end_events.has(type)) {
+      // Look the sounds up before ending, ending forgets which lockup was running.
+      const sounds = lockupSoundsForEffect(type);
       // Always play the end sound for lockup ends, regardless of allowedByStyle
-      endLockupLoop(type, END_EFFECT_MAP[type], true);
+      endLockupLoop(type, sounds ? sounds.end : null, true);
       // Let endarm finish before the hum comes back, since it replaced it.
-      if (type === EFFECT_ARM_END) unmaskHum(soundDurationFor('endarm'));
+      if (sounds && sounds.mono) unmaskHum(soundDurationFor(sounds.end));
       return;
     }
 
