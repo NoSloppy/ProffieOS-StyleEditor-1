@@ -218,6 +218,14 @@ size when padding and margins may change */
   color: #bbb;
 }
 
+.dark-mode .destruct-duration-label.disabled {
+  color: #444 !important;
+}
+.dark-mode .destruct-duration-label.disabled input {
+  background-color: #555;
+  color: #bbb;
+}
+
 .dark-mode .slowmotion-speed-label.disabled {
   color: #444 !important;
 }
@@ -790,6 +798,32 @@ background-color: #A1D1F3;
   pointer-events: none;
 }
 .wavlen-global-label.disabled input {
+  background-color: #eee;
+  color: #888;
+  cursor: not-allowed;
+}
+
+/* detonation controls */
+.destruct-controls {
+  display: block;
+  margin-top: 5px;
+}
+
+.destruct-duration-label {
+  display: block;
+  margin-top: 5px;
+}
+.destruct-duration-value {
+  margin-left: 5px;
+}
+
+/* No pointer-events here, unlike the WavLen label: the tooltip is how the user
+   finds out why the field is greyed out, so hovering it has to keep working. */
+.destruct-duration-label.disabled {
+  color: #aaa !important;
+  opacity: 0.7;
+}
+.destruct-duration-label.disabled input {
   background-color: #eee;
   color: #888;
   cursor: not-allowed;

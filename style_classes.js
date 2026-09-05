@@ -2670,27 +2670,18 @@ const origAddEffect = Blade.prototype.addEffect;
 Blade.prototype.addEffect = function(type, location) {
   type = Number(type);
 
-  /* The BC detonator prop only fires EFFECT_USER1 from Detonate(), so USER1 while
-  armed starts the countdown. Done before the style runs, since the countdown
-  blade effect syncs to the Variation the prop sets (TrDelayX<Variation>). */
-  if (type === EFFECT_USER1 && DetonatorArmed()) {
-    Detonate(this, location);
+  /* Both props fire EFFECT_DESTRUCT to start the countdown. Done before the
+  style runs, since the countdown blade effect syncs to the Variation the prop
+  sets (TrDelayX<Variation>). */
+  if (type === EFFECT_DESTRUCT) {
+    SelfDestruct(this, location);
   }
 
   // Run the original so visuals still trigger
   origAddEffect.call(this, type, location);
 
-  // Auto-follow DESTRUCT → BOOM
-  if (type === EFFECT_DESTRUCT) {
-    setTimeout(() => {
-      const idx = lastPlayedSoundIndex['destruct'];
-      const rawDur = customFontSoundDurations['destruct']?.[idx];
-      const dur = (typeof rawDur === 'number' && rawDur > 50) ? rawDur : 500;
-      setTimeout(() => {
-        this.addEffect(EFFECT_BOOM, location);
-      }, dur);
-    }, 10);
-  }
+  // SelfDestruct() already played destruct, so don't play it again below.
+  if (type === EFFECT_DESTRUCT) return;
 
   // A boom always detonates the prop, turning it off without a retraction.
   if (type === EFFECT_BOOM) {

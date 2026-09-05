@@ -1293,7 +1293,7 @@ function getAllowedLockupsFromText(text) {
     allowed.add(LOCKUP_LIGHTNING_BLOCK);
     /* LockupL also draws LOCKUP_ARMED, but only fonts that can arm should offer
     it, so saber fonts don't get a Thermal Detonator entry with no sounds. */
-    if (hasArmedLockupSounds()) allowed.add(LOCKUP_ARMED);
+    if (hasLockupSounds(LOCKUP_ARMED)) allowed.add(LOCKUP_ARMED);
   }
 
   // LockupTrL's specific lockup type.
@@ -2781,9 +2781,17 @@ const LOCKUP_SOUNDS = {
   [LOCKUP_ARMED]:           { bgn: "bgnarm",  loop: "armhum", end: "endarm",  label: "Arm", mono: true }
 };
 
-/* True if a user uploaded a Thermal Detonator font apart from a saber font. */
-function hasArmedLockupSounds() {
-  return pickLoopBuffers(LOCKUP_SOUNDS[LOCKUP_ARMED].loop).length > 0;
+/* True if the loaded font has this sound, following the same custom / default /
+fallback rules the player itself uses. */
+function hasFontSound(name) {
+  return pickLoopBuffers(name).length > 0;
+}
+
+/* True if the loaded font has the loop a lockup type needs. LOCKUP_ARMED is what
+tells a Thermal Detonator font apart from a saber font. */
+function hasLockupSounds(type) {
+  const sounds = LOCKUP_SOUNDS[type];
+  return !!sounds && hasFontSound(sounds.loop);
 }
 // Every effect that begins or ends a lockup.
 const lockup_begin_events = new Set(Object.values(lockups_to_event).map(pair => pair[0]));
@@ -2911,9 +2919,12 @@ if ((!STATE_LOCKUP || STATE_LOCKUP === LOCKUP_NONE) && lockupLoopSrc) {
   }
 }
 //////////// BC ///////////
-/* Default seconds to detonation when the font has no cntdown.wav,
-matching DETONATOR_TIMER_DURATION in the detonator prop files. */
-const DETONATOR_TIMER_DURATION = 6000;
+/* Fallback time to detonation, in milliseconds, used only when the loaded font
+has no destruct.wav to take the time from. The Settings panel overrides this,
+and "Restore Defaults" comes back here. ProffieOS itself has no equivalent
+constant: blaster.h and detonator.h always time the blast from the length of the
+sound they just played, so this only exists because a font may have no sound. */
+const DESTRUCT_TIMER_DURATION = 6000;
 
 var variant_before_countdown = null;
 var countdown_timer = null;
@@ -2928,8 +2939,14 @@ function StopCountdown() {
   countdown_timer = null;
 }
 
+/* The countdown time to use when the font has no destruct.wav to time it. */
+function DestructDuration() {
+  return destructDurationState.get();
+}
+
 /* Detonating ends an armed lockup without playing endarm, the way
-Detonate() clears the lockup before the blast in the detonator prop. */
+selfDestruct() clears the lockup before the blast in the prop. Disarm() is the
+only path that plays endarm. */
 function EndArmedLockup() {
   if (!DetonatorArmed()) return;
   console.log("Ending armed lockup without endarm.");
@@ -2967,25 +2984,30 @@ function Disarm(blade, location) {
   blade.addEffect(EFFECT_LOCKUP_END, location);
 }
 
-/* BC detonator prop uses EFFECT_USER1 for the
-countdown blade effect, so triggering USER1 while armed starts the countdown here
-too. cntdown.wav has no effect of its own, the prop plays it monophonically and
-uses its length as the delay. Without it, armhum keeps looping for the default
-DETONATOR_TIMER_DURATION instead. */
-function Detonate(blade, location) {
+/* Both props fire EFFECT_DESTRUCT to begin the countdown, the way blaster.h's
+selfDestruct() plays destruct and then blows up after the length of the sound it
+just played. destruct.wav's length sets the delay, and a font without one falls
+back to the countdown time in the Settings panel. Detonating never plays endarm:
+Disarm() is the only path that does, since the prop goes straight to the boom. */
+function SelfDestruct(blade, location) {
   if (CountdownActive()) {
     console.log("**** TOO LATE!! RUN!!!");
     return;
   }
-  let boom_delay = DETONATOR_TIMER_DURATION;
 
-  if (pickLoopBuffers('cntdown').length) {
-    // cntdown takes over from armhum, so end the armed lockup without endarm.
+  if (DetonatorArmed()) {
+    // destruct replaces armhum, so end the armed lockup without playing endarm.
     EndArmedLockup();
     maskHum();
-    playRandomEffect('cntdown', true);
-    boom_delay = soundDurationFor('cntdown', DETONATOR_TIMER_DURATION);
   }
+
+  /* Played here instead of at the end of addEffect so that the delay matches
+  whichever destruct file was picked, and so Variation is already set when the
+  style runs and its countdown layer reads TrDelayX<Variation>. */
+  const effectName = soundKeyForEffect(EFFECT_DESTRUCT);
+  const isAllowed = outerMostBracket || getAllowedEventsFromStyleText().has(EFFECT_DESTRUCT);
+  playRandomEffect(effectName, isAllowed);
+  const boom_delay = soundDurationFor(effectName, DestructDuration());
 
   SetCountdownVariation(boom_delay);
   console.log(`Detonating in ${boom_delay} ms.`);
@@ -3416,12 +3438,16 @@ function rebuildMoreEffectsMenu() {
           tdEffectsMenu.appendChild(option.cloneNode(true));
           blasterEffectsMenu.appendChild(option);
           break;
+////////// Add DESTRUCT PR /////////////////
+        case EFFECT_DESTRUCT:
+          // A detonator counts down with destruct too, same as a blaster.
+          tdEffectsMenu.appendChild(option.cloneNode(true));
+          blasterEffectsMenu.appendChild(option);
+          break;
         case EFFECT_STUN:
         case EFFECT_FIRE:
         case EFFECT_CLIP_IN:
         case EFFECT_CLIP_OUT:
-////////// Add DESTRUCT PR /////////////////
-        case EFFECT_DESTRUCT:
         case EFFECT_RELOAD:
         case EFFECT_MODE:
         case EFFECT_RANGE:
@@ -3775,6 +3801,17 @@ var useFontWavLenState = new SavedStateBool("use_font_wavlen", true, (on, prev) 
   handleWavLenControls();
   if (on && !prev) wavlenState.set(500);
 });
+/* Declared after fontFallbackState, since deciding whether to grey this field
+out means asking which sounds the loaded font can reach. */
+var destructDurationState = new SavedStateNumber("destruct_duration", DESTRUCT_TIMER_DURATION, () => {
+  handleDestructControls();
+});
+FIND("DESTRUCT_DURATION_VALUE").addEventListener("focusout", function(e) {
+  ValidateInput(e);
+  if (!e.target.classList.contains('invalid')) {
+    destructDurationState.set(Number(e.target.value));
+  }
+});
 var pcbDedicatedState = new SavedStateBool("pcb_dedicated", false, (on) => { drawPCB(); });
 var pcbShowLedNumbersState = new SavedStateBool("pcb_show_led_numbers", false, (on) => { drawPCB(); });
 var pcbViewPlusBladeState = new SavedStateBool("pcb_view_plus_blade", false, (on) => {
@@ -4034,6 +4071,23 @@ function handleWavLenControls() {
     wavlenLabel.classList.remove('disabled');
     wavlenInput.disabled = false;
   }
+}
+
+/* The countdown time is only a fallback, so grey it out whenever the loaded font
+makes it irrelevant: either the font has a destruct sound whose length sets the
+time instead, or it has neither armhum nor destruct and so nothing that
+detonates. The tooltip spells both cases out. */
+function handleDestructControls() {
+  var destructLabel = FIND('destruct-duration-label');
+  var destructInput = FIND('DESTRUCT_DURATION_VALUE');
+  if (!destructLabel || !destructInput) return;
+
+  var canDetonate = hasLockupSounds(LOCKUP_ARMED) || hasFontSound('destruct');
+  var soundSetsIt = hasFontSound('destruct');
+  var inUse = canDetonate && !soundSetsIt;
+
+  destructLabel.classList.toggle('disabled', !inUse);
+  destructInput.disabled = !inUse;
 }
 
 function ClickRestore() {
