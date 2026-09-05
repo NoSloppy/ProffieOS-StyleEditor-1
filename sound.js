@@ -240,7 +240,12 @@ fileInput.addEventListener('change', (e) => {
 
   // When loading finishes, hide overlay
   Promise.all(loadPromises)
-    .then(() => hideLoadingOverlay())
+    .then(() => {
+      hideLoadingOverlay();
+      /* Which lockups the dropdown offers can depend on the font, so a
+      Thermal Detonator font adds "Arm" as soon as it has loaded. */
+      updateLockupDropdown();
+    })
     .catch(err => {
       console.error("Error loading custom font files:", err);
       hideLoadingOverlay();
