@@ -1191,6 +1191,33 @@ const EFFECT_SOUND_MAP = {
   [EFFECT_BOOM]:             "boom"
 };
 
+/* Some effects use different sound file names in different fonts.
+Thermal Detonator fonts use poweron/poweroff where saber fonts use out/in. */
+const EFFECT_SOUND_ALIASES = {
+  [EFFECT_IGNITION]:         ["poweron"],
+  [EFFECT_RETRACTION]:       ["poweroff"]
+};
+
+/* Returns the sound key an effect should use with the currently loaded font.
+The font's own naming wins, so a Thermal Detonator font never borrows the
+default font's out.wav when it has a poweron.wav of its own. */
+function soundKeyForEffect(type) {
+  const primary = EFFECT_SOUND_MAP[type];
+  const aliases = EFFECT_SOUND_ALIASES[type];
+  if (!primary || !aliases) return primary;
+
+  const keys = [primary].concat(aliases);
+  if (currentFontName !== "Default") {
+    for (const key of keys) {
+      if ((customFontSoundBuffers[key] || []).length > 0) return key;
+    }
+  }
+  for (const key of keys) {
+    if ((defaultFontSoundBuffers[key] || []).length > 0) return key;
+  }
+  return primary;
+}
+
 // Parse the style and return a Set containing all EFFECTs and LOCKUPs (including via macros)
 // This is for which SOUNDS are allowed.
 function getAllowedEventsFromText(text) {
@@ -1248,7 +1275,7 @@ function getAllowedLockupsFromText(text) {
   const allowed = new Set();
 
   // Literally lockup
-  const consts = text.match(/\bLOCKUP_(?:NORMAL|DRAG|MELT|LIGHTNING_BLOCK|AUTOFIRE)\b/g) || [];
+  const consts = text.match(/\bLOCKUP_(?:NORMAL|DRAG|MELT|LIGHTNING_BLOCK|AUTOFIRE|ARMED)\b/g) || [];
   for (const c of new Set(consts)) if (window[c] !== undefined) allowed.add(window[c]);
 
   // Lockup macros
@@ -1265,7 +1292,7 @@ function getAllowedLockupsFromText(text) {
   }
 
   // LockupTrL's specific lockup type.
-  const m = text.match(/LockupTrL\s*<[^>]*,\s*[^>]*,\s*[^>]*,\s*(?:SaberBase::)?(LOCKUP_(?:NORMAL|DRAG|MELT|LIGHTNING_BLOCK|AUTOFIRE))/);
+  const m = text.match(/LockupTrL\s*<[^>]*,\s*[^>]*,\s*[^>]*,\s*(?:SaberBase::)?(LOCKUP_(?:NORMAL|DRAG|MELT|LIGHTNING_BLOCK|AUTOFIRE|ARMED))/);
   if (m && window[m[1]] !== undefined) allowed.add(window[m[1]]);
 
   return allowed;
@@ -2732,15 +2759,45 @@ lockups_to_event[LOCKUP_DRAG]            = [ EFFECT_DRAG_BEGIN, EFFECT_DRAG_END 
 lockups_to_event[LOCKUP_MELT]            = [EFFECT_MELT_BEGIN, EFFECT_MELT_END];
 lockups_to_event[LOCKUP_LIGHTNING_BLOCK] = [EFFECT_LB_BEGIN, EFFECT_LB_END];
 lockups_to_event[LOCKUP_AUTOFIRE]        = [EFFECT_AUTOFIRE_BEGIN, EFFECT_AUTOFIRE_END];
+/* Arming a Thermal Detonator is a plain lockup in ProffieOS, so it shares
+EFFECT_LOCKUP_BEGIN/EFFECT_LOCKUP_END with a normal lockup. */
+lockups_to_event[LOCKUP_ARMED]           = [EFFECT_LOCKUP_BEGIN, EFFECT_LOCKUP_END];
 
-// Reverse mapping bgn->lockup
+/* Which sounds each lockup uses. hybrid_font looks at SaberBase::Lockup() rather
+than at the effect, which is how LOCKUP_ARMED plays bgnarm/armhum/endarm from the
+same effects a normal lockup uses. "mono" marks a lockup whose loop replaces the
+hum instead of playing over it. */
+const LOCKUP_SOUNDS = {
+  [LOCKUP_NORMAL]:          { bgn: "bgnlock", loop: "lock",   end: "endlock", label: "Lockup" },
+  [LOCKUP_DRAG]:            { bgn: "bgndrag", loop: "drag",   end: "enddrag", label: "Drag" },
+  [LOCKUP_MELT]:            { bgn: "bgnmelt", loop: "melt",   end: "endmelt", label: "Melt" },
+  [LOCKUP_LIGHTNING_BLOCK]: { bgn: "bgnlb",   loop: "lb",     end: "endlb",   label: "Lightning Block" },
+  [LOCKUP_AUTOFIRE]:        { bgn: "bgnauto", loop: "auto",   end: "endauto", label: "Autofire" },
+  [LOCKUP_ARMED]:           { bgn: "bgnarm",  loop: "armhum", end: "endarm",  label: "Arm", mono: true }
+};
+// Every effect that begins or ends a lockup.
+const lockup_begin_events = new Set(Object.values(lockups_to_event).map(pair => pair[0]));
+const lockup_end_events   = new Set(Object.values(lockups_to_event).map(pair => pair[1]));
+
+// Reverse mapping lockup effect -> lockup
 function lockupTypeForEffect(effect) {
+  /* LOCKUP_ARMED shares its effects with a normal lockup, so the chosen lockup
+  decides which one an effect means. The dropdown clears STATE_LOCKUP before the
+  end effect fires, so fall back to the lockup that is still running, and to the
+  first lockup using that effect when nothing is running at all. */
+  if ((lockups_to_event[STATE_LOCKUP] || []).includes(effect)) return Number(STATE_LOCKUP);
+  if ((lockups_to_event[activeLockup] || []).includes(effect)) return Number(activeLockup);
   for (const lockupType in lockups_to_event) {
-    if (lockups_to_event[lockupType][0] === effect) {
+    if (lockups_to_event[lockupType].includes(effect)) {
       return Number(lockupType);  // make sure it’s a number
     }
   }
   return undefined;
+}
+
+// The sounds a lockup begin/end effect should play right now.
+function lockupSoundsForEffect(effect) {
+  return LOCKUP_SOUNDS[lockupTypeForEffect(effect)];
 }
 
 function OnLockupChange() {
@@ -2790,7 +2847,8 @@ if ((!STATE_LOCKUP || STATE_LOCKUP === LOCKUP_NONE) && lockupLoopSrc) {
     [LOCKUP_DRAG]: "Drag",
     [LOCKUP_MELT]: "Melt",
     [LOCKUP_LIGHTNING_BLOCK]: "LB",
-    [LOCKUP_AUTOFIRE]: "Autofire"
+    [LOCKUP_AUTOFIRE]: "Autofire",
+    [LOCKUP_ARMED]: "Arm"
     // Add more here if needed
   };
 
@@ -2801,11 +2859,12 @@ if ((!STATE_LOCKUP || STATE_LOCKUP === LOCKUP_NONE) && lockupLoopSrc) {
       [LOCKUP_DRAG]: "LOCKUP_DRAG",
       [LOCKUP_MELT]: "LOCKUP_MELT",
       [LOCKUP_LIGHTNING_BLOCK]: "LOCKUP_LIGHTNING_BLOCK",
-      [LOCKUP_AUTOFIRE]: "LOCKUP_AUTOFIRE"
+      [LOCKUP_AUTOFIRE]: "LOCKUP_AUTOFIRE",
+      [LOCKUP_ARMED]: "LOCKUP_ARMED"
     };
 
     let optionsAdded = 0;
-    for (const lockupType of [LOCKUP_NORMAL, LOCKUP_DRAG, LOCKUP_MELT, LOCKUP_LIGHTNING_BLOCK, LOCKUP_AUTOFIRE]) {
+    for (const lockupType of [LOCKUP_NORMAL, LOCKUP_DRAG, LOCKUP_MELT, LOCKUP_LIGHTNING_BLOCK, LOCKUP_AUTOFIRE, LOCKUP_ARMED]) {
       // If at top-level, show ALL lockups.
       // If focused in, show ONLY the selected lockup.
       if (getAllowedLockups().has(lockupType)) {
@@ -2842,6 +2901,100 @@ if ((!STATE_LOCKUP || STATE_LOCKUP === LOCKUP_NONE) && lockupLoopSrc) {
   }
 }
 //////////// BC ///////////
+/* Default seconds to detonation when the font has no cntdown.wav,
+matching DETONATOR_TIMER_DURATION in the detonator prop files. */
+const DETONATOR_TIMER_DURATION = 6000;
+
+var variant_before_countdown = null;
+var countdown_timer = null;
+
+// Once a countdown is running it can't be restarted, same as the prop.
+function CountdownActive() {
+  return countdown_timer !== null;
+}
+
+function StopCountdown() {
+  clearTimeout(countdown_timer);
+  countdown_timer = null;
+}
+
+/* Detonating ends an armed lockup without playing endarm, the way
+Detonate() clears the lockup before the blast in the detonator prop. */
+function EndArmedLockup() {
+  if (!DetonatorArmed()) return;
+  console.log("Ending armed lockup without endarm.");
+  STATE_LOCKUP = 0;
+  endLockupLoop(EFFECT_LOCKUP_END, null, true);
+  updateLockupDropdown();
+}
+
+/* The prop puts the time to detonation in Variation so that styles can
+time the blast with TrDelayX<Variation>. The editor puts back whatever
+Variant value the user had once the countdown is over. */
+function SetCountdownVariation(delay) {
+  if (variant_before_countdown === null) variant_before_countdown = Variant();
+  updateVariantValue(delay);
+}
+
+function RestoreCountdownVariation() {
+  if (variant_before_countdown === null) return;
+  updateVariantValue(variant_before_countdown);
+  variant_before_countdown = null;
+}
+
+function DetonatorArmed() {
+  return STATE_LOCKUP === LOCKUP_ARMED || activeLockup === LOCKUP_ARMED;
+}
+
+/* Detonate() in the BC detonator prop. EFFECT_USER1 is what the prop fires for the
+countdown blade effect, so triggering USER1 while armed starts the countdown here
+too. cntdown.wav has no effect of its own, the prop plays it monophonically and
+uses its length as the delay. Without it, armhum keeps looping for the default
+DETONATOR_TIMER_DURATION instead. */
+function Detonate(blade, location) {
+  if (CountdownActive()) {
+    console.log("**** TOO LATE!! RUN!!!");
+    return;
+  }
+  let boom_delay = DETONATOR_TIMER_DURATION;
+
+  if (pickLoopBuffers('cntdown').length) {
+    // cntdown takes over from armhum, so end the armed lockup without endarm.
+    EndArmedLockup();
+    maskHum();
+    playRandomEffect('cntdown', true);
+    boom_delay = soundDurationFor('cntdown', DETONATOR_TIMER_DURATION);
+  }
+
+  SetCountdownVariation(boom_delay);
+  console.log(`Detonating in ${boom_delay} ms.`);
+  countdown_timer = setTimeout(() => {
+    countdown_timer = null;
+    blade.addEffect(EFFECT_BOOM, location);
+  }, boom_delay);
+}
+
+/* EFFECT_BOOM always shuts things down, and without a retraction,
+like Off(OFF_BLAST) does in ProffieOS. Styles show the detonation with
+EFFECT_BOOM instead of an InOut retraction. */
+function DetonatorPowerOff() {
+  StopCountdown();  // A direct BOOM interrupts any countdown, like a Clash does.
+  EndArmedLockup();
+  RestoreCountdownVariation();
+  if (!STATE_ON && !STATE_WAIT_FOR_ON) return;
+  console.log("+++++ BOOM!! +++++ Powering off with no retraction.");
+
+  if (ClickPower._pendingIgnite) {
+    clearTimeout(ClickPower._pendingIgnite);
+    ClickPower._pendingIgnite = null;
+  }
+  STATE_WAIT_FOR_ON = false;
+  STATE_ON = 0;
+  power_button.classList.toggle("button-latched", false);
+  stopAllLoops(200, true);  // Detonated: clear lockup state
+  STATE_LOCKUP = 0;
+  updateLockupDropdown();
+}
 
 function ClickLockup() {
   STATE_LOCKUP = STATE_LOCKUP == LOCKUP_NORMAL ? 0 : LOCKUP_NORMAL;
@@ -3182,6 +3335,8 @@ function rebuildMoreEffectsMenu() {
   userEffectsMenu.label    = 'User Effects';
   const blasterEffectsMenu = document.createElement('optgroup');
   blasterEffectsMenu.label = 'Blaster Effects';
+  const tdEffectsMenu      = document.createElement('optgroup');
+  tdEffectsMenu.label      = 'Thermal Detonator Effects';
   const gameEffectsMenu    = document.createElement('optgroup');
   gameEffectsMenu.label    = 'Game Effects';
   const errorMessagesMenu  = document.createElement('optgroup');
@@ -3236,6 +3391,10 @@ function rebuildMoreEffectsMenu() {
     } else {
       switch (Number(value)) {
         case EFFECT_BOOM:
+          // Both blaster self-destruct and thermal detonators end with a boom.
+          tdEffectsMenu.appendChild(option.cloneNode(true));
+          blasterEffectsMenu.appendChild(option);
+          break;
         case EFFECT_STUN:
         case EFFECT_FIRE:
         case EFFECT_CLIP_IN:
@@ -3274,6 +3433,7 @@ function rebuildMoreEffectsMenu() {
   menu.appendChild(generalEffectsMenu);
   menu.appendChild(userEffectsMenu);
   menu.appendChild(blasterEffectsMenu);
+  menu.appendChild(tdEffectsMenu);
   menu.appendChild(gameEffectsMenu);
   menu.appendChild(errorMessagesMenu);
 
