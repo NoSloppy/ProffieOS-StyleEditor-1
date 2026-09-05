@@ -2682,14 +2682,7 @@ Blade.prototype.addEffect = function(type, location) {
 
   // Auto-follow DESTRUCT → BOOM
   if (type === EFFECT_DESTRUCT) {
-    setTimeout(() => {
-      const idx = lastPlayedSoundIndex['destruct'];
-      const rawDur = customFontSoundDurations['destruct']?.[idx];
-      const dur = (typeof rawDur === 'number' && rawDur > 50) ? rawDur : 500;
-      setTimeout(() => {
-        this.addEffect(EFFECT_BOOM, location);
-      }, dur);
-    }, 10);
+    SelfDestruct(this, location);
   }
 
   // A boom always detonates the prop, turning it off without a retraction.
