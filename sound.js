@@ -245,8 +245,6 @@ fileInput.addEventListener('change', (e) => {
       /* Which lockups the dropdown offers can depend on the font, so a
       Thermal Detonator font adds "Arm" as soon as it has loaded. */
       updateLockupDropdown();
-      // Whether the countdown time is used depends on the font too.
-      handleCntdownControls();
     })
     .catch(err => {
       console.error("Error loading custom font files:", err);

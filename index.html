@@ -376,18 +376,6 @@ https://www.cgtrader.com/designers/talon-3d">
              </section>
           </section> <!-- settings-section Sound Settings -->
 
-          <section class="settings-section">
-            <h4 class="settings-section-label" title="These settings apply to props that blow up: Thermal Detonators and blasters that can self-destruct.">Detonation Settings:</h4>
-            <section class="cntdown-controls">
-              <label
-                id="cntdown-duration-label" class="cntdown-duration-label" title="Time in milliseconds from the start of a countdown to the boom, used by the Thermal Detonator countdown (EFFECT_USER1) and by blaster self-destruct (EFFECT_DESTRUCT). It is only a fallback: when the loaded font has a cntdown or destruct sound, the length of that sound sets the time instead and this field is greyed out. It is also greyed out for a font with no armhum and no destruct, because nothing in that font detonates on its own. The value is still used even while greyed out, if you fire Self Destruct by hand from Do Selected Effect on a font that has no destruct sound.">
-                  Countdown time:
-                <input
-                  type="text" id="CNTDOWN_DURATION_VALUE" class="cntdown-duration-value nofocus" size="6" value="6000">
-              </label>
-            </section>
-          </section> <!-- settings-section Detonation Settings -->
-
           <div class="settings-section">
             <h4 class="settings-section-label" title="These settings are useful for people making modifications to the style editor.">Developer Settings:</h4>
             <label title="Benchmark how many passes we can render per frame.">
