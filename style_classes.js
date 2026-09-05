@@ -2706,6 +2706,34 @@ Blade.prototype.addEffect = function(type, location) {
     }, 10);
   }
 
+////////// Add THERMAL DETONATOR PR /////////////////
+  // Auto-follow COUNTDOWN → BOOM, like Detonate() in the detonator prop.
+  if (type === EFFECT_COUNTDOWN) {
+    // Wait for the countdown sound to start so we can time the file that played.
+    setTimeout(() => {
+      const countdownLength = soundDurationFor('cntdown');
+      const boomDelay = countdownLength || DETONATOR_TIMER_DURATION;
+      if (countdownLength) {
+        // cntdown takes over from armhum, so end the armed lockup silently.
+        EndArmedLockup();
+        maskHum();
+      }
+      SetCountdownVariation(boomDelay);
+      // USER1 is what the prop uses for the countdown blade effect.
+      this.addEffect(EFFECT_USER1, location);
+      console.log(`Detonating in ${boomDelay} ms.`);
+      setTimeout(() => {
+        this.addEffect(EFFECT_BOOM, location);
+      }, boomDelay);
+    }, 10);
+  }
+
+  // A boom always detonates the prop, turning it off without a retraction.
+  if (type === EFFECT_BOOM) {
+    DetonatorPowerOff();
+  }
+////////// Add THERMAL DETONATOR PR /////////////////
+
   const allowedByStyle = new Set(
     Array.from(getAllowedEventsFromStyleText())
       .filter(x =>
@@ -2718,7 +2746,8 @@ Blade.prototype.addEffect = function(type, location) {
     [EFFECT_DRAG_BEGIN]:      "bgndrag",
     [EFFECT_MELT_BEGIN]:      "bgnmelt",
     [EFFECT_LB_BEGIN]:        "bgnlb",
-    [EFFECT_AUTOFIRE_BEGIN]:  "bgnauto"
+    [EFFECT_AUTOFIRE_BEGIN]:  "bgnauto",
+    [EFFECT_ARM_BEGIN]:       "bgnarm"
   };
   if (BEGIN_EFFECT_MAP[type]) {
     const lockupType = lockupTypeForEffect(type);
@@ -2736,7 +2765,8 @@ Blade.prototype.addEffect = function(type, location) {
       [EFFECT_DRAG_END]:      "enddrag",
       [EFFECT_MELT_END]:      "endmelt",
       [EFFECT_LB_END]:        "endlb",
-      [EFFECT_AUTOFIRE_END]:  "endauto"
+      [EFFECT_AUTOFIRE_END]:  "endauto",
+      [EFFECT_ARM_END]:       "endarm"
     };
     // if (END_EFFECT_MAP[type]) {
 // needed this for some reason, now not...?
@@ -2749,11 +2779,13 @@ Blade.prototype.addEffect = function(type, location) {
     if (END_EFFECT_MAP[type]) {
       // Always play the end sound for lockup ends, regardless of allowedByStyle
       endLockupLoop(type, END_EFFECT_MAP[type], true);
+      // Let endarm finish before the hum comes back, since it replaced it.
+      if (type === EFFECT_ARM_END) unmaskHum(soundDurationFor('endarm'));
       return;
     }
 
   // Else, only play sound if it's in the textarea.
-  const effectName = EFFECT_SOUND_MAP[type];
+  const effectName = soundKeyForEffect(type);
   if (effectName) {
   const isAllowed = outerMostBracket || allowedByStyle.has(type);
   playRandomEffect(effectName, isAllowed);
