@@ -34,8 +34,8 @@
   https://www.renderhub.com/talon-3d
   https://www.cgtrader.com/designers/talon-3d -->
 
-  <script type="module" crossorigin src="./assets/index-B8Hi8Zck.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-3na5kY5I.css">
+  <script type="module" crossorigin src="./assets/index-Docm984B.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-BVIgaOuI.css">
 </head>
 <body>
   <script defer src="pcb_draw.js"></script>
@@ -375,6 +375,18 @@ https://www.cgtrader.com/designers/talon-3d">
                </label>
              </section>
           </section> <!-- settings-section Sound Settings -->
+
+          <section class="settings-section">
+            <h4 class="settings-section-label" title="These settings apply to props that blow up: Thermal Detonators and blasters that can self destruct.">Detonation Settings:</h4>
+            <section class="destruct-controls">
+              <label
+                id="destruct-duration-label" class="destruct-duration-label" title="Fallback time in milliseconds for Countdown Timer to detonation. If the loaded font has a destruct.wav sound, the sound's length is used instead. Greyed out if the font has neither armhum.wav nor destruct.wav.">
+                  Countdown time:
+                <input
+                  type="text" id="DESTRUCT_DURATION_VALUE" class="destruct-duration-value nofocus" size="6" value="6000">
+              </label>
+            </section>
+          </section> <!-- settings-section Detonation Settings -->
 
           <div class="settings-section">
             <h4 class="settings-section-label" title="These settings are useful for people making modifications to the style editor.">Developer Settings:</h4>
