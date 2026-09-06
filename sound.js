@@ -70,7 +70,7 @@ fetch('default_font_urls.txt')
 const VALID_EFFECTS = new Set([
   'battlevl', 'bladein', 'bladeout', 'blast', 'blst', 'blstbgn', 'blstend',
   'bmbegin', 'bmend', 'boom', 'boot',
-  'ccchange', 'clipin', 'clipout', 'clsh', 'cntdown',
+  'ccchange', 'clipin', 'clipout', 'clsh',
   'destruct', 'dim',
   'empty',
   'fastout', 'font', 'force', 'full',
@@ -245,6 +245,8 @@ fileInput.addEventListener('change', (e) => {
       /* Which lockups the dropdown offers can depend on the font, so a
       Thermal Detonator font adds "Arm" as soon as it has loaded. */
       updateLockupDropdown();
+      // Whether the countdown time is used depends on the font too.
+      handleDestructControls();
     })
     .catch(err => {
       console.error("Error loading custom font files:", err);
@@ -647,7 +649,7 @@ function startHum() {
 }
 
 /* Thermal Detonator sounds are monophonic on the real prop: bgnarm, armhum,
-endarm, cntdown and boom play instead of the hum, not on top of it.
+endarm, destruct and boom play instead of the hum, not on top of it.
 Smoothswings are left alone and keep playing over them. */
 function maskHum() {
   humMasked = true;
