@@ -16,6 +16,8 @@ If a link also includes the existing `&S=<encoded-style>` parameter, that explic
 
 The public link only contains the safe preset key. Every approved WAV URL stays in repo-local files referenced by `demo_fonts.json`, never in the shared link.
 
+The root editor default style is also stored repo-locally in `demo_fonts/default_style.txt` and loaded on startup instead of being kept inline in the page script.
+
 ### What a font-site owner needs to send the editor maintainer
 
 - desired preset key (safe identifier characters only, for example `terra`)
