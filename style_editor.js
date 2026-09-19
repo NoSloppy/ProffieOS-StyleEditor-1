@@ -1487,13 +1487,14 @@ class Parser {
         if (this.peek2() == '*') {
           this.pos += 2;
           while (this.pos < this.str.length && !(this.peek() == '*' && this.peek2() == '/')) this.pos++;
+          if (this.pos >= this.str.length) throw "Unterminated block comment";
           this.pos += 2;
           continue;
         }
         if (this.peek2() == '/') {
           this.pos += 2;
           while (this.pos < this.str.length && this.peek() != '\n') this.pos++;
-          this.pos ++;
+          if (this.pos < this.str.length) this.pos++;
           continue;
         }
       }
@@ -2542,6 +2543,106 @@ function SetTo(str) {
   window.onpopstate = PopState;
 
   ApplyStyleText(str);
+}
+
+function incomingStyleHasOnlyTrailingTrivia(str) {
+  let i = 0;
+  while (i < str.length) {
+    const ch = str[i];
+    const ch2 = i + 1 < str.length ? str[i + 1] : '';
+    if (/\s/.test(ch)) {
+      i++;
+      continue;
+    }
+    if (ch === '/' && ch2 === '/') {
+      i += 2;
+      while (i < str.length && str[i] !== '\n') i++;
+      continue;
+    }
+    if (ch === '/' && ch2 === '*') {
+      const end = str.indexOf('*/', i + 2);
+      if (end < 0) return false;
+      i = end + 2;
+      continue;
+    }
+    return false;
+  }
+  return true;
+}
+
+function normalizeIncomingStyleText(str) {
+  if (typeof str !== "string") return "";
+  const trimmed = str.trim();
+  if (!trimmed) return "";
+  let angleDepth = 0;
+  let parenDepth = 0;
+  let inString = false;
+  let escape = false;
+  let inLineComment = false;
+  let inBlockComment = false;
+  let trailingCommaAtTopLevel = -1;
+  for (let i = 0; i < trimmed.length; i++) {
+    const ch = trimmed[i];
+    const ch2 = i + 1 < trimmed.length ? trimmed[i + 1] : '';
+    if (inLineComment) {
+      if (ch === '\n') inLineComment = false;
+      continue;
+    }
+    if (inBlockComment) {
+      if (ch === '*' && ch2 === '/') {
+        inBlockComment = false;
+        i++;
+      }
+      continue;
+    }
+    if (inString) {
+      if (escape) {
+        escape = false;
+      } else if (ch === '\\') {
+        escape = true;
+      } else if (ch === '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (ch === '/' && ch2 === '/') {
+      inLineComment = true;
+      i++;
+      continue;
+    }
+    if (ch === '/' && ch2 === '*') {
+      inBlockComment = true;
+      i++;
+      continue;
+    }
+    if (ch === '"') {
+      inString = true;
+      continue;
+    }
+    if (ch === '<') {
+      angleDepth++;
+      continue;
+    }
+    if (ch === '>') {
+      if (angleDepth > 0) angleDepth--;
+      continue;
+    }
+    if (ch === '(') {
+      parenDepth++;
+      continue;
+    }
+    if (ch === ')') {
+      if (parenDepth > 0) parenDepth--;
+      continue;
+    }
+    if (ch === ',' && angleDepth === 0 && parenDepth === 0) {
+      trailingCommaAtTopLevel = i;
+    }
+  }
+  if (trailingCommaAtTopLevel < 0) return trimmed;
+  const suffix = trimmed.slice(trailingCommaAtTopLevel + 1);
+  if (!incomingStyleHasOnlyTrailingTrivia(suffix)) return trimmed;
+  return trimmed.slice(0, trailingCommaAtTopLevel) + trimmed.slice(trailingCommaAtTopLevel + 1);
 }
 
 function ApplyStyleText(str) {
@@ -3834,7 +3935,7 @@ async function loadRepoLocalStyleText(path, description) {
   if (!response.ok) {
     throw new Error(`Could not load ${description}.`);
   }
-  const text = (await response.text()).trim();
+  const text = normalizeIncomingStyleText(await response.text());
   if (!text) {
     throw new Error(`${description} is empty.`);
   }
