@@ -214,7 +214,7 @@ function showFontMetadataPopup() {
   if (fontMetaPopupLogo) {
     if (hasLogo) {
       fontMetaPopupLogo.src = safeLogoUrl;
-      fontMetaPopupLogo.style.display = '';
+      fontMetaPopupLogo.style.display = 'block';
     } else {
       fontMetaPopupLogo.removeAttribute('src');
       fontMetaPopupLogo.style.display = 'none';
@@ -260,16 +260,17 @@ function updateFontMetadataUi(metadata, showPopup = false) {
     return;
   }
 
-  fontMetaButton.style.display = '';
   fontMetaButton.title = hasReadme ? activeFontMetadata.readmeText : `Font info for ${activeFontMetadata.fontName}`;
   if (hasLogo) {
     fontMetaLogo.src = safeLogoUrl;
-    fontMetaLogo.style.display = '';
+    fontMetaButton.style.display = 'inline-block';
+    fontMetaLogo.style.display = 'block';
     fontMetaInfo.style.display = 'none';
   } else {
     fontMetaLogo.removeAttribute('src');
     fontMetaLogo.style.display = 'none';
-    fontMetaInfo.style.display = '';
+    fontMetaButton.style.display = 'inline-block';
+    fontMetaInfo.style.display = 'inline-flex';
   }
 
   if (showPopup) showFontMetadataPopup();

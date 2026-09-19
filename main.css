@@ -1132,3 +1132,11 @@ Add, Delete, Move Up, Move Down */
   background: #f5f5f5;
   margin-bottom: 10px;
 }
+
+#font_meta_button,
+#font_meta_logo,
+#font_meta_info,
+#font_meta_overlay,
+#font_meta_popup_logo {
+  display: none;
+}
