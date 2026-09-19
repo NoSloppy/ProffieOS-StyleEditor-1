@@ -466,7 +466,7 @@ async function loadDemoFontPresetFromQuery() {
     showFontLoadMessage(`Demo font preset "${presetKey}" is not valid. Using ${DEFAULT_FONT_LABEL}.`);
     return false;
   }
-  const loadToken = nextFontLoadToken();
+  const fontLoadToken = nextFontLoadToken();
 
   showLoadingOverlay(`Loading demo font "${presetKey}"…`);
 
@@ -510,7 +510,7 @@ async function loadDemoFontPresetFromQuery() {
     if (loadedCount === 0) {
       throw new Error(`No playable WAV files were loaded for "${presetName}".`);
     }
-    if (loadToken !== currentFontLoadToken) {
+    if (fontLoadToken !== currentFontLoadToken) {
       return false;
     }
 
@@ -522,9 +522,9 @@ async function loadDemoFontPresetFromQuery() {
 
     updateLockupDropdown();
     handleDestructControls();
-    if (loadToken === currentFontLoadToken) {
+    if (fontLoadToken === currentFontLoadToken) {
       updateFontMetadataUi({ ...metadata, fontName: presetName }, true);
-      playFontLoadAnnouncement(loadToken, false);
+      playFontLoadAnnouncement(fontLoadToken, false);
     }
 
     if (failures.length > 0) {
@@ -533,14 +533,14 @@ async function loadDemoFontPresetFromQuery() {
 
     return true;
   } catch (err) {
-    if (loadToken !== currentFontLoadToken) {
+    if (fontLoadToken !== currentFontLoadToken) {
       return false;
     }
     clearCustomFontData();
     setDefaultFontSelection();
     updateLockupDropdown();
     handleDestructControls();
-    if (loadToken === currentFontLoadToken) {
+    if (fontLoadToken === currentFontLoadToken) {
       updateFontMetadataUi({ ...defaultFontMetadata, fontName: DEFAULT_FONT_LABEL }, false);
     }
     showFontLoadMessage(`Could not load demo font "${presetKey}". Using ${DEFAULT_FONT_LABEL}. ${err.message}`, "orange");
@@ -552,7 +552,7 @@ async function loadDemoFontPresetFromQuery() {
 }
 
 async function loadDefaultFontAssets() {
-  const loadToken = nextFontLoadToken();
+  const fontLoadToken = nextFontLoadToken();
   try {
     const result = await loadFontUrlList(
       'default_font_urls.txt',
@@ -561,9 +561,9 @@ async function loadDefaultFontAssets() {
       defaultFontSoundFilenames
     );
     defaultFontMetadata = result.metadata;
-    if (loadToken !== currentFontLoadToken || currentFontName !== DEFAULT_FONT_NAME) return;
+    if (fontLoadToken !== currentFontLoadToken || currentFontName !== DEFAULT_FONT_NAME) return;
     updateFontMetadataUi({ ...result.metadata, fontName: DEFAULT_FONT_LABEL }, true);
-    playFontLoadAnnouncement(loadToken, true);
+    playFontLoadAnnouncement(fontLoadToken, true);
   } catch (err) {
     console.error("Could not load default_font_urls.txt:", err);
   }
@@ -599,7 +599,7 @@ fileInput.addEventListener('change', async (e) => {
   const files = Array.from(e.target.files || []);
   if (!files.length) return;           // user cancelled
 
-  const loadToken = nextFontLoadToken();
+  const fontLoadToken = nextFontLoadToken();
   clearFontLoadMessage();
   showLoadingOverlay();
 
@@ -611,7 +611,7 @@ fileInput.addEventListener('change', async (e) => {
 
   // Clear out any old custom data
   clearCustomFontData();
-  if (loadToken === currentFontLoadToken) {
+  if (fontLoadToken === currentFontLoadToken) {
     updateFontMetadataUi({ logoUrl: '', readmeText: '', fontName: folderName, logoObjectUrl: false }, false);
   }
 
@@ -763,7 +763,7 @@ fileInput.addEventListener('change', async (e) => {
   try {
     await Promise.all(loadPromises);
     hideLoadingOverlay();
-    if (loadToken !== currentFontLoadToken) {
+    if (fontLoadToken !== currentFontLoadToken) {
       if (logoObjectUrl && logoUrl) URL.revokeObjectURL(logoUrl);
       return;
     }
@@ -773,7 +773,7 @@ fileInput.addEventListener('change', async (e) => {
     // Whether the countdown time is used depends on the font too.
     handleDestructControls();
     updateFontMetadataUi({ logoUrl, readmeText, fontName: folderName, logoObjectUrl }, true);
-    playFontLoadAnnouncement(loadToken, false);
+    playFontLoadAnnouncement(fontLoadToken, false);
   } catch (err) {
     console.error("Error loading custom font files:", err);
     hideLoadingOverlay();
