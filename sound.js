@@ -177,6 +177,31 @@ function resolveDemoFontPath(pathValue, fieldName) {
   return new URL(pathValue, new URL('./', window.location.href)).href;
 }
 
+async function loadJsonObject(pathValue, description) {
+  const response = await fetch(pathValue);
+  if (!response.ok) {
+    throw new Error(`Could not load ${description}.`);
+  }
+
+  const rawText = await response.text();
+  const trimmed = rawText.trim();
+  const contentType = (response.headers.get('content-type') || '').toLowerCase();
+
+  if (trimmed.startsWith('<') || (contentType && !contentType.includes('json'))) {
+    throw new Error(`${description} was not served as JSON.`);
+  }
+
+  try {
+    const parsed = JSON.parse(rawText);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      throw new Error(`${description} must contain an object.`);
+    }
+    return parsed;
+  } catch (err) {
+    throw new Error(`${description} is not valid JSON.`);
+  }
+}
+
 async function loadDemoFontPresetFromQuery() {
   const params = new URL(window.location.href).searchParams;
   const presetKey = params.get("font");
@@ -192,12 +217,8 @@ async function loadDemoFontPresetFromQuery() {
   showLoadingOverlay(`Loading demo font "${presetKey}"…`);
 
   try {
-    const manifestResponse = await fetch(DEMO_FONT_MANIFEST_PATH);
-    if (!manifestResponse.ok) {
-      throw new Error("Could not load demo font manifest.");
-    }
-
-    const presetMap = readDemoFontPresets(await manifestResponse.json());
+    const manifest = await loadJsonObject(DEMO_FONT_MANIFEST_PATH, "demo font manifest");
+    const presetMap = readDemoFontPresets(manifest);
     const preset = presetMap[presetKey];
     if (!preset || typeof preset !== 'object' || Array.isArray(preset)) {
       throw new Error(`Unknown demo font preset "${presetKey}".`);
