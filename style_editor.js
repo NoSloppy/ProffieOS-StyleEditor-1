@@ -1487,13 +1487,14 @@ class Parser {
         if (this.peek2() == '*') {
           this.pos += 2;
           while (this.pos < this.str.length && !(this.peek() == '*' && this.peek2() == '/')) this.pos++;
+          if (this.pos >= this.str.length) throw "Unterminated block comment";
           this.pos += 2;
           continue;
         }
         if (this.peek2() == '/') {
           this.pos += 2;
           while (this.pos < this.str.length && this.peek() != '\n') this.pos++;
-          this.pos ++;
+          if (this.pos < this.str.length) this.pos++;
           continue;
         }
       }
@@ -2544,6 +2545,144 @@ function SetTo(str) {
   ApplyStyleText(str);
 }
 
+function incomingStyleHasOnlyTrailingTrivia(str) {
+  let i = 0;
+  while (i < str.length) {
+    const ch = str[i];
+    const ch2 = i + 1 < str.length ? str[i + 1] : '';
+    if (/\s/.test(ch)) {
+      i++;
+      continue;
+    }
+    if (ch === '/' && ch2 === '/') {
+      i += 2;
+      while (i < str.length && str[i] !== '\n') i++;
+      continue;
+    }
+    if (ch === '/' && ch2 === '*') {
+      const end = str.indexOf('*/', i + 2);
+      if (end < 0) return false;
+      i = end + 2;
+      continue;
+    }
+    return false;
+  }
+  return true;
+}
+
+function normalizeIncomingStyleText(str) {
+  if (typeof str !== "string") return "";
+  const trimmed = str.trim();
+  if (!trimmed) return "";
+  let angleDepth = 0;
+  let parenDepth = 0;
+  let inString = false;
+  let escape = false;
+  let inLineComment = false;
+  let inBlockComment = false;
+  let trailingCommaAtTopLevel = -1;
+  for (let i = 0; i < trimmed.length; i++) {
+    const ch = trimmed[i];
+    const ch2 = i + 1 < trimmed.length ? trimmed[i + 1] : '';
+    if (inLineComment) {
+      if (ch === '\n') inLineComment = false;
+      continue;
+    }
+    if (inBlockComment) {
+      if (ch === '*' && ch2 === '/') {
+        inBlockComment = false;
+        i++;
+      }
+      continue;
+    }
+    if (inString) {
+      if (escape) {
+        escape = false;
+      } else if (ch === '\\') {
+        escape = true;
+      } else if (ch === '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (ch === '/' && ch2 === '/') {
+      inLineComment = true;
+      i++;
+      continue;
+    }
+    if (ch === '/' && ch2 === '*') {
+      inBlockComment = true;
+      i++;
+      continue;
+    }
+    if (ch === '"') {
+      inString = true;
+      continue;
+    }
+    if (ch === '<') {
+      angleDepth++;
+      continue;
+    }
+    if (ch === '>') {
+      if (angleDepth > 0) angleDepth--;
+      continue;
+    }
+    if (ch === '(') {
+      parenDepth++;
+      continue;
+    }
+    if (ch === ')') {
+      if (parenDepth > 0) parenDepth--;
+      continue;
+    }
+    if (ch === ',' && angleDepth === 0 && parenDepth === 0) {
+      trailingCommaAtTopLevel = i;
+    }
+  }
+  if (trailingCommaAtTopLevel < 0) return trimmed;
+  const suffix = trimmed.slice(trailingCommaAtTopLevel + 1);
+  if (!incomingStyleHasOnlyTrailingTrivia(suffix)) return trimmed;
+  return trimmed.slice(0, trailingCommaAtTopLevel) + trimmed.slice(trailingCommaAtTopLevel + 1);
+}
+
+// Keep leading source/header comments outside the StylePtr<> wrapper that
+// Copy() adds. This deliberately removes nothing; it only identifies the
+// leading trivia so the original comments can be reattached unchanged.
+function splitLeadingStyleHeader(str) {
+  let pos = 0;
+
+  while (pos < str.length) {
+    // Preserve whitespace as part of the header.
+    if (/\s/.test(str[pos])) {
+      pos++;
+      continue;
+    }
+
+    // Preserve a leading block comment.
+    if (str[pos] === "/" && str[pos + 1] === "*") {
+      const end = str.indexOf("*/", pos + 2);
+      if (end < 0) break;
+      pos = end + 2;
+      continue;
+    }
+
+    // Preserve a leading line comment.
+    if (str[pos] === "/" && str[pos + 1] === "/") {
+      const newline = str.indexOf("\n", pos + 2);
+      pos = newline < 0 ? str.length : newline + 1;
+      continue;
+    }
+
+    break;
+  }
+
+  return {
+    header: str.slice(0, pos),
+    expression: str.slice(pos)
+  };
+}
+
+
 function ApplyStyleText(str) {
   FIND("style").value = str;
   Run();
@@ -3159,17 +3298,24 @@ function Copy() {
   }
 
   var copyText = FIND("style");
+  const split = splitLeadingStyleHeader(copyText.value);
+  const header = split.header;
+  const expression = split.expression.trim();
   var argStr = '"' + ARGUMENTS.slice(3).join(" ") + '"';
   if (argStr == '""') argStr = "";
-  if(copyText.value.includes("StylePtr") ||
-     copyText.value.includes("StyleNormalPtr") ||
-     copyText.value.includes("StyleFirePtr") ||
-     copyText.value.includes("StyleRainbowPtr"))
+  var argStr = '"' + ARGUMENTS.slice(3).join(" ") + '"';
+  if (argStr == '""') argStr = "";
+
+  // Check only the actual style expression. A header comment may itself
+  // contain the text "StylePtr" and must not affect this decision.
+  if(/^(StylePtr|StyleNormalPtr|StyleFirePtr|StyleRainbowPtr)\s*</.test(expression))
   {
-    if(!copyText.value.endsWith(")"))
-      copyText.value = copyText.value + "("+ argStr +")";
+    if(!expression.endsWith(")"))
+      copyText.value = header + expression + "(" + argStr + ")";
+    else
+      copyText.value = header + expression;
   } else {
-    copyText.value = "StylePtr<" + copyText.value + ">" + "("+ argStr  +")";
+    copyText.value = header + "StylePtr<" + expression + ">(" + argStr + ")";
   }
   copyText.select();
   document.execCommand("copy");
@@ -3834,7 +3980,7 @@ async function loadRepoLocalStyleText(path, description) {
   if (!response.ok) {
     throw new Error(`Could not load ${description}.`);
   }
-  const text = (await response.text()).trim();
+  const text = normalizeIncomingStyleText(await response.text());
   if (!text) {
     throw new Error(`${description} is empty.`);
   }
