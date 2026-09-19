@@ -175,15 +175,14 @@ Goto settings to change hilt model or toggle Mouse Swings mode (swinging with mo
                   </span>
                   <span>Sound</span>
                 </label>
-                <label class="sound-label" title="Set playback volume.">
-                  <span>Volume:</span>
-                  <input type="range" id="VOLUME_SLIDER" class="variant-slider" min="0" max="100" value="80">
-                  <span id="VOLUME_VALUE">80</span>
-                </label>
                 <label class="sound-label" title="Choose saber font.">
-                  <span>Choose Font:</span>
+                  <span>Choose Sound Font:</span>
                   <button type="button" class="sound-btn" id="choose_local_font">
                     <span id="choose_local_font_label">Liquid Static</span>
+                  </button>
+                  <button type="button" id="font_meta_button" class="font-meta-button" style="display:none;" title="">
+                    <img id="font_meta_logo" class="font-meta-logo" alt="Font logo" style="display:none;">
+                    <span id="font_meta_info" class="font-meta-info" style="display:none;">i</span>
                   </button>
                   <input type="file" id="files" name="files" webkitdirectory directory multiple style="display:none;">
                   <span id="local_font_name"></span>
@@ -353,6 +352,15 @@ https://www.cgtrader.com/designers/talon-3d">
 
           <section class="settings-section">
             <h4 class="settings-section-label" title="These settings apply Sound settings..">Sound Settings:</h4>
+            <label class="settings-volume-label" title="Set playback volume.">
+              <span>Volume:</span>
+              <input type="range" id="VOLUME_SLIDER" class="variant-slider" min="0" max="100" value="80">
+              <span id="VOLUME_VALUE">80</span>
+            </label>
+            <label title="Play font.wav on font load when available for the selected font.">
+              <input type="checkbox" id="PLAY_FONT_LOAD_BUTTON" name="playfontload" onclick="handleSettings(this)">
+              <span>play font.wav on font load</span>
+            </label>
             <label title="Use default font sounds to fill in for missing loaded font sounds.">
               <input type="checkbox" id="FONT_FALLBACK_BUTTON" name="fontfallback" onclick="handleSettings(this)">
               <span>Fallback font sounds</span>
@@ -456,6 +464,15 @@ https://www.cgtrader.com/designers/talon-3d">
   </div>
 
   <script defer src="proffie_link.js"></script>
+  <div id="font_meta_overlay" class="font-meta-overlay" style="display:none;">
+    <div id="font_meta_popup" class="font-meta-popup" role="dialog" aria-modal="true" aria-labelledby="font_meta_popup_title">
+      <h3 id="font_meta_popup_title">Font Info</h3>
+      <img id="font_meta_popup_logo" class="font-meta-popup-logo" alt="Font logo" style="display:none;">
+      <pre id="font_meta_popup_readme" class="font-meta-popup-readme"></pre>
+      <button type="button" id="font_meta_popup_close" class="restore-defaults-btn">I read it!</button>
+    </div>
+  </div>
+
   <script defer src="style_editor.js"></script>
   <script defer src="style_classes.js"></script>
   <script defer src="transition_classes.js"></script>

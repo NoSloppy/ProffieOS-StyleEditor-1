@@ -3952,6 +3952,7 @@ var soundOnState = new SavedStateBool("sound", true, (on) => {
   }
 });
 
+var playFontLoadState = new SavedStateBool("play_font_load", true, (on) => {});
 var fontFallbackState = new SavedStateBool("font_fallback", false, (on) => {});
 var useFontWavLenState = new SavedStateBool("use_font_wavlen", true, (on, prev) => {
   handleWavLenControls();
