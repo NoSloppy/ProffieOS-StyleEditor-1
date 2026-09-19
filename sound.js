@@ -188,7 +188,6 @@ function sanitizeLogoUrl(urlValue) {
     const url = new URL(urlValue, window.location.href);
     if (url.protocol === 'blob:') return url.href;
     if (url.protocol !== 'https:' && url.protocol !== 'http:') return '';
-    if (!/\.(jpe?g|png|ico)$/i.test(url.pathname)) return '';
     return url.href;
   } catch (_) {
     return '';
@@ -266,6 +265,14 @@ function updateFontMetadataUi(metadata, showPopup = false) {
     fontMetaButton.style.display = 'inline-block';
     fontMetaLogo.style.display = 'block';
     fontMetaInfo.style.display = 'none';
+    fontMetaLogo.onerror = () => {
+      fontMetaLogo.style.display = 'none';
+      fontMetaInfo.style.display = 'inline-flex';
+    };
+    fontMetaLogo.onload = () => {
+      fontMetaLogo.style.display = 'block';
+      fontMetaInfo.style.display = 'none';
+    };
   } else {
     fontMetaLogo.removeAttribute('src');
     fontMetaLogo.style.display = 'none';
