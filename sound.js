@@ -239,7 +239,7 @@ async function loadDemoFontPresetFromQuery() {
       if (!styleResponse.ok) {
         throw new Error(`Could not load default style for "${presetName}".`);
       }
-      presetStyleText = (await styleResponse.text()).trim();
+      presetStyleText = normalizeIncomingStyleText(await styleResponse.text());
       if (!presetStyleText) {
         throw new Error(`Default style for "${presetName}" is empty.`);
       }

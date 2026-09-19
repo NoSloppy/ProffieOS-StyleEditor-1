@@ -219,7 +219,10 @@ class RgbArgClass extends STYLE {
     var v = getARG(this.ARG, d).split(",");
     this.value = Rgb16(parseInt(v[0]), parseInt(v[1]), parseInt(v[2]));
   }
-  getColor(led) { return this.value; }
+  getColor(led) {
+    if (this.value) return this.value;
+    return this.DEFAULT.getColor(led);
+  }
   argify(state) {
     if (state.color_argument == this.ARG) {
         state.color_argument = false;
@@ -1684,4 +1687,3 @@ var start = new Date().getTime();
 function newCall(Cls) {
   return new (Function.prototype.bind.apply(Cls, arguments));
 }
-
