@@ -2645,6 +2645,44 @@ function normalizeIncomingStyleText(str) {
   return trimmed.slice(0, trailingCommaAtTopLevel) + trimmed.slice(trailingCommaAtTopLevel + 1);
 }
 
+// Keep leading source/header comments outside the StylePtr<> wrapper that
+// Copy() adds. This deliberately removes nothing; it only identifies the
+// leading trivia so the original comments can be reattached unchanged.
+function splitLeadingStyleHeader(str) {
+  let pos = 0;
+
+  while (pos < str.length) {
+    // Preserve whitespace as part of the header.
+    if (/\s/.test(str[pos])) {
+      pos++;
+      continue;
+    }
+
+    // Preserve a leading block comment.
+    if (str[pos] === "/" && str[pos + 1] === "*") {
+      const end = str.indexOf("*/", pos + 2);
+      if (end < 0) break;
+      pos = end + 2;
+      continue;
+    }
+
+    // Preserve a leading line comment.
+    if (str[pos] === "/" && str[pos + 1] === "/") {
+      const newline = str.indexOf("\n", pos + 2);
+      pos = newline < 0 ? str.length : newline + 1;
+      continue;
+    }
+
+    break;
+  }
+
+  return {
+    header: str.slice(0, pos),
+    expression: str.slice(pos)
+  };
+}
+
+
 function ApplyStyleText(str) {
   FIND("style").value = str;
   Run();
@@ -3260,17 +3298,24 @@ function Copy() {
   }
 
   var copyText = FIND("style");
+  const split = splitLeadingStyleHeader(copyText.value);
+  const header = split.header;
+  const expression = split.expression.trim();
   var argStr = '"' + ARGUMENTS.slice(3).join(" ") + '"';
   if (argStr == '""') argStr = "";
-  if(copyText.value.includes("StylePtr") ||
-     copyText.value.includes("StyleNormalPtr") ||
-     copyText.value.includes("StyleFirePtr") ||
-     copyText.value.includes("StyleRainbowPtr"))
+  var argStr = '"' + ARGUMENTS.slice(3).join(" ") + '"';
+  if (argStr == '""') argStr = "";
+
+  // Check only the actual style expression. A header comment may itself
+  // contain the text "StylePtr" and must not affect this decision.
+  if(/^(StylePtr|StyleNormalPtr|StyleFirePtr|StyleRainbowPtr)\s*</.test(expression))
   {
-    if(!copyText.value.endsWith(")"))
-      copyText.value = copyText.value + "("+ argStr +")";
+    if(!expression.endsWith(")"))
+      copyText.value = header + expression + "(" + argStr + ")";
+    else
+      copyText.value = header + expression;
   } else {
-    copyText.value = "StylePtr<" + copyText.value + ">" + "("+ argStr  +")";
+    copyText.value = header + "StylePtr<" + expression + ">(" + argStr + ")";
   }
   copyText.select();
   document.execCommand("copy");
