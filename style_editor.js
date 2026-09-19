@@ -3219,6 +3219,10 @@ function DoLayerize() {
   pp_is_url++;
   tmp = tmp.pp();
   pp_is_url--;
+  if (suppressStartupStylePersistence) {
+    ApplyStyleText(tmp);
+    return;
+  }
   SetTo(tmp);
 }
 
@@ -3230,10 +3234,6 @@ function DoArgify() {
   pp_is_url++;
   tmp = tmp.pp();
   pp_is_url--;
-  if (suppressStartupStylePersistence) {
-    ApplyStyleText(tmp);
-    return;
-  }
   SetTo(tmp);
 }
 
