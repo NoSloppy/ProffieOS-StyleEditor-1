@@ -1,4 +1,7 @@
-Layers<
+// Uses custom BC in.wav and modded preon.wav
+  
+  StylePtr<Layers<
+// Main Blade
      // Custom base Cyan + Purple
     StripesX<Int<16000>,Int<-1000>,RotateColorsX<Variation,Rgb<39,5,71>>,Pulsing<RotateColorsX<Variation,Rgb<0,200,200>>,  RotateColorsX<Variation,Rgb<95,0,225>>,800>,  RotateColorsX<Variation,Rgb<0,200,200>>>,
     // Custom Force Cyan
@@ -83,4 +86,4 @@ Layers<
       TrJoin<TrConcat<TrInstant,AlphaL<Cyan,Bump<Int<0>,Int<4000>>>,TrFade<70>>,TrWaveX<Cyan,Int<70>,Int<500>,Int<70>,Int<0>>>,Black,TrInstant>,EFFECT_PREON>,
 // On-Demand Battery Level
     AlphaL<TransitionEffectL<TrConcat<TrSmoothFade<500>,AlphaL<PulsingX<Mix<BatteryLevel,Red,Green>,Black,Scale<BatteryLevel,Int<500>,Int<4000>>>,SmoothStep<Scale<BatteryLevel,Int<0>,Int<35000>>,Int<-1>>>,TrSmoothFade<2000>>,EFFECT_BATTERY_LEVEL>,Ifon<Int<0>,Int<32768>>>
-  >
+  >>(), 
