@@ -8,8 +8,15 @@ const customFontSoundBuffers    = {};
 const customFontSoundDurations  = {};
 const customFontSoundFilenames  = {};
 
+const DEFAULT_FONT_NAME         = "Default";
+const DEFAULT_FONT_LABEL        = "Liquid Static";
+const DEMO_FONT_MANIFEST_PATH   = "demo_fonts.json";
+const SAFE_DEMO_FONT_KEY        = /^[A-Za-z0-9_-]+$/;
+const SAFE_DEMO_FONT_PATH       = /^(?!\/)(?!.*(?:^|\/)\.\.(?:\/|$))(?!.*:\/\/)(?!.*[?#])[A-Za-z0-9._/-]+$/;
+
 // State tracking
-let currentFontName             = "Default";
+let currentFontName             = DEFAULT_FONT_NAME;
+
 const lastPlayedSoundIndex      = {};
 
 // Audio setup
@@ -33,38 +40,6 @@ let errorMessageTimeout = null;
 // Thermal Detonator sounds are monophonic, so they mask the hum while playing.
 let humMasked                   = false;
 let humMaskTimeout              = null;
-
-// Load default font.
-fetch('default_font_urls.txt')
-  .then(r => r.text())
-  .then(text => {
-    text.split('\n')
-      .map(line => line.trim())
-      .filter(Boolean)
-      .forEach(url => {
-        const m = url.match(/([a-z]+)[0-9]*\.wav$/i);
-        if (!m) return;
-        const effect = m[1].toLowerCase();
-
-        defaultFontSoundBuffers  [effect] ||= [];
-        defaultFontSoundDurations[effect] ||= [];
-        defaultFontSoundFilenames[effect] ||= [];
-
-        const idx = defaultFontSoundFilenames[effect].length;
-        defaultFontSoundFilenames[effect][idx] = url.split('/').pop();
-
-        fetch(url)
-          .then(r => r.arrayBuffer())
-          .then(data => audioCtx.decodeAudioData(data))
-          .then(buffer => {
-            defaultFontSoundBuffers[effect][idx]   = buffer;
-            defaultFontSoundDurations[effect][idx] = Math.round(buffer.duration * 1000);
-//            console.log(`Default font: ${defaultFontSoundFilenames[effect][idx]} - duration ${defaultFontSoundDurations[effect][idx]} ms`);
-          })
-          .catch(err => console.error(`Error loading ${url}:`, err));
-      });
-  })
-  .catch(err => console.error("Could not load default_font_urls.txt:", err));
 
 // All sound folder/filename bases that ProffieOS recognises as valid effects.
 const VALID_EFFECTS = new Set([
@@ -95,6 +70,208 @@ const VALID_EFFECTS = new Set([
   'bgnarm', 'armhum', 'endarm',
 ]);
 
+function clearCustomFontData() {
+  Object.keys(customFontSoundBuffers).forEach(effect => {
+    delete customFontSoundBuffers[effect];
+    delete customFontSoundDurations[effect];
+    delete customFontSoundFilenames[effect];
+  });
+}
+
+function setDefaultFontSelection() {
+  currentFontName = DEFAULT_FONT_NAME;
+  FIND('choose_local_font_label').textContent = DEFAULT_FONT_LABEL;
+}
+
+function setCustomFontSelection(fontName) {
+  currentFontName = fontName;
+  FIND('choose_local_font_label').textContent = fontName;
+}
+
+function clearFontLoadMessage() {
+  const err = FIND("error_message");
+  clearTimeout(errorMessageTimeout);
+  errorMessageTimeout = null;
+  if (!err) return;
+  err.textContent = "";
+  err.style.color = "";
+}
+
+function showFontLoadMessage(message, color = "orange") {
+  const err = FIND("error_message");
+  clearTimeout(errorMessageTimeout);
+  errorMessageTimeout = null;
+  if (!err) return;
+  err.textContent = message;
+  err.style.color = color;
+}
+
+function extractEffectFromSoundUrl(url) {
+  const filename = new URL(url, window.location.href).pathname.split('/').pop();
+  const m = filename && filename.match(/([a-z]+)[0-9]*\.wav$/i);
+  return m ? m[1].toLowerCase() : null;
+}
+
+async function loadFontUrlList(urlListPath, targetBuffers, targetDurations, targetFilenames) {
+  const listUrl = new URL(urlListPath, window.location.href);
+  const response = await fetch(listUrl);
+  if (!response.ok) {
+    throw new Error(`Could not load ${urlListPath}.`);
+  }
+
+  const text = await response.text();
+  const lines = text.split(/\r?\n/)
+    .map(line => line.trim())
+    .filter(Boolean);
+
+  let loadedCount = 0;
+  const failures = [];
+
+  await Promise.all(lines.map(async line => {
+    const resolvedUrl = new URL(line, listUrl).href;
+    const effect = extractEffectFromSoundUrl(resolvedUrl);
+    if (!effect || !VALID_EFFECTS.has(effect)) return;
+
+    try {
+      const wavResponse = await fetch(resolvedUrl);
+      if (!wavResponse.ok) {
+        throw new Error(`HTTP ${wavResponse.status}`);
+      }
+      const data = await wavResponse.arrayBuffer();
+      const buffer = await audioCtx.decodeAudioData(data);
+
+      targetBuffers  [effect] ||= [];
+      targetDurations[effect] ||= [];
+      targetFilenames[effect] ||= [];
+
+      const displayName = new URL(resolvedUrl).pathname.split('/').pop();
+      targetFilenames[effect].push(displayName);
+      targetBuffers[effect].push(buffer);
+      targetDurations[effect].push(Math.round(buffer.duration * 1000));
+      loadedCount += 1;
+    } catch (err) {
+      failures.push(`${resolvedUrl}: ${err.message}`);
+      console.error(`Error loading ${resolvedUrl}:`, err);
+    }
+  }));
+
+  return { loadedCount, failures };
+}
+
+function readDemoFontPresets(manifest) {
+  if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) {
+    throw new Error("demo_fonts.json must contain an object.");
+  }
+  if ('presets' in manifest) {
+    if (!manifest.presets || typeof manifest.presets !== 'object' || Array.isArray(manifest.presets)) {
+      throw new Error("demo_fonts.json presets must be an object.");
+    }
+    return manifest.presets;
+  }
+  return manifest;
+}
+
+function resolveDemoFontPath(pathValue, fieldName) {
+  if (typeof pathValue !== 'string' || !SAFE_DEMO_FONT_PATH.test(pathValue)) {
+    throw new Error(`Preset ${fieldName} must be a safe repo-local path.`);
+  }
+  return new URL(pathValue, new URL('./', window.location.href)).href;
+}
+
+async function loadDemoFontPresetFromQuery() {
+  const params = new URL(window.location.href).searchParams;
+  const presetKey = params.get("font");
+  if (!presetKey) return false;
+
+  clearFontLoadMessage();
+
+  if (!SAFE_DEMO_FONT_KEY.test(presetKey)) {
+    showFontLoadMessage(`Demo font preset "${presetKey}" is not valid. Using ${DEFAULT_FONT_LABEL}.`);
+    return false;
+  }
+
+  showLoadingOverlay(`Loading demo font "${presetKey}"…`);
+
+  try {
+    const manifestResponse = await fetch(DEMO_FONT_MANIFEST_PATH);
+    if (!manifestResponse.ok) {
+      throw new Error("Could not load demo font manifest.");
+    }
+
+    const presetMap = readDemoFontPresets(await manifestResponse.json());
+    const preset = presetMap[presetKey];
+    if (!preset || typeof preset !== 'object' || Array.isArray(preset)) {
+      throw new Error(`Unknown demo font preset "${presetKey}".`);
+    }
+
+    const presetName = typeof preset.name === 'string' ? preset.name.trim() : "";
+    if (!presetName) {
+      throw new Error(`Preset "${presetKey}" is missing a display name.`);
+    }
+
+    const listPath = resolveDemoFontPath(preset.font_urls, "font_urls");
+    const styleOverride = params.get("S");
+    let presetStyleText = null;
+
+    if (!styleOverride) {
+      const stylePath = resolveDemoFontPath(preset.style, "style");
+      const styleResponse = await fetch(stylePath);
+      if (!styleResponse.ok) {
+        throw new Error(`Could not load default style for "${presetName}".`);
+      }
+      presetStyleText = (await styleResponse.text()).trim();
+      if (!presetStyleText) {
+        throw new Error(`Default style for "${presetName}" is empty.`);
+      }
+    }
+
+    clearCustomFontData();
+    const { loadedCount, failures } = await loadFontUrlList(
+      listPath,
+      customFontSoundBuffers,
+      customFontSoundDurations,
+      customFontSoundFilenames
+    );
+
+    if (loadedCount === 0) {
+      throw new Error(`No playable WAV files were loaded for "${presetName}".`);
+    }
+
+    setCustomFontSelection(presetName);
+
+    if (!styleOverride && presetStyleText) {
+      ApplyStyleText(presetStyleText);
+    }
+
+    updateLockupDropdown();
+    handleDestructControls();
+
+    if (failures.length > 0) {
+      showFontLoadMessage(`Loaded demo font "${presetName}" with ${failures.length} unavailable sound file(s).`, "orange");
+    }
+
+    return true;
+  } catch (err) {
+    clearCustomFontData();
+    setDefaultFontSelection();
+    updateLockupDropdown();
+    handleDestructControls();
+    showFontLoadMessage(`Could not load demo font "${presetKey}". Using ${DEFAULT_FONT_LABEL}. ${err.message}`, "orange");
+    console.error(`Could not load demo font "${presetKey}":`, err);
+    return false;
+  } finally {
+    hideLoadingOverlay();
+  }
+}
+
+loadFontUrlList(
+  'default_font_urls.txt',
+  defaultFontSoundBuffers,
+  defaultFontSoundDurations,
+  defaultFontSoundFilenames
+).catch(err => console.error("Could not load default_font_urls.txt:", err));
+
+
 const chooseLocalFontBtn = FIND('choose_local_font');
 const fileInput          = FIND('files');
 
@@ -108,21 +285,17 @@ fileInput.addEventListener('change', (e) => {
   const files = Array.from(e.target.files || []);
   if (!files.length) return;           // user cancelled
 
+  clearFontLoadMessage();
   showLoadingOverlay();
 
   // Determine folder / font name
   const folderName = files[0].webkitRelativePath
     ? files[0].webkitRelativePath.split('/')[0]
     : files[0].name;
-  FIND('choose_local_font_label').textContent = folderName;
-  currentFontName = folderName;
+  setCustomFontSelection(folderName);
 
   // Clear out any old custom data
-  Object.keys(customFontSoundBuffers).forEach(effect => {
-    delete customFontSoundBuffers[effect];
-    delete customFontSoundDurations[effect];
-    delete customFontSoundFilenames[effect];
-  });
+  clearCustomFontData();
 
   // // Build an array of Promises—one per file—to decode & stash buffers
   // const loadPromises = files.map(file => {
@@ -413,13 +586,15 @@ volumeSlider.addEventListener('input', function() {
   masterGain.gain.value = globalVolume;
 });
 
-function showLoadingOverlay() {
-  const loadingOverlay = document.createElement('div');
-  loadingOverlay.id = 'loading_overlay';
-  loadingOverlay.className = 'loading-overlay';
-  loadingOverlay.innerText = 'Loading, please stand by…';
-  document.body.appendChild(loadingOverlay);
-}
+function showLoadingOverlay(message = 'Loading, please stand by…') {
+  let loadingOverlay = FIND('loading_overlay');
+  if (!loadingOverlay) {
+    loadingOverlay = document.createElement('div');
+    loadingOverlay.id = 'loading_overlay';
+    loadingOverlay.className = 'loading-overlay';
+    document.body.appendChild(loadingOverlay);
+  }
+  loadingOverlay.innerText = message;
 
 function hideLoadingOverlay() {
   const loadingOverlay = FIND('loading_overlay');
@@ -788,3 +963,5 @@ function resumeLoops() {
 }
 
 window.addEventListener('focus', () => { if (soundOnState.get()) resumeLoops(); });
+window.loadDemoFontPresetFromQuery = loadDemoFontPresetFromQuery;
+

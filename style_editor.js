@@ -2541,6 +2541,10 @@ function SetTo(str) {
   window.history.pushState(str, "Style Editor", url);
   window.onpopstate = PopState;
 
+  ApplyStyleText(str);
+}
+
+function ApplyStyleText(str) {
   FIND("style").value = str;
   Run();
 }
@@ -3226,6 +3230,10 @@ function DoArgify() {
   pp_is_url++;
   tmp = tmp.pp();
   pp_is_url--;
+  if (suppressStartupStylePersistence) {
+    ApplyStyleText(tmp);
+    return;
+  }
   SetTo(tmp);
 }
 
@@ -3765,6 +3773,8 @@ function handleSlowMotionControls() {
 
 
 var benchmarkState = new SavedStateBool("benchmark", false, (on) => { AA=1; compile(); FIND("error_message").innerHTML = ""; });
+let suppressStartupStylePersistence = false;
+const DEFAULT_STYLE_PATH = "demo_fonts/default_style.txt";
 //////////////// WAVLEN PR /////////////////
 var wavlenState = new SavedStateNumber("wavlen", 500, (value) => {
   myWavLen.setLength(value);
@@ -3819,7 +3829,19 @@ var pcbViewPlusBladeState = new SavedStateBool("pcb_view_plus_blade", false, (on
 });
 
 // Create n textures of about 1MB each.
-function SetupRendering() {
+async function loadRepoLocalStyleText(path, description) {
+  const response = await fetch(path);
+  if (!response.ok) {
+    throw new Error(`Could not load ${description}.`);
+  }
+  const text = (await response.text()).trim();
+  if (!text) {
+    throw new Error(`${description} is empty.`);
+  }
+  return text;
+}
+
+async function SetupRendering() {
   // Clear existing tab links and tab bodies before populating
   var tabLinksElement = FIND("TABLINKS");
   var tabBodiesElement = FIND("TABBODIES");
@@ -3864,7 +3886,11 @@ function SetupRendering() {
 //////////// Fullscreen PR ///////////
   window.renderer.setPixelRatio( window.devicePixelRatio || 1 );
 
-  var str = new URL(window.location.href).searchParams.get("S");
+  const startupParams = new URL(window.location.href).searchParams;
+  const startupFontPreset = startupParams.get("font");
+  suppressStartupStylePersistence = !!startupFontPreset && !startupParams.get("S");
+  let startupStyleErrorMessage = "";
+  var str = startupParams.get("S");
   // if (!str) {
   if (str) {
     // If URL has a style parameter, save it to localStorage as backup
@@ -3872,26 +3898,39 @@ function SetupRendering() {
     localStorage.setItem("currentStyle", str);
     localStorage.removeItem("uriTooLong");
   } else {
-    // No URL parameter - check if this is because URI was too long
-    var uriTooLong = localStorage.getItem("uriTooLong");
-    if (uriTooLong === "true") {
-      // URL was cleaned because it was too long, restore from localStorage
-      str = localStorage.getItem("currentStyle");
+    if (!startupFontPreset) {
+      // No URL parameter - check if this is because URI was too long
+      var uriTooLong = localStorage.getItem("uriTooLong");
+      if (uriTooLong === "true") {
+        // URL was cleaned because it was too long, restore from localStorage
+        str = localStorage.getItem("currentStyle");
+      }
     }
     
     if (!str) {
-      // No saved style and no URI-too-long case - load the default Liquid Static style
-
-      // Liquid Static
-    str = "Layers<StripesX<Sin<Int<12>,Int<3000>,Int<7000>>,Scale<SwingSpeed<100>,Int<75>,Int<125>>,StripesX<Sin<Int<10>,Int<1000>,Int<3000>>,Scale<SwingSpeed<100>,Int<75>,Int<100>>,Pulsing<Blue,Mix<Int<2570>,Black,Blue>,1200>,Mix<SwingSpeed<200>,Mix<Int<16000>,Black,Blue>,Black>>,Mix<Int<7710>,Black,Blue>,Pulsing<Mix<Int<6425>,Black,Blue>,StripesX<Sin<Int<10>,Int<2000>,Int<3000>>,Sin<Int<10>,Int<75>,Int<100>>,Blue,Mix<Int<12000>,Black,Blue>>,2000>,Pulsing<Mix<Int<16448>,Black,Blue>,Mix<Int<642>,Black,Blue>,3000>>,AlphaL<StaticFire<Blue,Mix<Int<256>,Black,Blue>,0,1,10,2000,2>,Int<10000>>,AlphaL<LightCyan,SmoothStep<Int<2000>,Int<-6000>>>,TransitionEffectL<TrConcat<TrInstant,HumpFlickerL<White,40>,TrFade<1200>>,EFFECT_IGNITION>,TransitionEffectL<TrConcat<TrFadeX<WavLen<EFFECT_RETRACTION>>,Stripes<3000,3500,Blue,RandomPerLEDFlicker<Mix<Int<7710>,Black,Blue>,Black>,BrownNoiseFlicker<Blue,Mix<Int<3855>,Black,Blue>,200>,RandomPerLEDFlicker<Mix<Int<3137>,Black,Blue>,Mix<Int<3855>,Black,Blue>>>,TrInstant>,EFFECT_RETRACTION>,EffectSequence<EFFECT_POWERSAVE,AlphaL<Black,Int<16384>>,AlphaL<Black,Int<0>>>,TransitionEffectL<TrConcat<TrInstant,GreenYellow,TrDelay<25>,AlphaL<TransitionEffect<BrownNoiseFlicker<Rgb<255,150,0>,Black,50>,White,TrInstant,TrFade<300>,EFFECT_CLASH>,Bump<Scale<BladeAngle<>,Int<25000>,Int<8000>>,Int<18000>>>,TrFade<600>>,EFFECT_CLASH>,TransitionEffectL<TrConcat<TrInstant,GreenYellow,TrDelay<25>,AlphaL<Black,Int<0>>,TrWipeIn<300>,AlphaL<Stripes<5000,1000,Orange,DarkOrange,Rgb<150,60,0>,Rgb<60,30,0>,Rgb<150,14,0>,OrangeRed>,SmoothStep<Int<20000>,Int<20000>>>,TrJoin<TrSmoothFade<900>,TrWipe<700>>>,EFFECT_STAB>,TransitionEffectL<TrConcat<TrInstant,GreenYellow,TrDelay<25>>,EFFECT_BLAST>,BlastL<White,850,250,351>,AlphaL<TransitionEffectL<TrConcat<TrFade<300>,Rgb<255,70,70>,TrFade<300>>,EFFECT_BLAST>,BlastF<700,250,100000>>,BlastL<White,300,350,100000>,TransitionEffectL<TrConcat<TrInstant,Strobe<GreenYellow,Black,20,30>,TrFade<200>,BrownNoiseFlickerL<AlphaL<White,Int<16000>>,Int<5000>>,TrJoinR<TrWipe<200>,TrWipeIn<200>,TrFade<300>>>,EFFECT_LOCKUP_END>,LockupTrL<Layers<AlphaL<TransitionLoopL<TrConcat<TrDelayX<Scale<SlowNoise<Int<3000>>,Int<30>,Int<800>>>,Mix<SlowNoise<Int<1000>>,Black,Black,White,Black>,TrDelayX<Scale<SlowNoise<Int<1000>>,Int<10>,Int<50>>>>>,Int<32768>>,AlphaL<Blinking<Tomato,Strobe<Yellow,Black,15,30>,60,500>,Bump<Scale<BladeAngle<5000,28000>,Scale<BladeAngle<8000,16000>,Int<3000>,Int<44000>>,Int<3000>>,Scale<SlowNoise<Int<3000>>,Int<8000>,Int<18000>>>>,AlphaL<Blinking<BrownNoiseFlicker<White,Black,50>,BrownNoiseFlicker<Yellow,Tomato,50>,100,500>,Bump<Scale<BladeAngle<5000,28000>,Scale<BladeAngle<8000,16000>,Int<3000>,Int<44000>>,Int<3000>>,Int<9000>>>>,TrConcat<TrInstant,AlphaL<Blinking<White,Strobe<BrownNoiseFlicker<Yellow,Black,500>,Black,15,30>,60,500>,Bump<Scale<BladeAngle<5000,28000>,Scale<BladeAngle<8000,16000>,Int<3000>,Int<44000>>,Int<3000>>,Scale<SlowNoise<Int<3000>>,Int<25000>,Int<32000>>>>,TrFade<500>>,TrSmoothFade<900>,SaberBase::LOCKUP_NORMAL>,TransitionEffectL<TrConcat<TrInstant,AlphaL<Strobe<GreenYellow,Black,20,30>,Bump<Scale<BladeAngle<5000,28000>,Scale<BladeAngle<8000,16000>,Int<3000>,Int<44000>>,Int<3000>>,Int<15000>>>,TrFade<600>>,EFFECT_LOCKUP_BEGIN>,TransitionEffectL<TrConcat<TrInstant,GreenYellow,TrDelay<25>,HumpFlickerL<Strobe<AlphaL<White,Int<20000>>,Black,20,30>,30>,TrSmoothFade<225>>,EFFECT_LOCKUP_BEGIN>,LockupTrL<AlphaL<AudioFlicker<BrownNoiseFlicker<Strobe<Black,OrangeRed,20,25>,Yellow,200>,White>,SmoothStep<Int<30000>,Int<2000>>>,TrConcat<TrInstant,GreenYellow,TrDelay<25>,AlphaL<Black,Int<0>>,TrFade<150>>,TrColorCycle<1500,-2000,100>,SaberBase::LOCKUP_DRAG>,LockupTrL<Layers<AlphaL<Black,Int<16000>>,AlphaL<White,StrobeF<Scale<SlowNoise<Int<1000>>,Int<1>,Int<6>>,Scale<SlowNoise<Int<1000>>,Int<10>,Int<50>>>>,AlphaL<RandomFlicker<Strobe<White,Rgb<83,0,255>,50,10>,BrownNoiseFlicker<Rgb<83,0,255>,Black,500>>,LayerFunctions<Bump<Scale<SlowNoise<Int<2000>>,Int<3000>,Int<16000>>,Scale<BrownNoiseF<Int<10>>,Int<14000>,Int<8000>>>,Bump<Scale<SlowNoise<Int<2300>>,Int<26000>,Int<8000>>,Scale<NoisySoundLevel,Int<5000>,Int<10000>>>,Bump<Scale<SlowNoise<Int<2300>>,Int<20000>,Int<30000>>,Scale<IsLessThan<SlowNoise<Int<1500>>,Int<8000>>,Scale<NoisySoundLevel,Int<5000>,Int<0>>,Int<0>>>>>>,TrConcat<TrInstant,GreenYellow,TrDelay<25>,BrownNoiseFlicker<Rgb<83,0,255>,Black,500>,TrFade<100>>,TrConcat<TrInstant,GreenYellow,TrDelay<25>,BrownNoiseFlicker<Rgb<83,0,255>,Black,500>,TrFade<150>,BrownNoiseFlickerL<AlphaL<White,Int<16000>>,Int<50>>,TrJoinR<TrWipe<200>,TrWipeIn<200>,TrFade<400>> >,SaberBase::LOCKUP_LIGHTNING_BLOCK>,LockupTrL<AlphaL<Remap<Scale<RampF,Int<65536>,Int<0>>,StaticFire<Mix<TwistAngle<>,Rgb16<20393,93,93>,DarkOrange>,Mix<TwistAngle<>,Rgb16<20393,93,93>,Orange>,0,4,5,4000,10>>,SmoothStep<Scale<TwistAngle<>,Int<24000>,Int<29000>>,Int<4000>>>,TrConcat<TrInstant,GreenYellow,TrDelay<25>,AlphaL<Black,Int<0>>,TrWipeIn<600>,AlphaL<Red,SmoothStep<Scale<TwistAngle<>,Int<24000>,Int<29000>>,Int<2000>>>,TrExtend<3000,TrFade<300>>,AlphaL<Mix<TwistAngle<>,Red,Orange>,SmoothStep<Scale<TwistAngle<>,Int<24000>,Int<29000>>,Int<2000>>>,TrFade<3000>>,TrColorCycle<1500,-2000>,SaberBase::LOCKUP_MELT>,InOutTrL<TrWipeSparkTip<White,300>,TrWipeInSparkTipX<LightCyan,WavLen<EFFECT_RETRACTION>,Int<401>>>,TransitionEffectL<TrConcat<TrInstant,AlphaL<BrownNoiseFlickerL<White,Int<30>>,SmoothStep<Scale<SlowNoise<Int<2000>>,Int<2000>,Sum<Int<2000>,Int<4000>>>,Int<-2000>>>,TrDelayX<WavLen<EFFECT_PREON>>>,EFFECT_PREON>,TransitionEffectL<TrConcat<TrInstant,AlphaL<BrownNoiseFlickerL<White,Int<30>>,SmoothStep<Scale<SlowNoise<Int<2000>>,Int<2000>,Sum<Int<2000>,Int<3000>>>,Int<-4000>>>,TrDelayX<WavLen<EFFECT_POSTOFF>>>,EFFECT_POSTOFF>>";
-      localStorage.setItem("currentStyle", str);
-      localStorage.removeItem("uriTooLong");
+      try {
+        str = await loadRepoLocalStyleText(DEFAULT_STYLE_PATH, "the default style");
+      } catch (e) {
+        str = "Blue";
+        if (!startupFontPreset) {
+          startupStyleErrorMessage = e.message + " Falling back to Blue.";
+        }
+      }
+      if (!startupFontPreset && !startupStyleErrorMessage) {
+        localStorage.setItem("currentStyle", str);
+        localStorage.removeItem("uriTooLong");
+      }
     }
   }
   FIND("style").value = str;
 
   Run();
   DoLayerize();
+  suppressStartupStylePersistence = false;
+  if (startupStyleErrorMessage) {
+    FIND("error_message").innerHTML = startupStyleErrorMessage;
+    FIND("error_message").style.color = "orange";
+  }
   resizeCanvasAndCamera();
 //////////// Fullscreen PR ///////////
 
@@ -3921,8 +3960,8 @@ function togglePixelRingCount() {
 }
 
 
-function onPageLoad() {
-  SetupRendering();
+async function onPageLoad() {
+  await SetupRendering();
   rebuildMoreEffectsMenu();
   structuredView = FIND("structured_view");
   all_saved_states.forEach(state => {
@@ -3936,6 +3975,9 @@ function onPageLoad() {
     if (audioCtx.state === 'suspended') audioCtx.resume();
     startOverlay.style.display = 'none';
   };
+  if (window.loadDemoFontPresetFromQuery) {
+    await window.loadDemoFontPresetFromQuery();
+  }
   previewType.dispatchEvent(new Event('change'));
   window.addEventListener('resize', resizeCanvasAndCamera);
 }
