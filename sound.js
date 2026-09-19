@@ -182,6 +182,19 @@ function creatorFallbackLogoFromReadme(readmeText) {
   return '';
 }
 
+function sanitizeLogoUrl(urlValue) {
+  if (!urlValue) return '';
+  try {
+    const url = new URL(urlValue, window.location.href);
+    if (url.protocol === 'blob:') return url.href;
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') return '';
+    if (!/\.(jpe?g|png|ico)$/i.test(url.pathname)) return '';
+    return url.href;
+  } catch (_) {
+    return '';
+  }
+}
+
 function clearCurrentMetadataObjectUrl() {
   if (!currentMetadataObjectUrl) return;
   URL.revokeObjectURL(currentMetadataObjectUrl);
@@ -194,12 +207,13 @@ function hideFontMetadataPopup() {
 }
 
 function showFontMetadataPopup() {
-  const hasLogo = !!activeFontMetadata.logoUrl;
+  const safeLogoUrl = sanitizeLogoUrl(activeFontMetadata.logoUrl);
+  const hasLogo = !!safeLogoUrl;
   const hasReadme = !!activeFontMetadata.readmeText;
   if (!hasLogo && !hasReadme) return;
   if (fontMetaPopupLogo) {
     if (hasLogo) {
-      fontMetaPopupLogo.src = activeFontMetadata.logoUrl;
+      fontMetaPopupLogo.src = safeLogoUrl;
       fontMetaPopupLogo.style.display = '';
     } else {
       fontMetaPopupLogo.removeAttribute('src');
@@ -217,15 +231,16 @@ function showFontMetadataPopup() {
 }
 
 function updateFontMetadataUi(metadata, showPopup = false) {
+  const safeLogoUrl = sanitizeLogoUrl(metadata.logoUrl || '');
   if (metadata.logoObjectUrl) {
     clearCurrentMetadataObjectUrl();
-    currentMetadataObjectUrl = metadata.logoUrl || null;
-  } else if (currentMetadataObjectUrl && currentMetadataObjectUrl !== metadata.logoUrl) {
+    currentMetadataObjectUrl = safeLogoUrl || null;
+  } else if (currentMetadataObjectUrl && currentMetadataObjectUrl !== safeLogoUrl) {
     clearCurrentMetadataObjectUrl();
   }
 
   activeFontMetadata = {
-    logoUrl: metadata.logoUrl || '',
+    logoUrl: safeLogoUrl,
     readmeText: metadata.readmeText || '',
     fontName: metadata.fontName || DEFAULT_FONT_LABEL,
     logoObjectUrl: !!metadata.logoObjectUrl,
@@ -248,7 +263,7 @@ function updateFontMetadataUi(metadata, showPopup = false) {
   fontMetaButton.style.display = '';
   fontMetaButton.title = hasReadme ? activeFontMetadata.readmeText : `Font info for ${activeFontMetadata.fontName}`;
   if (hasLogo) {
-    fontMetaLogo.src = activeFontMetadata.logoUrl;
+    fontMetaLogo.src = safeLogoUrl;
     fontMetaLogo.style.display = '';
     fontMetaInfo.style.display = 'none';
   } else {
