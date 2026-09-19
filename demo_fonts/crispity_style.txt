@@ -1,0 +1,86 @@
+Layers<
+     // Custom base Cyan + Purple
+    StripesX<Int<16000>,Int<-1000>,RotateColorsX<Variation,Rgb<39,5,71>>,Pulsing<RotateColorsX<Variation,Rgb<0,200,200>>,  RotateColorsX<Variation,Rgb<95,0,225>>,800>,  RotateColorsX<Variation,Rgb<0,200,200>>>,
+    // Custom Force Cyan
+    TransitionEffectL<TrConcat<TrFade<600>,RandomFlicker<RotateColorsX<Variation,Rgb<0,200,200>>,RotateColorsX<Variation,Rgb<69,9,125>>>,TrDelay<3000>,  RotateColorsX<Variation,Rgb<95,0,225>>, TrFade<800>>,EFFECT_FORCE>,
+    // Jedi Swing Purple
+    AlphaL<RotateColorsX<Variation,Rgb<160,60,255>>,  Scale<IsLessThan<SwingSpeed<600>,Int<13600>>,Scale<SwingSpeed<600>,Int<-19300>,Int<32768>>,Int<0>>>,
+
+// Dim Blade 50% "Power Save" button combo
+    EffectSequence<EFFECT_POWERSAVE,
+    AlphaL<Black,Int<16384>>,
+    AlphaL<Black,Int<0>>>,
+// Clash
+    TransitionEffectL<TrConcat<TrInstant,GreenYellow,TrDelay<25>,AlphaL<TransitionEffect<TransitionEffect<Strobe<Black,Red,20,20>,BrownNoiseFlicker<White,Black,300>,TrInstant,TrFade<300>,EFFECT_CLASH>,White,TrInstant,TrDelay<150>,EFFECT_CLASH>,Bump<Scale<BladeAngle<>,Int<25000>,Int<8000>>,Int<18000>>>,TrFade<600>>,EFFECT_CLASH>,
+// Stab 
+    TransitionEffectL<TrConcat<TrInstant,GreenYellow,TrDelay<25>,AlphaL<Black,Int<0>>,TrWipeIn<300>,AlphaL<Stripes<5000,1000,DarkOrange,Rgb<80,60,0>,Orange,Rgb<60,30,0>,Black,DarkOrange,Orange>,SmoothStep<Int<20000>,Int<2000>>>,TrJoin<TrSmoothFade<900>,TrWipe<700>>>,EFFECT_STAB>,
+// Blast - for non-red and non-dark blades; Lighter or white blades
+    TransitionEffectL<TrConcat<TrInstant,GreenYellow,TrDelay<25>>,EFFECT_BLAST>,
+    BlastL<EffectSequence<EFFECT_BLAST,Red,Green,Blue,White,Black>,850,250,351>,
+    AlphaL<TransitionEffectL<TrConcat<TrDelay<300>,Red,TrFade<500>>,EFFECT_BLAST>,BlastF<700,250,100000>>,
+    BlastL<White,500,350,100000>,
+// Lockup - BC custom range mid-blade
+    LockupTrL<Layers<
+      AlphaL<Blinking<Tomato,Strobe<Yellow,Black,15,30>,60,500>,                            Bump<Scale<BladeAngle<5000,28000>,Scale<BladeAngle<8000,16000>,Int<3000>,Int<44000>>,Int<3000>>,Scale<SlowNoise<Int<3000>>,Int<8000>,Int<18000>>>>,
+      AlphaL<Blinking<BrownNoiseFlicker<White,Black,50>,BrownNoiseFlicker<Yellow,Tomato,50>,100,500>,Bump<Scale<BladeAngle<5000,28000>,Scale<BladeAngle<8000,16000>,Int<3000>,Int<44000>>,Int<3000>>,Int<9000>>>>,
+      TrConcat<TrInstant,
+      AlphaL<Blinking<White,Strobe<BrownNoiseFlicker<Yellow,Black,500>,Black,15,30>,60,500>,Bump<Scale<BladeAngle<5000,28000>,Scale<BladeAngle<8000,16000>,Int<3000>,Int<44000>>,Int<3000>>,Scale<SlowNoise<Int<3000>>,Int<25000>,Int<32000>>>>,TrFade<500>>,TrSmoothFade<900>,SaberBase::LOCKUP_NORMAL>,
+    TransitionEffectL<TrConcat<TrInstant,AlphaL<Strobe<GreenYellow,Black,20,30>,            Bump<Scale<BladeAngle<5000,28000>,Scale<BladeAngle<8000,16000>,Int<3000>,Int<44000>>,Int<3000>>,Int<15000>>>,TrFade<600>>,EFFECT_LOCKUP_BEGIN>,
+    TransitionEffectL<TrConcat<TrInstant,HumpFlickerL<Strobe<AlphaL<White,Int<20000>>,Black,20,30>,30>,TrSmoothFade<250>>,EFFECT_LOCKUP_BEGIN>,
+    TransitionEffectL<TrConcat<TrInstant,GreenYellow,TrDelay<25>>,EFFECT_LOCKUP_BEGIN>,
+    TransitionEffectL<TrConcat<TrInstant,Strobe<GreenYellow,Black,20,30>,TrFade<200>,BrownNoiseFlickerL<AlphaL<White,Int<16000>>,Int<50>>,TrJoinR<TrWipe<200>,TrWipeIn<200>,TrFade<300>>>,EFFECT_LOCKUP_END>,
+// Non-Responsive Drag
+    LockupTrL<AlphaL<AudioFlicker<BrownNoiseFlicker<Strobe<Black,OrangeRed,20,25>,Yellow,200>,White>,SmoothStep<Int<30000>,Int<2000>>>,TrConcat<TrInstant,GreenYellow,TrDelay<25>,AlphaL<Black,Int<0>>,TrFade<150>>,TrColorCycle<1500,-2000,100>,SaberBase::LOCKUP_DRAG>,
+// Lightning Block Non-Responsive    
+    LockupTrL<AlphaL<BrownNoiseFlicker<Rgb<60,0,255>,Black,500>,LayerFunctions<
+    Bump<Scale<SlowNoise<Int<2000>>,Int<3000>,Int<16000>>,Scale<BrownNoiseF<Int<10>>,Int<14000>,Int<8000>>>,
+    Bump<Scale<SlowNoise<Int<2300>>,Int<26000>,Int<8000>>,Scale<NoisySoundLevel,Int<5000>,Int<10000>>>,
+    Bump<Scale<SlowNoise<Int<2300>>,Int<20000>,Int<30000>>,Scale<IsLessThan<SlowNoise<Int<1500>>,Int<8000>>,Scale<NoisySoundLevel,Int<5000>,Int<0>>,Int<0>>>>>,
+    //Begin Lightning Transition
+    TrConcat<TrInstant,GreenYellow,TrDelay<25>,BrownNoiseFlicker<Rgb<60,0,255>,Black,500>,TrFade<100>>,
+    //End Lightning Transition    
+    TrConcat<TrInstant,GreenYellow,TrDelay<25>,BrownNoiseFlicker<Rgb<60,0,255>,Black,500>,TrFade<150>,BrownNoiseFlickerL<AlphaL<White,Int<16000>>,Int<50>>,TrJoinR<TrWipe<200>,TrWipeIn<200>,TrFade<400>> >,SaberBase::LOCKUP_LIGHTNING_BLOCK>,
+// Melt    
+    LockupTrL<
+    AlphaL<Mix<TwistAngle<>,Yellow,RandomPerLEDFlicker<Orange,OrangeRed>,BrownNoiseFlicker<Rgb16<20095,128,128>,Rgb16<35103,8175,298>,150>,StyleFire<Rgb16<20393,93,93>,Red,0,4,FireConfig<0,2000,5>,FireConfig<3000,0,0>,FireConfig<0,4000,0>>>,
+	 // Melt Shape
+    SmoothStep<Scale<TwistAngle<>,Int<24000>,Int<29000>>,Int<2000>>>,
+	 //Melt Begin and End transitions
+    TrConcat<TrInstant,GreenYellow,TrDelay<25>,AlphaL<Black,Int<0>>,TrWipeIn<600>>,TrColorCycle<1500,-2000,100>,SaberBase::LOCKUP_MELT>,  // Great melt colors as you twist, gets dripping red hot/fire and bright yellow.
+    TransitionEffectL<TrConcat<TrInstant,HumpFlicker<White,Black,75>,TrSmoothFade<500>>,EFFECT_IGNITION>,
+    InOutTrL<TrJoin<TrWipeX<Int<400>>,TrWipeInX<Int<400>>>,TrWipeInSparkTip<White,200>>,
+    TransitionEffectL<TrConcat<
+      TrJoin<TrConcat<TrInstant,AlphaL<Cyan,           Bump<Int<32768>,Int<4000>>>,TrFade<70>>, TrWaveX<Cyan,           Int<70>, Int<80>,Int<70>, Int<32768>>>,AlphaL<Black,Int<0>>,
+      TrJoin<TrConcat<TrInstant,AlphaL<Rgb<160,60,255>,Bump<Int<32768>,Int<4000>>>,TrFade<100>>,TrWaveX<Rgb<160,60,255>,Int<100>,Int<80>,Int<100>,Int<32768>>>,AlphaL<Black,Int<0>>,
+      TrJoin<TrConcat<TrInstant,AlphaL<Cyan,           Bump<Int<32768>,Int<4000>>>,TrFade<130>>,TrWaveX<Cyan,           Int<130>,Int<100>,Int<130>,Int<32768>>>,AlphaL<Black,Int<0>>,
+      TrJoin<TrConcat<TrInstant,AlphaL<Rgb<160,60,255>,Bump<Int<32768>,Int<4000>>>,TrFade<150>>,TrWaveX<Rgb<160,60,255>,Int<150>,Int<110>,Int<150>,Int<32768>>>,AlphaL<Black,Int<0>>,
+      TrJoin<TrConcat<TrInstant,AlphaL<Cyan,           Bump<Int<32768>,Int<4000>>>,TrFade<160>>,TrWaveX<Cyan,           Int<160>,Int<110>,Int<160>,Int<32768>>>,AlphaL<Black,Int<0>>,
+      TrJoin<TrConcat<TrInstant,AlphaL<Rgb<160,60,255>,Bump<Int<32768>,Int<4000>>>,TrFade<170>>,TrWaveX<Rgb<160,60,255>,Int<170>,Int<100>,Int<170>,Int<32768>>>,AlphaL<Black,Int<0>>,
+      TrJoin<TrConcat<TrInstant,AlphaL<Cyan,           Bump<Int<32768>,Int<4000>>>,TrFade<190>>,TrWaveX<Cyan,           Int<190>,Int<140>,Int<190>,Int<32768>>>,AlphaL<Black,Int<0>>,
+      TrJoin<TrConcat<TrInstant,AlphaL<Rgb<160,60,255>,Bump<Int<32768>,Int<4000>>>,TrFade<210>>,TrWaveX<Rgb<160,60,255>,Int<210>,Int<160>,Int<210>,Int<32768>>>,AlphaL<Black,Int<0>>,
+      TrJoin<TrConcat<TrInstant,AlphaL<Cyan,           Bump<Int<32768>,Int<4000>>>,TrFade<240>>,TrWaveX<Cyan,           Int<240>,Int<180>,Int<240>,Int<32768>>>,AlphaL<Black,Int<0>>,
+      TrJoin<TrConcat<TrInstant,AlphaL<Rgb<160,60,255>,Bump<Int<32768>,Int<4000>>>,TrFade<300>>,TrWaveX<Rgb<160,60,255>,Int<300>,Int<200>,Int<300>,Int<32768>>>,AlphaL<Black,Int<0>>,
+      TrJoin<TrConcat<TrInstant,AlphaL<Cyan,           Bump<Int<32768>,Int<4000>>>,TrFade<340>>,TrWaveX<Cyan,           Int<340>,Int<230>,Int<340>,Int<32768>>>,AlphaL<Black,Int<0>>,
+      TrJoin<TrConcat<TrInstant,AlphaL<Rgb<160,60,255>,Bump<Int<32768>,Int<4000>>>,TrFade<400>>,TrWaveX<Rgb<160,60,255>,Int<420>,Int<250>,Int<420>,Int<32768>>>,AlphaL<Black,Int<0>>,
+      TrJoin<TrConcat<TrInstant,AlphaL<Cyan,           Bump<Int<32768>,Int<4000>>>,TrFade<450>>,TrWaveX<Cyan,           Int<520>,Int<300>,Int<520>,Int<32768>>>,Black,TrInstant>,EFFECT_RETRACTION>,
+    TransitionEffectL<TrConcat<TrInstant,AlphaL<Mix<Sin<Scale<Trigger<EFFECT_RETRACTION,Int<3000>,Int<1000>,Int<500>>,Int<550>,Int<70>>>,Cyan,Rgb<160,60,255>>,Bump<Scale<Trigger<EFFECT_RETRACTION,Int<3000>,Int<1000>,Int<500>>,Int<-8000>,Int<2000>>>>,TrDelay<3000>>,EFFECT_RETRACTION>,
+    TransitionEffectL<TrConcat<TrDelay<3000>,White,TrDelay<50>>,EFFECT_RETRACTION>,
+
+    TransitionEffectL<TrConcat<TrInstant,AlphaL<Mix<Sin<Scale<Trigger<EFFECT_PREON,Int<3000>,Int<1000>,Int<500>>,Int<70>,Int<550>>>,Cyan,Rgb<160,60,255>>,Bump<Scale<Trigger<EFFECT_PREON,    Int<3000>,Int<1000>,Int<500>>,Int<41000>,Int<32768>>>>,TrDelay<3000>>,EFFECT_PREON>,
+      TransitionEffectL<TrConcat<
+      TrJoin<TrConcat<TrInstant,AlphaL<Cyan,Bump<Int<0>,Int<4000>>>,TrFade<520>>,TrWaveX<Cyan,Int<520>,Int<550>,Int<520>,Int<0>>>,AlphaL<Black,Int<0>>,
+      TrJoin<TrConcat<TrInstant,AlphaL<Rgb<160,60,255>,Bump<Int<0>,Int<4000>>>,TrFade<420>>,TrWaveX<Rgb<160,60,255>,Int<420>,Int<450>,Int<420>,Int<0>>>,AlphaL<Black,Int<0>>,
+      TrJoin<TrConcat<TrInstant,AlphaL<Cyan,Bump<Int<0>,Int<4000>>>,TrFade<340>>,TrWaveX<Cyan,Int<340>,Int<430>,Int<340>,Int<0>>>,AlphaL<Black,Int<0>>,
+      TrJoin<TrConcat<TrInstant,AlphaL<Rgb<160,60,255>,Bump<Int<0>,Int<4000>>>,TrFade<300>>,TrWaveX<Rgb<160,60,255>,Int<300>,Int<400>,Int<300>,Int<0>>>,AlphaL<Black,Int<0>>,
+      TrJoin<TrConcat<TrInstant,AlphaL<Cyan,Bump<Int<0>,Int<4000>>>,TrFade<240>>,TrWaveX<Cyan,Int<240>,Int<380>,Int<240>,Int<0>>>,AlphaL<Black,Int<0>>,
+      TrJoin<TrConcat<TrInstant,AlphaL<Rgb<160,60,255>,Bump<Int<0>,Int<4000>>>,TrFade<210>>,TrWaveX<Rgb<160,60,255>,Int<210>,Int<360>,Int<210>,Int<0>>>,AlphaL<Black,Int<0>>,
+      TrJoin<TrConcat<TrInstant,AlphaL<Cyan,Bump<Int<0>,Int<4000>>>,TrFade<190>>,TrWaveX<Cyan,Int<190>,Int<340>,Int<190>,Int<0>>>,AlphaL<Black,Int<0>>,
+      TrJoin<TrConcat<TrInstant,AlphaL<Rgb<160,60,255>,Bump<Int<0>,Int<4000>>>,TrFade<170>>,TrWaveX<Rgb<160,60,255>,Int<170>,Int<320>,Int<170>,Int<0>>>,AlphaL<Black,Int<0>>,
+      TrJoin<TrConcat<TrInstant,AlphaL<Cyan,Bump<Int<0>,Int<4000>>>,TrFade<160>>,TrWaveX<Cyan,Int<160>,Int<300>,Int<160>,Int<0>>>,AlphaL<Black,Int<0>>,
+      TrJoin<TrConcat<TrInstant,AlphaL<Rgb<160,60,255>,Bump<Int<0>,Int<4000>>>,TrFade<150>>,TrWaveX<Rgb<160,60,255>,Int<150>,Int<250>,Int<150>,Int<0>>>,AlphaL<Black,Int<0>>,
+      TrJoin<TrConcat<TrInstant,AlphaL<Cyan,Bump<Int<0>,Int<4000>>>,TrFade<130>>,TrWaveX<Cyan,Int<130>,Int<150>,Int<130>,Int<0>>>,AlphaL<Black,Int<0>>,
+      TrJoin<TrConcat<TrInstant,AlphaL<Rgb<160,60,255>,Bump<Int<0>,Int<4000>>>,TrFade<100>>,TrWaveX<Rgb<160,60,255>,Int<100>,Int<100>,Int<100>,Int<0>>>,AlphaL<Black,Int<0>>,
+      TrJoin<TrConcat<TrInstant,AlphaL<Cyan,Bump<Int<0>,Int<4000>>>,TrFade<70>>,TrWaveX<Cyan,Int<70>,Int<500>,Int<70>,Int<0>>>,Black,TrInstant>,EFFECT_PREON>,
+// On-Demand Battery Level
+    AlphaL<TransitionEffectL<TrConcat<TrSmoothFade<500>,AlphaL<PulsingX<Mix<BatteryLevel,Red,Green>,Black,Scale<BatteryLevel,Int<500>,Int<4000>>>,SmoothStep<Scale<BatteryLevel,Int<0>,Int<35000>>,Int<-1>>>,TrSmoothFade<2000>>,EFFECT_BATTERY_LEVEL>,Ifon<Int<0>,Int<32768>>>
+  >
