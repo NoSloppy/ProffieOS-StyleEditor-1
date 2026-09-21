@@ -1,3 +1,5 @@
+https://raw.githubusercontent.com/NoSloppy/ProffieOS-StyleEditor-1/master/demo_fonts/default_font_logo.jpg
+https://raw.githubusercontent.com/NoSloppy/ProffieOS-StyleEditor-1/master/demo_fonts/ReadMe.txt
 https://raw.githubusercontent.com/profezzorn/SoundFonts/main/LiquidStatic/bgndrag/bgndrag1.wav
 https://raw.githubusercontent.com/profezzorn/SoundFonts/main/LiquidStatic/bgndrag/bgndrag2.wav
 https://raw.githubusercontent.com/profezzorn/SoundFonts/main/LiquidStatic/bgndrag/bgndrag3.wav
