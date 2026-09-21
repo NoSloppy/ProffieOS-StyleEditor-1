@@ -5,8 +5,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="description" content="ProffieOS Style Editor: Customize your Proffieboard saber blade animations with this browser based tool.">
-  <link rel="shortcut icon" type="image/png" href="./assets/SE_Favicon_BC-C5gxpSYq.png">
-<link rel="icon" type="image/png" href="./assets/SE_Favicon_BC-C5gxpSYq.png">
+  <link rel="shortcut icon" type="image/png" href="SE_Favicon_BC.png">
+<link rel="icon" type="image/png" href="SE_Favicon_BC.png">
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website">
@@ -24,25 +24,25 @@
 
   <title>ProffieOS Style Editor</title>
 
+  <link rel="stylesheet" href="main.css">
   <!-- Font Awesome Free 7.0.1 by @fontawesome
        License: https://fontawesome.com/license/free
        Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT
        Served locally from /public/fontawesome-free-7.0.1-web -->
-  <link rel="stylesheet" href="./fontawesome-free-7.0.1-web/css/all.min.css">
+  <link rel="stylesheet" href="/fontawesome-free-7.0.1-web/css/all.min.css">
   <!-- Background image courtesy of 3D Artist Harold (TALON-3D) Okafor-Withers
   https://www.artstation.com/haroldokaforwithers
   https://www.renderhub.com/talon-3d
   https://www.cgtrader.com/designers/talon-3d -->
 
-  <script type="module" crossorigin src="./assets/index-Docm984B.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-BVIgaOuI.css">
 </head>
 <body>
   <script defer src="pcb_draw.js"></script>
+  <script type="module" src="render.js"></script>
   <div class="main-container">
     <div class="header-container fullscreen">
       <span class="header-title" title="Based on original Style Editor © Fredrik Hubinette">ProffieOS Style Editor</span>
-        <a href="https://www.buymeacoffee.com/BrianConner" title="Brian Conner supports the saber community. Support him back."><img class="donate-button" src="./assets/donateButton-s2HPmAdi.jpg" alt="Buy me a coffee" style="height: 20px;width: 160px;margin-top: 5px;"></a> 
+        <a href="https://www.buymeacoffee.com/BrianConner" title="Brian Conner supports the saber community. Support him back."><img class="donate-button" src="donateButton.jpg" alt="Buy me a coffee" style="height: 20px;width: 160px;margin-top: 5px;"></a> 
       <span class="header-links">
         <span class="other-sites">Other sites: </span>
         <a href="https://crucible.hubbe.net/" target="_blank"><img src="https://crucible.hubbe.net/uploads/default/optimized/1X/2237f551ca8f4f69ac478df5c64aee1c951c33f5_2_180x180.png" alt="Crucible logo"></a>
@@ -175,15 +175,14 @@ Goto settings to change hilt model or toggle Mouse Swings mode (swinging with mo
                   </span>
                   <span>Sound</span>
                 </label>
-                <label class="sound-label" title="Set playback volume.">
-                  <span>Volume:</span>
-                  <input type="range" id="VOLUME_SLIDER" class="variant-slider" min="0" max="100" value="80">
-                  <span id="VOLUME_VALUE">80</span>
-                </label>
                 <label class="sound-label" title="Choose saber font.">
-                  <span>Choose Font:</span>
+                  <span>Choose Sound Font:</span>
                   <button type="button" class="sound-btn" id="choose_local_font">
                     <span id="choose_local_font_label">Liquid Static</span>
+                  </button>
+                  <button type="button" id="font_meta_button" class="font-meta-button" title="">
+                    <img id="font_meta_logo" class="font-meta-logo" alt="Font logo">
+                    <span id="font_meta_info" class="font-meta-info">i</span>
                   </button>
                   <input type="file" id="files" name="files" webkitdirectory directory multiple style="display:none;">
                   <span id="local_font_name"></span>
@@ -353,6 +352,15 @@ https://www.cgtrader.com/designers/talon-3d">
 
           <section class="settings-section">
             <h4 class="settings-section-label" title="These settings apply Sound settings..">Sound Settings:</h4>
+            <label class="settings-volume-label" title="Set playback volume.">
+              <span>Volume:</span>
+              <input type="range" id="VOLUME_SLIDER" class="variant-slider" min="0" max="100" value="80">
+              <span id="VOLUME_VALUE">80</span>
+            </label>
+            <label title="Play font.wav on font load when available for the selected font.">
+              <input type="checkbox" id="PLAY_FONT_LOAD_BUTTON" name="playfontload" onclick="handleSettings(this)">
+              <span>play font.wav on font load</span>
+            </label>
             <label title="Use default font sounds to fill in for missing loaded font sounds.">
               <input type="checkbox" id="FONT_FALLBACK_BUTTON" name="fontfallback" onclick="handleSettings(this)">
               <span>Fallback font sounds</span>
@@ -456,6 +464,14 @@ https://www.cgtrader.com/designers/talon-3d">
   </div>
 
   <script defer src="proffie_link.js"></script>
+  <div id="font_meta_overlay" class="font-meta-overlay">
+    <div id="font_meta_popup" class="font-meta-popup" role="dialog" aria-modal="true" aria-labelledby="font_meta_popup_title">
+      <h3 id="font_meta_popup_title">Font Info</h3>
+      <img id="font_meta_popup_logo" class="font-meta-popup-logo" alt="Font logo">
+      <pre id="font_meta_popup_readme" class="font-meta-popup-readme"></pre>
+      <button type="button" id="font_meta_popup_close" class="restore-defaults-btn">I read it!</button>
+    </div>
+  </div>
   <script defer src="style_editor.js"></script>
   <script defer src="style_classes.js"></script>
   <script defer src="transition_classes.js"></script>
@@ -463,14 +479,14 @@ https://www.cgtrader.com/designers/talon-3d">
   <script defer src="classes_registry.js"></script>
   <script defer src="sound.js"></script>
 
-  <img id="pcba_image" src="./pcb_images/PCBa.png" style="display:none;">
-  <img id="pcbb_image" src="./pcb_images/PCBb.png" style="display:none;">
-  <img id="pcbc_image" src="./pcb_images/PCBc.png" style="display:none;">
-  <img id="pcbd_image" src="./pcb_images/PCBd.png" style="display:none;">
-  <img id="pcbe_image" src="./pcb_images/PCBe.png" style="display:none;">
-  <img id="pcbf_image" src="./pcb_images/PCBf.png" style="display:none;">
-  <img id="pcbg11_image" src="./pcb_images/PCBg11.png" style="display:none;">
-  <img id="pcbg16_image" src="./pcb_images/PCBg16.png" style="display:none;">
-  <img id="pcbg20_image" src="./pcb_images/PCBg20.png" style="display:none;">
+  <img id="pcba_image" src="/pcb_images/PCBa.png" style="display:none;">
+  <img id="pcbb_image" src="/pcb_images/PCBb.png" style="display:none;">
+  <img id="pcbc_image" src="/pcb_images/PCBc.png" style="display:none;">
+  <img id="pcbd_image" src="/pcb_images/PCBd.png" style="display:none;">
+  <img id="pcbe_image" src="/pcb_images/PCBe.png" style="display:none;">
+  <img id="pcbf_image" src="/pcb_images/PCBf.png" style="display:none;">
+  <img id="pcbg11_image" src="/pcb_images/PCBg11.png" style="display:none;">
+  <img id="pcbg16_image" src="/pcb_images/PCBg16.png" style="display:none;">
+  <img id="pcbg20_image" src="/pcb_images/PCBg20.png" style="display:none;">
   </body>
 </html>

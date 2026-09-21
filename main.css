@@ -159,6 +159,22 @@ size when padding and margins may change */
   color: black;
 }
 
+.dark-mode .font-meta-button {
+  border-color: black;
+}
+.dark-mode .font-meta-info {
+  color: white;
+}
+.dark-mode .font-meta-popup {
+  border-color: #ccc;
+  background: #777;
+  color: white;
+}
+.dark-mode .font-meta-popup-readme {
+  background: #555;
+  color: white;
+}
+
 .dark-mode .textbox {
   background-color: #333;
   color: white;
@@ -214,6 +230,14 @@ size when padding and margins may change */
   color: #444 !important;
 }
 .dark-mode .wavlen-global-label.disabled input {
+  background-color: #555;
+  color: #bbb;
+}
+
+.dark-mode .destruct-duration-label.disabled {
+  color: #444 !important;
+}
+.dark-mode .destruct-duration-label.disabled input {
   background-color: #555;
   color: #bbb;
 }
@@ -618,6 +642,39 @@ input.nofocus:focus {
 .sound-btn {
   margin-left: 3px;
 }
+
+.font-meta-button {
+  margin-left: 4px;
+  padding: 1px;
+  border: 1px solid #333;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 4px;
+  cursor: pointer;
+  line-height: 0;
+  min-width: 38px;
+  min-height: 28px;
+}
+.font-meta-logo {
+  width: 36px;
+  height: 24px;
+  object-fit: contain;
+  display: block;
+}
+.font-meta-info {
+  display: inline-flex;
+  width: 36px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  line-height: 1;
+}
+.settings-volume-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 /* Variant / Alt and Sound Controls */
 .controls {
   display: flex;
@@ -790,6 +847,32 @@ background-color: #A1D1F3;
   pointer-events: none;
 }
 .wavlen-global-label.disabled input {
+  background-color: #eee;
+  color: #888;
+  cursor: not-allowed;
+}
+
+/* detonation controls */
+.destruct-controls {
+  display: block;
+  margin-top: 5px;
+}
+
+.destruct-duration-label {
+  display: block;
+  margin-top: 5px;
+}
+.destruct-duration-value {
+  margin-left: 5px;
+}
+
+/* No pointer-events here, unlike the WavLen label: the tooltip is how the user
+   finds out why the field is greyed out, so hovering it has to keep working. */
+.destruct-duration-label.disabled {
+  color: #aaa !important;
+  opacity: 0.7;
+}
+.destruct-duration-label.disabled input {
   background-color: #eee;
   color: #888;
   cursor: not-allowed;
@@ -999,51 +1082,49 @@ Add, Delete, Move Up, Move Down */
   color: #000;
 }
 
-/* Popup Window */
-/*.popup-window.show {
-  opacity: 1;
-  pointer-events: auto;
-}
-.popup-window {
-  font-weight: 500;
+
+.font-meta-overlay {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 30%;
-  color: black;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 10001;
+  align-items: center;
+  justify-content: center;
+}
+.font-meta-popup {
+  width: min(600px, 92vw);
+  max-height: 82vh;
+  overflow: auto;
   border: 3px solid #888;
   background: #ddd;
-  padding: 20px;
-  text-align: center;
+  color: black;
   border-radius: 9px;
   box-shadow: 6px 10px 10px rgba(0, 0, 0, 0.9);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s ease-in-out;
-  z-index: 9999;
+  padding: 16px;
+  text-align: center;
+}
+.font-meta-popup-logo {
+  max-width: 220px;
+  max-height: 120px;
+  object-fit: contain;
+  margin-bottom: 10px;
+}
+.font-meta-popup-readme {
+  white-space: pre-wrap;
+  word-break: break-word;
+  text-align: left;
+  max-height: 46vh;
+  overflow: auto;
+  padding: 8px;
+  border: 1px solid #888;
+  background: #f5f5f5;
+  margin-bottom: 10px;
 }
 
-.popup-window button {
-  background-color: steelblue;
-  color: black;
-  border-radius: 5px;
-  padding: 3px 35px;
-  font-size: 20px;
-  font-weight: bold;
-  border: 1px solid black;
-  cursor: pointer;
-}
-.popup-overlay {
+#font_meta_button,
+#font_meta_logo,
+#font_meta_info,
+#font_meta_overlay,
+#font_meta_popup_logo {
   display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 9998;
 }
-.popup-overlay.show {
-  display: block;
-}*/
