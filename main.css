@@ -160,7 +160,8 @@ size when padding and margins may change */
 }
 
 .dark-mode .font-meta-button {
-  border-color: black;
+  background: transparent;
+  border-color: transparent;
 }
 .dark-mode .font-meta-info {
   color: white;
@@ -645,15 +646,24 @@ input.nofocus:focus {
 
 .font-meta-button {
   margin-left: 4px;
-  padding: 1px;
-  border: 1px solid #333;
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 0;
   cursor: pointer;
-  line-height: 0;
-  min-width: 38px;
-  min-height: 28px;
+  min-width: 0;
+  min-height: 0;
+  appearance: none;
 }
+.font-meta-button:hover {
+  box-shadow: none;
+}
+.font-meta-button:focus-visible {
+  outline: 2px solid dodgerblue;
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
 .font-meta-logo {
   width: 36px;
   height: 24px;
