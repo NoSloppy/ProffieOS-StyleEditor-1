@@ -559,10 +559,10 @@ async function loadDemoFontPresetFromQuery() {
 }
 
 async function loadDefaultFontAssets() {
-  const loadToken = nextFontLoadToken();
+  const fontLoadToken = nextFontLoadToken();
   try {
     const result = await loadFontUrlList(
-      'default_font_urls.txt',
+      'demo_fonts/default_font_urls.txt',
       defaultFontSoundBuffers,
       defaultFontSoundDurations,
       defaultFontSoundFilenames
@@ -607,6 +607,13 @@ fileInput.addEventListener('change', async (e) => {
   if (!files.length) return;           // user cancelled
 
   const fontLoadToken = nextFontLoadToken();
+  if (audioCtx.state === 'suspended') {
+    try {
+      await audioCtx.resume();
+    } catch (err) {
+      // Autoplay policies can still block; announcement stays deferred.
+    }
+  }
   clearFontLoadMessage();
   showLoadingOverlay();
 
@@ -681,14 +688,18 @@ fileInput.addEventListener('change', async (e) => {
     // Files inside non-effect folders (e.g., font/Extras/...) are rejected.
     const parts = relPath.split('/');
     let effect = null;
+    const nameMatch = file.name.match(/^([a-z]+)[0-9]*\.wav$/i);
+    const effectFromName = nameMatch ? nameMatch[1].toLowerCase() : null;
 
     if (parts.length === 2) {
       // Root-level: use filename base (e.g., clsh01.wav → "clsh")
-      const nameMatch = file.name.match(/^([a-z]+)[0-9]*\.wav$/i);
-      if (nameMatch) effect = nameMatch[1].toLowerCase();
+      effect = effectFromName;
     } else {
       // Any subfolder depth: only the depth-1 folder name matters
       effect = (parts[1] || '').replace(/[^a-z]/gi, '').toLowerCase();
+      if ((!effect || !VALID_EFFECTS.has(effect)) && effectFromName) {
+        effect = effectFromName;
+      }
     }
 
     // Reject if not a recognised ProffieOS effect
@@ -733,7 +744,7 @@ fileInput.addEventListener('change', async (e) => {
   try {
     await Promise.all(loadPromises);
     hideLoadingOverlay();
-    if (loadToken !== currentFontLoadToken) {
+    if (fontLoadToken !== currentFontLoadToken) {
       if (logoObjectUrl && logoUrl) URL.revokeObjectURL(logoUrl);
       return;
     }
