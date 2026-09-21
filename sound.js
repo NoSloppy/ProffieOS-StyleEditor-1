@@ -23,9 +23,35 @@ const audioCtx                  = new (window.AudioContext || window.webkitAudio
 const masterGain                = audioCtx.createGain();
 const volumeSlider              = FIND('VOLUME_SLIDER');
 const volumeValue               = FIND('VOLUME_VALUE');
+const fontMetaButton            = FIND('font_meta_button');
+const fontMetaLogo              = FIND('font_meta_logo');
+const fontMetaInfo              = FIND('font_meta_info');
+const fontMetaOverlay           = FIND('font_meta_overlay');
+const fontMetaPopupLogo         = FIND('font_meta_popup_logo');
+const fontMetaPopupReadme       = FIND('font_meta_popup_readme');
+const fontMetaPopupClose        = FIND('font_meta_popup_close');
 let globalVolume                = volumeSlider.value / 100;
 masterGain.gain.value           = globalVolume;
 masterGain.connect(audioCtx.destination);
+
+let activeFontMetadata = {
+  logoUrl: '',
+  readmeText: '',
+  fontName: DEFAULT_FONT_LABEL,
+  logoObjectUrl: false,
+};
+let defaultFontMetadata = { logoUrl: '', readmeText: '', logoObjectUrl: false };
+let currentFontLoadToken = 0;
+let pendingFontAnnouncement = null;
+let currentMetadataObjectUrl = null;
+
+const CREATOR_LOGO_REGISTRY = [
+  { names: ['kyberphonic'], domains: ['kyberphonic'], logoUrl: 'https://kyberphonic.bigcartel.com/favicon.ico' },
+  { names: ['ksith', 'k-sith'], domains: ['ksith'], logoUrl: 'https://www.ksithsaberfonts.com/favicon.ico' },
+  { names: ['jaydalorian'], domains: ['jaydalorian'], logoUrl: 'https://jaydalorian.com/favicon.ico' },
+  { names: ['bk sabers', 'bksabers'], domains: ['bksabers'], logoUrl: 'https://www.bksabersounds.com/favicon.ico' },
+  { names: ['mountain sabers', 'mountainsabers'], domains: ['mountainsabers'], logoUrl: 'https://www.mountainsabersfonts.com/favicon.ico' },
+];
 
 // Lockup/loop sources
 let lockupGainNode              = null;
@@ -111,6 +137,213 @@ function extractEffectFromSoundUrl(url) {
   return m ? m[1].toLowerCase() : null;
 }
 
+function normalizeReadmeName(name) {
+  return (name || '')
+    .toLowerCase()
+    .replace(/\.txt$/i, '')
+    .replace(/[\s_-]+/g, '');
+}
+
+function isReadmeFilename(name) {
+  return /\.txt$/i.test(name || '') && normalizeReadmeName(name).startsWith('readme');
+}
+
+function safeTrimText(text) {
+  return (text || '').replace(/\r\n/g, '\n').trim();
+}
+
+function extractDomainsFromReadme(readmeText) {
+  const text = readmeText || '';
+  const matches = text.match(/https?:\/\/[^\s)]+/gi) || [];
+  return matches.map(url => {
+    try {
+      return new URL(url).hostname.toLowerCase();
+    } catch (_) {
+      return '';
+    }
+  }).filter(Boolean);
+}
+
+function creatorFallbackLogoFromReadme(readmeText) {
+  if (!readmeText) return '';
+  const readmeLower = readmeText.toLowerCase();
+  const domains = extractDomainsFromReadme(readmeText);
+
+  for (const entry of CREATOR_LOGO_REGISTRY) {
+    if (domains.some(domain => entry.domains.some(known => domain.includes(known)))) {
+      return entry.logoUrl;
+    }
+  }
+  for (const entry of CREATOR_LOGO_REGISTRY) {
+    if (entry.names.some(name => readmeLower.includes(name))) {
+      return entry.logoUrl;
+    }
+  }
+  return '';
+}
+
+function sanitizeLogoUrl(urlValue) {
+  if (!urlValue) return '';
+  try {
+    const url = new URL(urlValue, window.location.href);
+    if (url.protocol === 'blob:') return url.href;
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') return '';
+    return url.href;
+  } catch (_) {
+    return '';
+  }
+}
+
+function clearCurrentMetadataObjectUrl() {
+  if (!currentMetadataObjectUrl) return;
+  URL.revokeObjectURL(currentMetadataObjectUrl);
+  currentMetadataObjectUrl = null;
+}
+
+function hideFontMetadataPopup() {
+  if (!fontMetaOverlay) return;
+  fontMetaOverlay.style.display = 'none';
+}
+
+function showFontMetadataPopup() {
+  const safeLogoUrl = sanitizeLogoUrl(activeFontMetadata.logoUrl);
+  const hasLogo = !!safeLogoUrl;
+  const hasReadme = !!activeFontMetadata.readmeText;
+  if (!hasLogo && !hasReadme) return;
+  if (fontMetaPopupLogo) {
+    if (hasLogo) {
+      fontMetaPopupLogo.src = safeLogoUrl;
+      fontMetaPopupLogo.style.display = 'block';
+    } else {
+      fontMetaPopupLogo.removeAttribute('src');
+      fontMetaPopupLogo.style.display = 'none';
+    }
+  }
+  if (fontMetaPopupReadme) {
+    fontMetaPopupReadme.textContent = hasReadme
+      ? activeFontMetadata.readmeText
+      : `No README found for ${activeFontMetadata.fontName}.`;
+  }
+  if (fontMetaOverlay) {
+    fontMetaOverlay.style.display = 'flex';
+  }
+}
+
+function updateFontMetadataUi(metadata, showPopup = false) {
+  const safeLogoUrl = sanitizeLogoUrl(metadata.logoUrl || '');
+  if (metadata.logoObjectUrl) {
+    clearCurrentMetadataObjectUrl();
+    currentMetadataObjectUrl = safeLogoUrl || null;
+  } else if (currentMetadataObjectUrl && currentMetadataObjectUrl !== safeLogoUrl) {
+    clearCurrentMetadataObjectUrl();
+  }
+
+  activeFontMetadata = {
+    logoUrl: safeLogoUrl,
+    readmeText: metadata.readmeText || '',
+    fontName: metadata.fontName || DEFAULT_FONT_LABEL,
+    logoObjectUrl: !!metadata.logoObjectUrl,
+  };
+
+  const hasLogo = !!activeFontMetadata.logoUrl;
+  const hasReadme = !!activeFontMetadata.readmeText;
+  if (!fontMetaButton || !fontMetaLogo || !fontMetaInfo) return;
+
+  if (!hasLogo && !hasReadme) {
+    fontMetaButton.style.display = 'none';
+    fontMetaButton.title = '';
+    fontMetaLogo.removeAttribute('src');
+    fontMetaLogo.style.display = 'none';
+    fontMetaInfo.style.display = 'none';
+    hideFontMetadataPopup();
+    return;
+  }
+
+  fontMetaButton.title = hasReadme ? activeFontMetadata.readmeText : `Font info for ${activeFontMetadata.fontName}`;
+  if (hasLogo) {
+    fontMetaLogo.src = safeLogoUrl;
+    fontMetaButton.style.display = 'inline-block';
+    fontMetaLogo.style.display = 'block';
+    fontMetaInfo.style.display = 'none';
+    fontMetaLogo.onerror = () => {
+      fontMetaLogo.style.display = 'none';
+      fontMetaInfo.style.display = 'inline-flex';
+    };
+    fontMetaLogo.onload = () => {
+      fontMetaLogo.style.display = 'block';
+      fontMetaInfo.style.display = 'none';
+    };
+  } else {
+    fontMetaLogo.removeAttribute('src');
+    fontMetaLogo.style.display = 'none';
+    fontMetaButton.style.display = 'inline-block';
+    fontMetaInfo.style.display = 'inline-flex';
+  }
+
+  if (showPopup) showFontMetadataPopup();
+}
+
+function nextFontLoadToken() {
+  currentFontLoadToken += 1;
+  return currentFontLoadToken;
+}
+
+function selectAnnouncementBuffersForLoad(isDefaultLoad) {
+  if (isDefaultLoad) {
+    return {
+      buffers: defaultFontSoundBuffers.font || [],
+      filenames: defaultFontSoundFilenames.font || [],
+      durations: defaultFontSoundDurations.font || [],
+      fontLabel: "Default Font",
+    };
+  }
+  return {
+    buffers: customFontSoundBuffers.font || [],
+    filenames: customFontSoundFilenames.font || [],
+    durations: customFontSoundDurations.font || [],
+    fontLabel: currentFontName,
+  };
+}
+
+function playFontLoadAnnouncement(token, isDefaultLoad) {
+  if (!playFontLoadState.get() || !soundOnState.get()) return;
+  if (token !== currentFontLoadToken) return;
+
+  const { buffers, filenames, durations, fontLabel } = selectAnnouncementBuffersForLoad(isDefaultLoad);
+  if (!buffers.length) return;
+
+  if (audioCtx.state === 'suspended') {
+    pendingFontAnnouncement = { token, isDefaultLoad };
+    return;
+  }
+
+  pendingFontAnnouncement = null;
+  const idx = noRepeatRandom(buffers.length, lastPlayedSoundIndex.font);
+  lastPlayedSoundIndex.font = idx;
+  const filename = filenames[idx] || 'font.wav';
+  const duration = durations[idx] || 0;
+  console.log(`▶ ${fontLabel}: ** ${soundOnState.get() ? 'Playing' : 'Muted'} ${filename} – ${duration}ms`);
+
+  const src = audioCtx.createBufferSource();
+  src.buffer = buffers[idx];
+  src.connect(masterGain);
+  src.start();
+}
+
+async function flushPendingFontAnnouncement() {
+  if (!pendingFontAnnouncement) return;
+  if (audioCtx.state === 'suspended') {
+    try {
+      await audioCtx.resume();
+    } catch (err) {
+      return;
+    }
+  }
+  if (!pendingFontAnnouncement) return;
+  const { token, isDefaultLoad } = pendingFontAnnouncement;
+  playFontLoadAnnouncement(token, isDefaultLoad);
+}
+
 async function loadFontUrlList(urlListPath, targetBuffers, targetDurations, targetFilenames) {
   const listUrl = new URL(urlListPath, window.location.href);
   const response = await fetch(listUrl);
@@ -125,9 +358,20 @@ async function loadFontUrlList(urlListPath, targetBuffers, targetDurations, targ
 
   let loadedCount = 0;
   const failures = [];
+  let logoUrl = '';
+  let readmeUrl = '';
 
   await Promise.all(lines.map(async line => {
     const resolvedUrl = new URL(line, listUrl).href;
+    const pathname = new URL(resolvedUrl, window.location.href).pathname;
+    const filename = pathname.split('/').pop() || '';
+    if (!logoUrl && /\.(jpe?g)$/i.test(filename)) {
+      logoUrl = resolvedUrl;
+    }
+    if (!readmeUrl && isReadmeFilename(filename)) {
+      readmeUrl = resolvedUrl;
+    }
+
     const effect = extractEffectFromSoundUrl(resolvedUrl);
     if (!effect || !VALID_EFFECTS.has(effect)) return;
 
@@ -154,7 +398,23 @@ async function loadFontUrlList(urlListPath, targetBuffers, targetDurations, targ
     }
   }));
 
-  return { loadedCount, failures };
+  let readmeText = '';
+  if (readmeUrl) {
+    try {
+      const readmeResponse = await fetch(readmeUrl);
+      if (readmeResponse.ok) {
+        readmeText = safeTrimText(await readmeResponse.text());
+      }
+    } catch (err) {
+      console.error(`Error loading README ${readmeUrl}:`, err);
+    }
+  }
+
+  if (!logoUrl) {
+    logoUrl = creatorFallbackLogoFromReadme(readmeText);
+  }
+
+  return { loadedCount, failures, metadata: { logoUrl, readmeText, logoObjectUrl: false } };
 }
 
 function readDemoFontPresets(manifest) {
@@ -213,6 +473,7 @@ async function loadDemoFontPresetFromQuery() {
     showFontLoadMessage(`Demo font preset "${presetKey}" is not valid. Using ${DEFAULT_FONT_LABEL}.`);
     return false;
   }
+  const fontLoadToken = nextFontLoadToken();
 
   showLoadingOverlay(`Loading demo font "${presetKey}"…`);
 
@@ -246,7 +507,7 @@ async function loadDemoFontPresetFromQuery() {
     }
 
     clearCustomFontData();
-    const { loadedCount, failures } = await loadFontUrlList(
+    const { loadedCount, failures, metadata } = await loadFontUrlList(
       listPath,
       customFontSoundBuffers,
       customFontSoundDurations,
@@ -255,6 +516,9 @@ async function loadDemoFontPresetFromQuery() {
 
     if (loadedCount === 0) {
       throw new Error(`No playable WAV files were loaded for "${presetName}".`);
+    }
+    if (fontLoadToken !== currentFontLoadToken) {
+      return false;
     }
 
     setCustomFontSelection(presetName);
@@ -265,6 +529,10 @@ async function loadDemoFontPresetFromQuery() {
 
     updateLockupDropdown();
     handleDestructControls();
+    if (fontLoadToken === currentFontLoadToken) {
+      updateFontMetadataUi({ ...metadata, fontName: presetName }, true);
+      playFontLoadAnnouncement(fontLoadToken, false);
+    }
 
     if (failures.length > 0) {
       showFontLoadMessage(`Loaded demo font "${presetName}" with ${failures.length} unavailable sound file(s).`, "orange");
@@ -272,10 +540,16 @@ async function loadDemoFontPresetFromQuery() {
 
     return true;
   } catch (err) {
+    if (fontLoadToken !== currentFontLoadToken) {
+      return false;
+    }
     clearCustomFontData();
     setDefaultFontSelection();
     updateLockupDropdown();
     handleDestructControls();
+    if (fontLoadToken === currentFontLoadToken) {
+      updateFontMetadataUi({ ...defaultFontMetadata, fontName: DEFAULT_FONT_LABEL }, false);
+    }
     showFontLoadMessage(`Could not load demo font "${presetKey}". Using ${DEFAULT_FONT_LABEL}. ${err.message}`, "orange");
     console.error(`Could not load demo font "${presetKey}":`, err);
     return false;
@@ -284,12 +558,25 @@ async function loadDemoFontPresetFromQuery() {
   }
 }
 
-loadFontUrlList(
-  'default_font_urls.txt',
-  defaultFontSoundBuffers,
-  defaultFontSoundDurations,
-  defaultFontSoundFilenames
-).catch(err => console.error("Could not load default_font_urls.txt:", err));
+async function loadDefaultFontAssets() {
+  const loadToken = nextFontLoadToken();
+  try {
+    const result = await loadFontUrlList(
+      'default_font_urls.txt',
+      defaultFontSoundBuffers,
+      defaultFontSoundDurations,
+      defaultFontSoundFilenames
+    );
+    defaultFontMetadata = result.metadata;
+    if (fontLoadToken !== currentFontLoadToken || currentFontName !== DEFAULT_FONT_NAME) return;
+    updateFontMetadataUi({ ...result.metadata, fontName: DEFAULT_FONT_LABEL }, true);
+    playFontLoadAnnouncement(fontLoadToken, true);
+  } catch (err) {
+    console.error("Could not load default_font_urls.txt:", err);
+  }
+}
+
+loadDefaultFontAssets();
 
 const chooseLocalFontBtn = FIND('choose_local_font');
 const fileInput          = FIND('files');
@@ -299,11 +586,27 @@ chooseLocalFontBtn.addEventListener('click', () => {
   fileInput.click();
 });
 
+if (fontMetaButton) {
+  fontMetaButton.addEventListener('click', showFontMetadataPopup);
+}
+if (fontMetaPopupClose) {
+  fontMetaPopupClose.addEventListener('click', hideFontMetadataPopup);
+}
+if (fontMetaOverlay) {
+  fontMetaOverlay.addEventListener('click', (e) => {
+    if (e.target === fontMetaOverlay) hideFontMetadataPopup();
+  });
+}
+
+document.addEventListener('pointerdown', flushPendingFontAnnouncement, { passive: true });
+document.addEventListener('keydown', flushPendingFontAnnouncement, { passive: true });
+
 // Load custom font
-fileInput.addEventListener('change', (e) => {
+fileInput.addEventListener('change', async (e) => {
   const files = Array.from(e.target.files || []);
   if (!files.length) return;           // user cancelled
 
+  const fontLoadToken = nextFontLoadToken();
   clearFontLoadMessage();
   showLoadingOverlay();
 
@@ -316,43 +619,39 @@ fileInput.addEventListener('change', (e) => {
   // Clear out any old custom data
   clearCustomFontData();
 
-  // // Build an array of Promises—one per file—to decode & stash buffers
-  // const loadPromises = files.map(file => {
-  //   const m = file.name.match(/^([a-z]+)[0-9]*\.wav$/i);
-  //   // skip non-wav or unrecognized
-  //   if (!m) return Promise.resolve();
+   if (fontLoadToken === currentFontLoadToken) {
+    updateFontMetadataUi({ logoUrl: '', readmeText: '', fontName: folderName, logoObjectUrl: false }, false);
+  }
 
-  //   const effect = m[1].toLowerCase();
-  //   customFontSoundBuffers  [effect] ||= [];
-  //   customFontSoundDurations[effect] ||= [];
-  //   customFontSoundFilenames[effect] ||= [];
+  let firstLogoFile = null;
+  let readmeFile = null;
+  for (const file of files) {
+    if (!firstLogoFile && /\.(jpe?g)$/i.test(file.name)) {
+      firstLogoFile = file;
+    }
+    if (!readmeFile && isReadmeFilename(file.name)) {
+      readmeFile = file;
+    }
+    if (firstLogoFile && readmeFile) break;
+  }
 
-  //   return new Promise(resolve => {
-  //     const reader = new FileReader();
-  //     reader.onload = () => {
-  //       audioCtx.decodeAudioData(reader.result)
-  //         .then(buffer => {
-  //           // Next index for this effect
-  //           const idx = customFontSoundFilenames[effect].length;
-  //           customFontSoundFilenames[effect][idx] = file.name;
-  //           customFontSoundBuffers[effect][idx]   = buffer;
-  //           const dur = Math.round(buffer.duration * 1000);
-  //           customFontSoundDurations[effect][idx] = dur;
-  //           console.log(`Custom font: ${folderName} ${file.name} – ${dur} ms`);
-  //           resolve();
-  //         })
-  //         .catch(err => {
-  //           console.error(`Decode error for ${file.name}:`, err);
-  //           resolve();
-  //         });
-  //     };
-  //     reader.onerror = err => {
-  //       console.error(`FileReader error for ${file.name}:`, err);
-  //       resolve();
-  //     };
-  //     reader.readAsArrayBuffer(file);
-  //   });
-  // });
+  let readmeText = '';
+  if (readmeFile) {
+    try {
+      readmeText = safeTrimText(await readmeFile.text());
+    } catch (err) {
+      console.error(`Error reading README file ${readmeFile.name}:`, err);
+    }
+  }
+
+  let logoUrl = '';
+  let logoObjectUrl = false;
+  if (firstLogoFile) {
+    logoUrl = URL.createObjectURL(firstLogoFile);
+    logoObjectUrl = true;
+  } else {
+    logoUrl = creatorFallbackLogoFromReadme(readmeText);
+  }
 
   // Build an array of Promises—one per file—to decode & stash buffers
   // Also account for sub-sub sounds
@@ -431,19 +730,25 @@ fileInput.addEventListener('change', (e) => {
   });
 
   // When loading finishes, hide overlay
-  Promise.all(loadPromises)
-    .then(() => {
-      hideLoadingOverlay();
-      /* Which lockups the dropdown offers can depend on the font, so a
-      Thermal Detonator font adds "Arm" as soon as it has loaded. */
-      updateLockupDropdown();
-      // Whether the countdown time is used depends on the font too.
-      handleDestructControls();
-    })
-    .catch(err => {
-      console.error("Error loading custom font files:", err);
-      hideLoadingOverlay();
-    });
+  try {
+    await Promise.all(loadPromises);
+    hideLoadingOverlay();
+    if (loadToken !== currentFontLoadToken) {
+      if (logoObjectUrl && logoUrl) URL.revokeObjectURL(logoUrl);
+      return;
+    }
+    /* Which lockups the dropdown offers can depend on the font, so a
+    Thermal Detonator font adds "Arm" as soon as it has loaded. */
+    updateLockupDropdown();
+    // Whether the countdown time is used depends on the font too.
+    handleDestructControls();
+    updateFontMetadataUi({ logoUrl, readmeText, fontName: folderName, logoObjectUrl }, true);
+    playFontLoadAnnouncement(fontLoadToken, false);
+  } catch (err) {
+    console.error("Error loading custom font files:", err);
+    hideLoadingOverlay();
+    if (logoObjectUrl && logoUrl) URL.revokeObjectURL(logoUrl);
+  }
 });
 
 // SmoothSwing and swing sounds
