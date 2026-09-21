@@ -1,4 +1,4 @@
-
+https://raw.githubusercontent.com/NoSloppy/ProffieOS-StyleEditor-1/master/demo_fonts/Crispity/greyscale.jpg
 https://raw.githubusercontent.com/NoSloppy/ProffieOS-StyleEditor-1/master/demo_fonts/Crispity/bgndrag1.wav
 https://raw.githubusercontent.com/NoSloppy/ProffieOS-StyleEditor-1/master/demo_fonts/Crispity/bgnlock1.wav
 https://raw.githubusercontent.com/NoSloppy/ProffieOS-StyleEditor-1/master/demo_fonts/Crispity/blst/blst01.wav
