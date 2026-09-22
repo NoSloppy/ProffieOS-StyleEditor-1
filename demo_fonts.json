@@ -3,32 +3,32 @@
   "presets": {
     "absorbed": {
       "name": "Absorbed",
-      "font_urls": "demo_fonts/Absorbed_font_urls.txt",
+      "font_urls": "demo_fonts/absorbed_font_urls.txt",
       "style": "demo_fonts/absorbed_style.txt"
     },
     "alias": {
       "name": "Alias",
-      "font_urls": "demo_fonts/Alias_font_urls.txt",
+      "font_urls": "demo_fonts/alias_font_urls.txt",
       "style": "demo_fonts/alias_style.txt"
     },
     "astral_projection": {
       "name": "Astral_Projection",
-      "font_urls": "demo_fonts/Astral_Projection_font_urls.txt",
+      "font_urls": "demo_fonts/astral_projection_font_urls.txt",
       "style": "demo_fonts/astral_projection_style.txt"
     },
     "celsius": {
       "name": "Celsius",
-      "font_urls": "demo_fonts/Celsius_font_urls.txt",
+      "font_urls": "demo_fonts/celsius_font_urls.txt",
       "style": "demo_fonts/celsius_style.txt"
     },
     "clipper": {
       "name": "Clipper",
-      "font_urls": "demo_fonts/Clipper_font_urls.txt",
+      "font_urls": "demo_fonts/clipper_font_urls.txt",
       "style": "demo_fonts/clipper_style.txt"
     },
     "cybernetic_cerebrum": {
       "name": "Cybernetic_Cerebrum",
-      "font_urls": "demo_fonts/Cybernetic_Cerebrum_font_urls.txt",
+      "font_urls": "demo_fonts/cybernetic_cerebrum_font_urls.txt",
       "style": "demo_fonts/cybernetic_cerebrum_style.txt"
     },
     "forgotten": {
@@ -38,97 +38,97 @@
     },
     "grim": {
       "name": "Grim",
-      "font_urls": "demo_fonts/Grim_font_urls.txt",
+      "font_urls": "demo_fonts/grim_font_urls.txt",
       "style": "demo_fonts/grim_style.txt"
     },
     "high_voltage": {
       "name": "High_Voltage",
-      "font_urls": "demo_fonts/High_Voltage_font_urls.txt",
+      "font_urls": "demo_fonts/high_voltage_font_urls.txt",
       "style": "demo_fonts/high_voltage_style.txt"
     },
     "jaws": {
       "name": "Jaws",
-      "font_urls": "demo_fonts/Jaws_font_urls.txt",
+      "font_urls": "demo_fonts/jaws_font_urls.txt",
       "style": "demo_fonts/jaws_style.txt"
     },
     "kreep": {
       "name": "Kreep",
-      "font_urls": "demo_fonts/Kreep_font_urls.txt",
+      "font_urls": "demo_fonts/kreep_font_urls.txt",
       "style": "demo_fonts/kreep_style.txt"
     },
     "liquid_sword": {
       "name": "Liquid_Sword",
-      "font_urls": "demo_fonts/Liquid_Sword_font_urls.txt",
+      "font_urls": "demo_fonts/liquid_sword_font_urls.txt",
       "style": "demo_fonts/liquid_sword_style.txt"
     },
     "poison": {
       "name": "Poison",
-      "font_urls": "demo_fonts/Poison_font_urls.txt",
+      "font_urls": "demo_fonts/poison_font_urls.txt",
       "style": "demo_fonts/poison_style.txt"
     },
     "razor": {
       "name": "Razor",
-      "font_urls": "demo_fonts/Razor_font_urls.txt",
+      "font_urls": "demo_fonts/razor_font_urls.txt",
       "style": "demo_fonts/razor_style.txt"
     },
     "shiver": {
       "name": "Shiver",
-      "font_urls": "demo_fonts/Shiver_font_urls.txt",
+      "font_urls": "demo_fonts/shiver_font_urls.txt",
       "style": "demo_fonts/shiver_style.txt"
     },
     "silly_saber": {
       "name": "Silly_Saber",
-      "font_urls": "demo_fonts/Silly_Saber_font_urls.txt",
+      "font_urls": "demo_fonts/silly_saber_font_urls.txt",
       "style": "demo_fonts/silly_saber_style.txt"
     },
     "skrim": {
       "name": "Skrim",
-      "font_urls": "demo_fonts/Skrim_font_urls.txt",
+      "font_urls": "demo_fonts/skrim_font_urls.txt",
       "style": "demo_fonts/skrim_style.txt"
     },
     "son_of_a_glitch": {
       "name": "Son_of_a_Glitch",
-      "font_urls": "demo_fonts/Son_of_a_Glitch_font_urls.txt",
+      "font_urls": "demo_fonts/son_of_a_glitch_font_urls.txt",
       "style": "demo_fonts/son_of_a_glitch_style.txt"
     },
     "terra": {
       "name": "Terra",
-      "font_urls": "demo_fonts/Terra_font_urls.txt",
+      "font_urls": "demo_fonts/terra_font_urls.txt",
       "style": "demo_fonts/terra_style.txt"
     },
     "the_lawnmower_man": {
       "name": "The  Lawnmower Man",
-      "font_urls": "demo_fonts/The_Lawnmower_Man_font_urls.txt",
+      "font_urls": "demo_fonts/the_lawnmower_man_font_urls.txt",
       "style": "demo_fonts/the_lawnmower_man_style.txt"
     },
     "the_baron": {
       "name": "The_Baron",
-      "font_urls": "demo_fonts/The_Baron_font_urls.txt",
+      "font_urls": "demo_fonts/the_baron_font_urls.txt",
       "style": "demo_fonts/the_baron_style.txt"
     },
     "the_cursed_saber": {
       "name": "The_Cursed_Saber",
-      "font_urls": "demo_fonts/The_Cursed_Saber_font_urls.txt",
+      "font_urls": "demo_fonts/the_cursed_saber_font_urls.txt",
       "style": "demo_fonts/the_cursed_saber_style.txt"
     },
     "the_thing": {
       "name": "The_Thing",
-      "font_urls": "demo_fonts/The_Thing_font_urls.txt",
+      "font_urls": "demo_fonts/the_thing_font_urls.txt",
       "style": "demo_fonts/the_thing_style.txt"
     },
     "the_watcher": {
       "name": "The_Watcher",
-      "font_urls": "demo_fonts/The_Watcher_font_urls.txt",
+      "font_urls": "demo_fonts/the_watcher_font_urls.txt",
       "style": "demo_fonts/the_watcher_style.txt"
     },
     "void": {
       "name": "Void",
-      "font_urls": "demo_fonts/Void_font_urls.txt",
+      "font_urls": "demo_fonts/void_font_urls.txt",
       "style": "demo_fonts/void_style.txt"
     },
     "zero": {
       "name": "Zero",
-      "font_urls": "demo_fonts/Zero_font_urls.txt",
+      "font_urls": "demo_fonts/zero_font_urls.txt",
       "style": "demo_fonts/zero_style.txt"
     }
   }
