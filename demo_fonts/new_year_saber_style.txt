@@ -24,7 +24,7 @@ TransitionLoopL<TrWaveX<RotateColorsX<Variation,Blue>,Int<300>,Int<300>,Int<300>
 TrDelay<3000>,AlphaL<RotateColorsX<Variation,Blue>,Bump<Int<0>,Int<6000>>>,TrBoing<1450,5>>,EFFECT_PREON>>>()
 
 
-
+/*
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 -If you need help to install your soundfont please ask your questions at :https://www.facebook.com/groups/proffieboardsupport/ 
@@ -56,3 +56,4 @@ TrDelay<3000>,AlphaL<RotateColorsX<Variation,Blue>,Bump<Int<0>,Int<6000>>>,TrBoi
 color scheme
 A A A
 fighterstar-warsstarfighterstarwarstransportation
+*/

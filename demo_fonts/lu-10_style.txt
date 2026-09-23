@@ -19,7 +19,7 @@ StylePtr<Layers<
   TransitionEffectL<TrConcat<TrInstant,TransitionLoopL<TrWaveX<White,Int<500>,Int<200>,Int<600>,Int<40>>>,TrDelay<1500>,TransitionLoopL<TrWaveX<Black,Int<300>,Int<300>,Int<300>,Int<32768>>>,TrDelay<500>,TransitionLoopL<TrWaveX<White,Int<110>,Int<200>,Int<100>,Int<32768>>>,TrDelay<1500>,AlphaL<DarkOrange,Bump<Int<1000>,Int<32700>>>,TrBoing<200,5>>,EFFECT_PREON>>>()
 
 
-
+/*
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 -If you need help to install your soundfont please ask your questions at :https://www.facebook.com/groups/proffieboardsupport/ 
@@ -51,3 +51,4 @@ StylePtr<Layers<
 color scheme
 A A A
 fighterstar-warsstarfighterstarwarstransportation
+*/
