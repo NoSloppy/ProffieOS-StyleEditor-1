@@ -146,10 +146,10 @@
       "font_urls": "demo_fonts/lightsaber_of_the_bells_font_urls.txt",
       "style": "demo_fonts/lightsaber_of_the_bells_style.txt"
     },
-    "lu_10": {
+    "lu-10": {
       "name": "Lu-10",
-      "font_urls": "demo_fonts/lu_10_font_urls.txt",
-      "style": "demo_fonts/lu_10_style.txt"
+      "font_urls": "demo_fonts/lu-10_font_urls.txt",
+      "style": "demo_fonts/lu-10_style.txt"
     },
     "new_year_saber": {
       "name": "New_Year_Saber",
