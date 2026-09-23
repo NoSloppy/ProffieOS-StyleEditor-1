@@ -1,7 +1,5 @@
-
-
-Bladestyle for proffieboard os 5.6 or later 
-
+// Five_Hours_Static - Bladestyle for Proffieboard os 5.6 or later 
+// Copyright: Jérôme Tremblay ( Jaydalorian )
 
 StylePtr<Layers<StyleFire<StripesX<Int<3000>,Scale<SlowNoise<Int<2000>>,Int<-1000>,Int<-5000>>,BrownNoiseFlicker<RotateColorsX<Variation,Rgb<95,0,210>>,Black,100>,
 RandomPerLEDFlicker<RotateColorsX<Variation,Rgb<21,0,52>>,RotateColorsX<Variation,Rgb<4,0,8>>>,RotateColorsX<Variation,Rgb<115,15,220>>,RotateColorsX<Variation,Rgb<42,0,105>>>,RotateColorsX<Variation,
@@ -25,4 +23,3 @@ EFFECT_PREON>,TransitionEffectL<TrConcat<TrInstant,TransitionLoopL<TrWaveX<Rotat
 TransitionLoopL<TrWaveX<RotateColorsX<Variation,Rgb<95,0,210>>,Int<300>,Int<300>,Int<300>,Int<32768>>>,TrDelay<2000>,TransitionLoopL<TrWaveX<RotateColorsX<Variation,Rgb<95,0,210>>,Int<100>,Int<400>,Int<100>,
 Int<32768>>>,TrDelay<3000>,AlphaL<RotateColorsX<Variation,Rgb<95,0,210>>,Bump<Int<0>,Int<6000>>>,TrBoing<1450,5>>,EFFECT_PREON>>>()
 
-Copyright: Jérôme Tremblay ( Jaydalorian )

@@ -1,3 +1,6 @@
+// Lightsaber_of_the_Bells - Bladestyle for Proffieboard
+// Copyright: Jérôme Tremblay ( Jaydalorian )
+
 StylePtr<Layers<
   Mix<SwingSpeed<400>,HumpFlicker<RotateColorsX<Variation,Blue>,RotateColorsX<Variation,DeepSkyBlue>,50>,Mix<SwingSpeed<600>,RotateColorsX<Variation,Magenta>,RotateColorsX<Variation,SteelBlue>>>,
   TransitionEffectL<TrConcat<TrInstant,Strobe<GreenYellow,Black,20,30>,TrFade<50>>,EFFECT_CLASH>,

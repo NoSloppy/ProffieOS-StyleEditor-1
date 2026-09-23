@@ -1,8 +1,5 @@
-                                                                                  ProffieBoard os 5.0 or later 
-
-
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// Lu-10 - Bladestyle for Proffieboard
+// Copyright: Jérôme Tremblay ( Jaydalorian )
 
 StylePtr<Layers<
   StyleFire<Stripes<2500,-5000,BrownNoiseFlicker<RotateColorsX<Variation,Red>,Black,20>,RotateColorsX<Variation,Rgb<10,0,0>>,BrownNoiseFlicker<Black,RotateColorsX<Variation,Rgb<255,25,25>>,70>,RotateColorsX<Variation,Rgb<128,0,0>>>,RotateColorsX<Variation,Rgb<80,0,0>>,0,5,FireConfig<2,3000,0>,FireConfig<2,3000,0>,FireConfig<2,3000,0>,FireConfig<2,3000,0>>,

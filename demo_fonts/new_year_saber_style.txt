@@ -1,8 +1,5 @@
-                                                                                  ProffieBoard os 5.0 or later 
-
-
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// New_Year_Saber - Bladestyle for Proffieboard
+// Copyright: Jérôme Tremblay ( Jaydalorian )
 
 StylePtr<Layers<
   Stripes<5000,-1500,RotateColorsX<Variation,Blue>,RotateColorsX<Variation,Rgb<0,0,60>>,RotateColorsX<Variation,Rgb<50,50,255>>,RotateColorsX<Variation,Rgb<0,0,128>>>,
