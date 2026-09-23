@@ -1,0 +1,19 @@
+// Lightsaber_of_the_Bells - Bladestyle for Proffieboard
+// Copyright: Jérôme Tremblay ( Jaydalorian )
+
+StylePtr<Layers<
+  Mix<SwingSpeed<400>,HumpFlicker<RotateColorsX<Variation,Blue>,RotateColorsX<Variation,DeepSkyBlue>,50>,Mix<SwingSpeed<600>,RotateColorsX<Variation,Magenta>,RotateColorsX<Variation,SteelBlue>>>,
+  TransitionEffectL<TrConcat<TrInstant,Strobe<GreenYellow,Black,20,30>,TrFade<50>>,EFFECT_CLASH>,
+  LocalizedClashL<BrownNoiseFlicker<Yellow,Green,500>,100>,
+  TransitionEffectL<TrConcat<TrWipeIn<300>,AlphaL<GreenYellow,SmoothStep<Int<32000>,Int<30000>>>,TrJoin<TrSmoothFade<900>,TrWipe<700>>>,EFFECT_STAB>,
+  TransitionEffectL<TrConcat<TrInstant,Strobe<GreenYellow,Black,20,30>,TrDelay<50>,AlphaL<Red,Int<6000>>,TrJoinR<TrWipe<50>,TrWipeIn<50>>>,EFFECT_BLAST>,
+  BlastL<Cyan,400,200,500>,
+  ResponsiveLockupL<Gradient<StyleFire<Black,Rgb16<21301,0,65535>,0,4,FireConfig<0,2000,5>,FireConfig<3000,0,0>,FireConfig<0,4000,0>>,RandomBlink<6000,Red,Strobe<Black,White,15,30>>>,TrConcat<TrInstant,Strobe<GreenYellow,Black,20,30>,TrFade<150>>,TrConcat<TrInstant,Strobe<GreenYellow,Black,20,30>,TrDelay<30>,Rgb<100,100,100>,TrJoinR<TrWipe<125>,TrWipeIn<125>>>,Scale<BladeAngle<0,16000>,Int<4000>,Int<26000>>,Int<6000>,Int<12000>>,
+  LockupTrL<AlphaL<Gradient<Black,Black,Black,Black,Black,Stripes<500,4000,Rgb16<21301,0,65535>,Black,Black>,RandomBlink<6000,Red,Strobe<Black,Yellow,15,30>>>,SmoothStep<Int<30000>,Int<30000>>>,TrConcat<TrInstant,Strobe<GreenYellow,Black,20,30>,TrFade<150>>,TrColorCycle<1500,-2000>,SaberBase::LOCKUP_DRAG>,
+  ResponsiveMeltL<Mix<TwistAngle<>,Red,RandomBlink<30000,Yellow,AudioFlicker<OrangeRed,White>>>,TrWipeIn<600>,TrColorCycle<1500,-2000>>,
+  ResponsiveLightningBlockL<Strobe<Rgb16<21301,0,65535>,White,50,10>,TrConcat<TrInstant,Strobe<GreenYellow,Black,20,30>,TrFade<150>>,TrConcat<TrInstant,Strobe<GreenYellow,Black,20,30>,TrDelay<30>,BrownNoiseFlicker<Rgb16<21301,0,65535>,Black,500>,TrJoinR<TrWipe<125>,TrWipeIn<125>>>>,
+  TransitionEffectL<TrConcat<TrInstant,StyleFire<Red,White,0,6,FireConfig<200,3000,5>>,TrFade<500>>,EFFECT_IGNITION>,
+  InOutTrL<TrWipeSparkTip<White,150>,TrWipeIn<1300>>,
+  TransitionEffectL<TrConcat<TrWaveX<RotateColorsX<Variation,Blue>,Int<200>,Int<300>,Int<200>,Int<0>>,Mix<SmoothStep<Int<27500>,Int<2000>>,Black,RotateColorsX<Variation,HumpFlicker<Blue,DodgerBlue,200>>>,TrWaveX<RotateColorsX<Variation,Blue>,Int<175>,Int<300>,Int<175>,Int<0>>,Mix<SmoothStep<Int<22000>,Int<2000>>,Black,RotateColorsX<Variation,HumpFlicker<Blue,DodgerBlue,200>>>,TrWaveX<RotateColorsX<Variation,Blue>,Int<150>,Int<300>,Int<150>,Int<0>>,Mix<SmoothStep<Int<16500>,Int<2000>>,Black,RotateColorsX<Variation,HumpFlicker<Blue,Red,200>>>,TrWaveX<RotateColorsX<Variation,Blue>,Int<150>,Int<300>,Int<150>,Int<0>>,Mix<SmoothStep<Int<11000>,Int<2000>>,Black,RotateColorsX<Variation,HumpFlicker<DeepSkyBlue,Blue,200>>>,TrWaveX<RotateColorsX<Variation,Blue>,Int<100>,Int<300>,Int<100>,Int<0>>,Mix<SmoothStep<Int<5500>,Int<2000>>,Black,RotateColorsX<Variation,HumpFlicker<Blue,DodgerBlue,200>>>,TrDelay<100>,Mix<SmoothStep<Int<5500>,Int<2000>>,Black,RotateColorsX<Variation,HumpFlicker<Blue,Red,200>>>,TrWipe<100>,Mix<SmoothStep<Int<0>,Int<2000>>,Black,RotateColorsX<Variation,HumpFlicker<Blue,Rgb<60,15,0>,200>>>,TrFade<100>,White,TrInstant>,EFFECT_PREON>,
+  TransitionEffectL<TrConcat<TrInstant,HumpFlickerL<White,40>,TrFade<300>>,EFFECT_RETRACTION>,
+  TransitionEffectL<TrConcat<TrInstant,AlphaL<White,Bump<Int<0>,Int<6000>>>,TrFade<1000>,AlphaL<Blue,Bump<Int<0>,Int<4000>>>,TrFade<1000>,AlphaL<OrangeRed,Bump<Int<0>,Int<2800>>>,TrFade<1000>,AlphaL<Red,Bump<Int<0>,Int<1700>>>,TrFade<2000>>,EFFECT_RETRACTION>>>()
