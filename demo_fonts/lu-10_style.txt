@@ -17,38 +17,3 @@ StylePtr<Layers<
   TransitionEffectL<TrConcat<TrInstant,AlphaL<White,Bump<Int<0>,Int<10000>>>,TrFade<3000>,AlphaL<Orange,Bump<Int<0>,Int<8000>>>,TrFade<0>,AlphaL<Red,Bump<Int<0>,Int<6000>>>,TrFade<0>>,EFFECT_RETRACTION>,
   TransitionEffectL<TrConcat<TrDelay<2500>,AlphaL<HumpFlickerL<DarkOrange,1>,Bump<Int<220>,Int<5700>>>,TrFade<2000>,AlphaL<HumpFlickerL<Rgb<100,100,150>,30>,Bump<Int<0>,Int<4000>>>,TrFade<0>,AlphaL<HumpFlickerL<Rgb<100,100,150>,30>,Bump<Int<0>,Int<5000>>>,TrBoing<50,1>>,EFFECT_PREON>,
   TransitionEffectL<TrConcat<TrInstant,TransitionLoopL<TrWaveX<White,Int<500>,Int<200>,Int<600>,Int<40>>>,TrDelay<1500>,TransitionLoopL<TrWaveX<Black,Int<300>,Int<300>,Int<300>,Int<32768>>>,TrDelay<500>,TransitionLoopL<TrWaveX<White,Int<110>,Int<200>,Int<100>,Int<32768>>>,TrDelay<1500>,AlphaL<DarkOrange,Bump<Int<1000>,Int<32700>>>,TrBoing<200,5>>,EFFECT_PREON>>>()
-
-
-/*
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
--If you need help to install your soundfont please ask your questions at :https://www.facebook.com/groups/proffieboardsupport/ 
-
--Copyright: Jérôme Tremblay ( JayDaloRian) 
-
-
-                ._,.
-           "..-..pf.
-          -L   ..#'
-        .+_L  ."]#
-        ,'j' .+.j`                 -'.__..,.,p.
-       _~ #..<..0.                 .J-.``..._f.
-      .7..#_.. _f.                .....-..,`4'
-      ;` ,#j.  T'      ..         ..J....,'.j`
-     .` .."^.,-0.,,,,yMMMMM,.    ,-.J...+`.j@
-    .'.`...' .yMMMMM0M@^=`""g.. .'..J..".'.jH
-    j' .'1`  q'^)@@#"^".`"='BNg_...,]_)'...0-
-   .T ...I. j"    .'..+,_.'3#MMM0MggCBf....F.
-   j/.+'.{..+       `^~'-^~~""""'"""?'"``'1`
-   .... .y.}                  `.._-:`_...jf
-   g-.  .Lg'                 ..,..'-....,'.
-  .'.   .Y^                  .....',].._f
-  ......-f.                 .-,,.,.-:--&`
-                            .`...'..`_J`
-                            .~......'#'
-  Ray Brunner               '..,,.,_]`     Sienar Fleet Systems' TIE/In
-                            .L..`..``.     Space Superiority Starfighter (2)
-color scheme
-A A A
-fighterstar-warsstarfighterstarwarstransportation
-*/
