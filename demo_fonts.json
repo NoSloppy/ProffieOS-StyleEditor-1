@@ -137,12 +137,12 @@
       "style": "demo_fonts/decimate_style.txt"
     },
     "five_hours_static": {
-      "name": "Five Hours Static",
+      "name": "Five_Hours_Static",
       "font_urls": "demo_fonts/five_hours_static_font_urls.txt",
       "style": "demo_fonts/five_hours_static_style.txt"
     },
     "lightsaber_of_the_bells": {
-      "name": "Lightsaber of the Bells",
+      "name": "Lightsaber_of_the_Bells",
       "font_urls": "demo_fonts/lightsaber_of_the_bells_font_urls.txt",
       "style": "demo_fonts/lightsaber_of_the_bells_style.txt"
     },
@@ -152,7 +152,7 @@
       "style": "demo_fonts/lu_10_style.txt"
     },
     "new_year_saber": {
-      "name": "New Year Saber",
+      "name": "New_Year_Saber",
       "font_urls": "demo_fonts/new_year_saber_font_urls.txt",
       "style": "demo_fonts/new_year_saber_style.txt"
     }
