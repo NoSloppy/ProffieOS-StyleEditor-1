@@ -12,7 +12,7 @@
       "style": "demo_fonts/alias_style.txt"
     },
     "astral_projection": {
-      "name": "Astral Projection",
+      "name": "Astral_Projection",
       "font_urls": "demo_fonts/astral_projection_font_urls.txt",
       "style": "demo_fonts/astral_projection_style.txt"
     },
@@ -26,13 +26,8 @@
       "font_urls": "demo_fonts/clipper_font_urls.txt",
       "style": "demo_fonts/clipper_style.txt"
     },
-    "crispity": {
-      "name": "Crispity",
-      "font_urls": "demo_fonts/crispity_font_urls.txt",
-      "style": "demo_fonts/crispity_style.txt"
-    },
     "cybernetic_cerebrum": {
-      "name": "Cybernetic Cerebrum",
+      "name": "Cybernetic_Cerebrum",
       "font_urls": "demo_fonts/cybernetic_cerebrum_font_urls.txt",
       "style": "demo_fonts/cybernetic_cerebrum_style.txt"
     },
@@ -51,10 +46,10 @@
       "font_urls": "demo_fonts/high_voltage_font_urls.txt",
       "style": "demo_fonts/high_voltage_style.txt"
     },
-    "jaws_font": {
-      "name": "jaws font",
-      "font_urls": "demo_fonts/jaws_font_font_urls.txt",
-      "style": "demo_fonts/jaws_font_style.txt"
+    "jaws": {
+      "name": "Jaws",
+      "font_urls": "demo_fonts/jaws_font_urls.txt",
+      "style": "demo_fonts/jaws_style.txt"
     },
     "kreep": {
       "name": "Kreep",
@@ -62,7 +57,7 @@
       "style": "demo_fonts/kreep_style.txt"
     },
     "liquid_sword": {
-      "name": "Liquid Sword",
+      "name": "Liquid_Sword",
       "font_urls": "demo_fonts/liquid_sword_font_urls.txt",
       "style": "demo_fonts/liquid_sword_style.txt"
     },
@@ -80,6 +75,21 @@
       "name": "Shiver",
       "font_urls": "demo_fonts/shiver_font_urls.txt",
       "style": "demo_fonts/shiver_style.txt"
+    },
+    "silly_saber": {
+      "name": "Silly_Saber",
+      "font_urls": "demo_fonts/silly_saber_font_urls.txt",
+      "style": "demo_fonts/silly_saber_style.txt"
+    },
+    "skrim": {
+      "name": "Skrim",
+      "font_urls": "demo_fonts/skrim_font_urls.txt",
+      "style": "demo_fonts/skrim_style.txt"
+    },
+    "son_of_a_glitch": {
+      "name": "Son_of_a_Glitch",
+      "font_urls": "demo_fonts/son_of_a_glitch_font_urls.txt",
+      "style": "demo_fonts/son_of_a_glitch_style.txt"
     },
     "terra": {
       "name": "Terra",
