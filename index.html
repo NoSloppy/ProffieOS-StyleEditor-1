@@ -66,7 +66,7 @@
 
       // Maps physical degrees (-90 to 90) to the engine's internal math scale (-2.5 to 2.5)
       let engineX = (tiltX / 90) * 2.5;
-      let engineY = (tiltY / 90) * 1.5;
+      let engineY = -(tiltY / 90) * 1.5;
 
       // Bypasses the HTML canvas entirely and commands the 3D physics directly
       if (typeof window.drive_saber_from_xy === 'function') {
