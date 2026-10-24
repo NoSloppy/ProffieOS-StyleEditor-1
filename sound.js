@@ -57,6 +57,7 @@ const CREATOR_LOGO_REGISTRY = [
   { names: ['mountain sabers', 'mountainsabers'], domains: ['mountainsabers'], logoUrl: 'https://raw.githubusercontent.com/NoSloppy/ProffieOS-StyleEditor-1/master/demo_fonts/mountain_sabers_logo.jpg' },
   { names: ['madcow'], domains: ['madcow'], logoUrl: 'https://raw.githubusercontent.com/NoSloppy/ProffieOS-StyleEditor-1/master/demo_fonts/madcow_logo.jpg' },
   { names: ['syndicate custom relics', 'syndicate', 'syndicatecustomrelics'], domains: ['syndicate'], logoUrl: 'https://raw.githubusercontent.com/NoSloppy/ProffieOS-StyleEditor-1/master/demo_fonts/syndicate_custom_relics_logo.jpg' },
+  { names: ['bvm saber sound fonts', 'bvm', 'bvmsabersoundfonts'], domains: ['bvm'], logoUrl: 'https://raw.githubusercontent.com/NoSloppy/ProffieOS-StyleEditor-1/master/demo_fonts/BVM_Logo.JPG' },
 ];
 
 // Lockup/loop sources
